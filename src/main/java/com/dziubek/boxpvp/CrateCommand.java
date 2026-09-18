@@ -82,7 +82,7 @@ public class CrateCommand implements CommandExecutor {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage("§6§l--- /crate ---");
+        sender.sendMessage(Branding.accent("--- /crate ---"));
         sender.sendMessage("§c/crate create <nazwa> §7- konfiguruje nagrody skrzyni (GUI)");
         sender.sendMessage("§c/crate givekey <nazwa> <gracz> [ilość] §7- daje klucz graczowi");
         sender.sendMessage("§c/crate bind <nazwa> §7- przypina blok, na który patrzysz, jako fizyczną skrzynię");
@@ -353,7 +353,7 @@ public class CrateCommand implements CommandExecutor {
         Player player = (Player) sender;
         String name = args[1];
 
-        Inventory inv = Bukkit.createInventory(new CrateConfigGuiHolder(name), 27, "§6§lKonfiguracja: §f" + name);
+        Inventory inv = Bukkit.createInventory(new CrateConfigGuiHolder(name), 27, Branding.accent("Konfiguracja:") + " §f" + name);
         List<CrateReward> existing = plugin.getCrates().getRewards(name);
         for (int i = 0; i < existing.size() && i < 27; i++) {
             CrateReward reward = existing.get(i);

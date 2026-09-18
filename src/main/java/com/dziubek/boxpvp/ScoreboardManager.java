@@ -1,8 +1,11 @@
 package com.dziubek.boxpvp;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -16,6 +19,7 @@ import java.util.ArrayList;
 public class ScoreboardManager {
 
     private static final String OBJECTIVE_ID = "bpvp_side";
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
 
     private final BoxPvpPlugin plugin;
 
@@ -27,10 +31,20 @@ public class ScoreboardManager {
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, 20L, 20L);
     }
 
+    /**
+     * Tytuł idzie przez Component (nie zwykły 3-argumentowy registerNewObjective) - ten
+     * ostatni ma twardy limit 32 znaków na surowy String, a gradientowe kodowanie hex
+     * (§x§R§R§G§G§B§B na znak) rozdmuchuje długość dużo powyżej tego limitu.
+     */
     public void assign(Player player) {
         Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
-        String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("scoreboard.title", "&6&lBoxPvP"));
-        Objective objective = board.registerNewObjective(OBJECTIVE_ID, "dummy", title);
+        String configured = plugin.getConfig().getString("scoreboard.title", null);
+        String legacyTitle = configured != null
+                ? ChatColor.translateAlternateColorCodes('&', configured)
+                : Branding.accent(Branding.NAME);
+        Component title = LEGACY.deserialize(legacyTitle);
+
+        Objective objective = board.registerNewObjective(OBJECTIVE_ID, Criteria.DUMMY, title);
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         player.setScoreboard(board);
         refresh(player);

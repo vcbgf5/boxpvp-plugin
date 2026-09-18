@@ -30,8 +30,11 @@ public class LeaderboardManager {
 
     private static final int MAX_ENTRIES = 10;
     private static final long REFRESH_TICKS = 20L * 15;
+    private static final long TIMER_REFRESH_TICKS = 20L;
     private static final String BOARD_TAG = "bpvp_leaderboard";
-    private static final List<String> TYPES = List.of("kills", "coins", "killstreak");
+    private static final String TIMER_TYPE = "envoy";
+    private static final List<String> STAT_TYPES = List.of("kills", "coins", "killstreak");
+    private static final List<String> ALL_TYPES = List.of("kills", "coins", "killstreak", "envoy");
 
     private final BoxPvpPlugin plugin;
     private final File file;
@@ -60,8 +63,10 @@ public class LeaderboardManager {
 
     public void start() {
         purgeOrphans();
-        refreshAll();
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, REFRESH_TICKS, REFRESH_TICKS);
+        refreshAllStats();
+        refreshTimer();
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAllStats, REFRESH_TICKS, REFRESH_TICKS);
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshTimer, TIMER_REFRESH_TICKS, TIMER_REFRESH_TICKS);
     }
 
     public void setLocation(String type, Location location) {
@@ -74,10 +79,14 @@ public class LeaderboardManager {
         refresh(type);
     }
 
-    private void refreshAll() {
-        for (String type : TYPES) {
+    private void refreshAllStats() {
+        for (String type : STAT_TYPES) {
             refresh(type);
         }
+    }
+
+    private void refreshTimer() {
+        refresh(TIMER_TYPE);
     }
 
     private void refresh(String type) {
@@ -85,6 +94,18 @@ public class LeaderboardManager {
         if (location == null || location.getWorld() == null) {
             return;
         }
+        List<String> lines = type.equals(TIMER_TYPE) ? buildTimerLines() : buildStatLines(type);
+        String hologramId = type.equals(TIMER_TYPE) ? "bpvp_envoy_timer" : "bpvp_top_" + type;
+
+        if (plugin.getDecentHolograms().isAvailable()) {
+            plugin.getDecentHolograms().createInfoHologram(hologramId, location, lines);
+            removeTextBoard(type);
+        } else {
+            updateTextBoard(type, location, lines);
+        }
+    }
+
+    private List<String> buildStatLines(String type) {
         List<StatsManager.TopEntry> top = topFor(type);
         List<String> lines = new ArrayList<>();
         lines.add(titleFor(type));
@@ -96,13 +117,22 @@ public class LeaderboardManager {
                 lines.add(rankColor(i) + "#" + (i + 1) + " §f" + entry.name() + " §7- " + formatValue(type, entry.value()));
             }
         }
+        return lines;
+    }
 
-        if (plugin.getDecentHolograms().isAvailable()) {
-            plugin.getDecentHolograms().createInfoHologram("bpvp_top_" + type, location, lines);
-            removeTextBoard(type);
-        } else {
-            updateTextBoard(type, location, lines);
-        }
+    private List<String> buildTimerLines() {
+        List<String> lines = new ArrayList<>();
+        lines.add(Branding.accent("Następny Envoy"));
+        long millis = plugin.getEvents().getMillisUntilNextEnvoy();
+        lines.add("§d" + formatCountdown(millis));
+        return lines;
+    }
+
+    private static String formatCountdown(long millis) {
+        long totalSeconds = Math.max(0, millis / 1000);
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
     }
 
     private List<StatsManager.TopEntry> topFor(String type) {
@@ -174,11 +204,11 @@ public class LeaderboardManager {
     private static String titleFor(String type) {
         switch (type) {
             case "coins":
-                return "§6§lTOP 10 - Monety";
+                return Branding.accent("TOP 10 - Monety");
             case "killstreak":
-                return "§6§lTOP 10 - Seria zabójstw";
+                return Branding.accent("TOP 10 - Seria zabójstw");
             default:
-                return "§6§lTOP 10 - Zabójstwa";
+                return Branding.accent("TOP 10 - Zabójstwa");
         }
     }
 
@@ -203,7 +233,7 @@ public class LeaderboardManager {
     }
 
     private void loadLocations() {
-        for (String type : TYPES) {
+        for (String type : ALL_TYPES) {
             String worldName = data.getString(type + ".world");
             if (worldName == null) {
                 continue;

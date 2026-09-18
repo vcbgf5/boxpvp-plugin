@@ -46,7 +46,7 @@ public class CombatQuitListener implements Listener {
 
         String message = plugin.msg("quit-punished", "&c{player} wyszedł podczas walki i stracił przedmioty!")
                 .replace("{player}", player.getName());
-        plugin.getServer().broadcastMessage(message);
+        plugin.getServer().broadcastMessage(Branding.chatPrefix() + message);
     }
 
     private void dropIfPresent(Location location, ItemStack item) {

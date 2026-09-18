@@ -46,7 +46,7 @@ public class CrateRollAnimation {
 
     public static void play(BoxPvpPlugin plugin, Player player, String crateName, List<CrateReward> rewards,
                              Location crateBlockLocation) {
-        Inventory inv = Bukkit.createInventory(new CrateRollGuiHolder(), GUI_SIZE, "§6§lOtwieranie: §f" + crateName);
+        Inventory inv = Bukkit.createInventory(new CrateRollGuiHolder(), GUI_SIZE, Branding.accent("Otwieranie:") + " §f" + crateName);
         paintFrame(inv, Material.BLACK_STAINED_GLASS_PANE);
 
         Random random = new Random();
@@ -57,7 +57,7 @@ public class CrateRollAnimation {
         renderReel(inv, reel);
 
         player.openInventory(inv);
-        TitleUtil.show(player, "§6§lLosowanie...", "§7" + crateName);
+        TitleUtil.show(player, Branding.accent("Losowanie..."), "§7" + crateName);
         step(plugin, player, inv, crateName, rewards, reel, random, 0, crateBlockLocation);
     }
 
@@ -232,15 +232,16 @@ public class CrateRollAnimation {
     private static void announceRarity(BoxPvpPlugin plugin, Player player, String crateName, String itemName,
                                         double chance, Location crateBlockLocation) {
         if (chance < LEGENDARY_THRESHOLD) {
-            TitleUtil.show(player, "§6§l✦ LEGENDARY ✦", "§f" + itemName);
+            TitleUtil.show(player, Branding.accent("✦ LEGENDARY ✦"), "§f" + itemName);
             player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.6f, 1.4f);
             spawnFirework(plugin, player);
             if (crateBlockLocation != null) {
                 spawnLegendaryBeacon(plugin, crateBlockLocation);
             }
 
-            String broadcast = "§6§l✦ §e" + player.getName() + " §6wylosował(a) RZADKI przedmiot §f" + itemName
-                    + " §6ze skrzyni '" + crateName + "'! §6§l✦";
+            String broadcast = Branding.chatPrefix() + Branding.accent("✦") + " §e" + player.getName()
+                    + " §dwylosował(a) RZADKI przedmiot §f" + itemName
+                    + " §dze skrzyni '" + crateName + "'! " + Branding.accent("✦");
             Bukkit.getServer().broadcastMessage(broadcast);
         } else if (chance < RARE_THRESHOLD) {
             TitleUtil.show(player, "§b§lRZADKI!", "§f" + itemName);

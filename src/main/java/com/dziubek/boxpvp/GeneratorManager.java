@@ -216,7 +216,7 @@ public class GeneratorManager {
     private void updateHologram(Generator gen, long remainingMs) {
         long remainingSeconds = Math.max(0, remainingMs / 1000);
         List<String> lines = new ArrayList<>();
-        lines.add("&6&l" + gen.name);
+        lines.add(Branding.accent(gen.name));
         lines.add("&7Blok: &f" + materialDisplayName(gen.material));
         lines.add("&7Odnowienie za: &e" + formatDuration(remainingSeconds));
 

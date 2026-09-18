@@ -79,7 +79,7 @@ public class PrestigeManager {
         data.set(player.getUniqueId() + ".level", newLevel);
         save();
 
-        Bukkit.broadcastMessage("§d§l✦ PRESTIŻ! §f" + player.getName() + " §7awansował na prestiż §d" + newLevel + "§7!");
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§d§l✦ PRESTIŻ! §f" + player.getName() + " §7awansował na prestiż §d" + newLevel + "§7!");
         TitleUtil.show(player, "§d§l✦ PRESTIŻ " + newLevel,
                 "§7Mnożnik zarobków: §fx" + format(getMultiplier(player.getUniqueId())));
         player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 80, 0.5, 0.8, 0.5, 0.4);

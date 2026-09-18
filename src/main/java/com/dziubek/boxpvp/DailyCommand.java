@@ -43,7 +43,7 @@ public class DailyCommand implements CommandExecutor {
                 return true;
             }
 
-            Inventory inv = Bukkit.createInventory(new DailyConfigGuiHolder(day), 9, "§6§lNagroda - Dzień " + day);
+            Inventory inv = Bukkit.createInventory(new DailyConfigGuiHolder(day), 9, Branding.accent("Nagroda - Dzień " + day));
             ItemStack existing = plugin.getDaily().getDayReward(day);
             if (existing != null) {
                 inv.setItem(4, existing);

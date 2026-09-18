@@ -3,7 +3,8 @@ main: com.dziubek.boxpvp.BoxPvpPlugin
 version: 1.0.0
 api-version: '1.21'
 author: Dziubek
-description: Box PvP - jeden wspolny spawn, combat log, TPA, kity, daily, sklep, skrzynie, generatory blokow i handlarze
+prefix: VantaNet
+description: VantaNet - Box PvP - jeden wspolny spawn, combat log, TPA, kity, daily, sklep, skrzynie, generatory blokow i handlarze
 
 commands:
   setsurvivalspawn:

@@ -26,7 +26,7 @@ public class ShopConfigGuiManager {
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(new ShopConfigGuiHolder(), 9, "§6§lNowy przedmiot: §f" + session.category);
+        Inventory inv = Bukkit.createInventory(new ShopConfigGuiHolder(), 9, Branding.accent("Nowy przedmiot:") + " §f" + session.category);
 
         inv.setItem(0, build(session.icon.clone(), null, Collections.singletonList("&7To zobaczą gracze w sklepie")));
 

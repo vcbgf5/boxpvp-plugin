@@ -64,7 +64,7 @@ public class GeneratorCommand implements CommandExecutor {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage("§6§l--- /bpvp ---");
+        sender.sendMessage(Branding.accent("--- /bpvp ---"));
         sender.sendMessage("§c/bpvp wand §7- różdżka do zaznaczania obszaru generatora (LPM=pozycja 1, PPM=pozycja 2)");
         sender.sendMessage("§c/bpvp create <nazwa> <blok> <sekundy> §7- generator na zaznaczonym obszarze");
         sender.sendMessage("§c/bpvp remove <nazwa> §7- usuwa generator");
@@ -78,7 +78,7 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp event setzone2 §7- 2. róg tego obszaru (przeciwległy róg)");
         sender.sendMessage("§c/bpvp event envoy §7- ręcznie zrzuca skrzynkę-event w losowe miejsce tego obszaru");
         sender.sendMessage("§c/bpvp event envoyitem add|clear|list §7- pula nagród skrzynki-eventu (add = trzymany przedmiot)");
-        sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak> §7- stawia tablicę TOP 10 tu gdzie stoisz");
+        sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak|envoy> §7- stawia tablicę tu gdzie stoisz");
     }
 
     private boolean handleWand(CommandSender sender) {
@@ -230,7 +230,7 @@ public class GeneratorCommand implements CommandExecutor {
                     sender.sendMessage("§eCeny auto-sprzedaży: §fbrak");
                     return true;
                 }
-                sender.sendMessage("§6§l--- Ceny auto-sprzedaży ---");
+                sender.sendMessage(Branding.accent("--- Ceny auto-sprzedaży ---"));
                 for (Map.Entry<Material, Double> entry : prices.entrySet()) {
                     sender.sendMessage("§7- §f" + entry.getKey() + " §7- §a" + entry.getValue() + "$");
                 }
@@ -323,7 +323,7 @@ public class GeneratorCommand implements CommandExecutor {
 
     private boolean handleLeaderboard(CommandSender sender, String[] args) {
         if (args.length < 3 || !args[1].equalsIgnoreCase("setlocation")) {
-            sender.sendMessage("§cUżycie: /bpvp leaderboard setlocation <kills|coins|killstreak>");
+            sender.sendMessage("§cUżycie: /bpvp leaderboard setlocation <kills|coins|killstreak|envoy>");
             return true;
         }
         if (!(sender instanceof Player)) {
@@ -331,8 +331,8 @@ public class GeneratorCommand implements CommandExecutor {
             return true;
         }
         String type = args[2].toLowerCase();
-        if (!type.equals("kills") && !type.equals("coins") && !type.equals("killstreak")) {
-            sender.sendMessage("§cDostępne tablice: kills, coins, killstreak.");
+        if (!type.equals("kills") && !type.equals("coins") && !type.equals("killstreak") && !type.equals("envoy")) {
+            sender.sendMessage("§cDostępne tablice: kills, coins, killstreak, envoy.");
             return true;
         }
         plugin.getLeaderboards().setLocation(type, ((Player) sender).getLocation());

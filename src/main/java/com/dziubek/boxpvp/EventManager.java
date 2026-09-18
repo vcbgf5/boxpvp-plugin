@@ -28,6 +28,8 @@ public class EventManager {
     private long multiplierExpiresAt = 0L;
     private Location envoyZoneCorner1;
     private Location envoyZoneCorner2;
+    private final long autoIntervalMillis;
+    private long nextAutoEnvoyAt;
 
     public EventManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -44,6 +46,9 @@ public class EventManager {
         }
         this.data = YamlConfiguration.loadConfiguration(file);
         loadEnvoyZone();
+
+        this.autoIntervalMillis = plugin.getConfig().getLong("envoy.auto-interval-minutes", 10) * 60_000L;
+        this.nextAutoEnvoyAt = System.currentTimeMillis() + autoIntervalMillis;
     }
 
     /**
@@ -51,15 +56,21 @@ public class EventManager {
      * (każda z osobnym, 10-sekundowym ostrzeżeniem w miejscu lądowania).
      */
     public void start() {
-        long intervalTicks = plugin.getConfig().getLong("envoy.auto-interval-minutes", 10) * 60L * 20L;
+        long intervalTicks = autoIntervalMillis / 50L;
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::triggerAutoEnvoys, intervalTicks, intervalTicks);
     }
 
     private void triggerAutoEnvoys() {
+        nextAutoEnvoyAt = System.currentTimeMillis() + autoIntervalMillis;
         int count = plugin.getConfig().getInt("envoy.auto-drop-count", 2);
         for (int i = 0; i < count; i++) {
             spawnEnvoy();
         }
+    }
+
+    /** Ile milisekund zostało do kolejnego automatycznego zrzutu - do wyświetlenia na tablicy. */
+    public long getMillisUntilNextEnvoy() {
+        return Math.max(0, nextAutoEnvoyAt - System.currentTimeMillis());
     }
 
     /**
@@ -82,14 +93,14 @@ public class EventManager {
         long expiresAt = System.currentTimeMillis() + minutes * 60_000L;
         this.multiplierExpiresAt = expiresAt;
 
-        Bukkit.broadcastMessage("§6§l★ EVENT! §fMonety x" + trim(multiplier) + " przez " + minutes + " minut!");
+        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("★ EVENT!") + " §fMonety x" + trim(multiplier) + " przez " + minutes + " minut!");
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         }
 
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (multiplierExpiresAt == expiresAt && System.currentTimeMillis() >= multiplierExpiresAt) {
-                Bukkit.broadcastMessage("§6§l★ EVENT zakończony. §7Monety wracają do normy.");
+                Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("★ EVENT zakończony.") + " §7Monety wracają do normy.");
             }
         }, minutes * 60L * 20L);
     }

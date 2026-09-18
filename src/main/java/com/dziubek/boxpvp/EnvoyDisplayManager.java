@@ -136,7 +136,7 @@ public class EnvoyDisplayManager {
             e.addScoreboardTag(TAG);
         });
 
-        Bukkit.broadcastMessage("§f§l☀ Tutaj za 10 sekund spadnie skrzynka-event!");
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§f§l☀ Tutaj za 10 sekund spadnie skrzynka-event!");
         world.playSound(groundAnchor, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.4f);
 
         animateWarning(groundAnchor, arrow, System.currentTimeMillis(), WARNING_TICKS);
@@ -193,7 +193,7 @@ public class EnvoyDisplayManager {
         });
         activeDrops.add(drop);
 
-        Bukkit.broadcastMessage("§c§l☁ Skrzynka-event §7spada z nieba!");
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§c§l☁ Skrzynka-event §7spada z nieba!");
         world.playSound(groundAnchor, Sound.ENTITY_ENDER_DRAGON_FLAP, 1.0f, 0.6f);
 
         animateFall(drop, groundAnchor, System.currentTimeMillis());
@@ -257,7 +257,7 @@ public class EnvoyDisplayManager {
         world.spawnParticle(Particle.EXPLOSION, groundAnchor, 1);
         world.spawnParticle(Particle.CLOUD, groundAnchor, 40, 0.6, 0.3, 0.6, 0.05);
         world.playSound(groundAnchor, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.4f);
-        Bukkit.broadcastMessage("§c§l☁ Skrzynka-event §7wylądowała! Kliknij ją PPM, żeby otworzyć.");
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§c§l☁ Skrzynka-event §7wylądowała! Kliknij ją PPM, żeby otworzyć.");
     }
 
     /**

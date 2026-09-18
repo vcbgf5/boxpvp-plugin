@@ -24,7 +24,7 @@ public class ShopGuiManager {
         List<String> categories = plugin.getShop().getCategories();
         int size = Math.min(54, Math.max(9, ((categories.size() - 1) / 9 + 1) * 9));
 
-        Inventory inv = Bukkit.createInventory(new ShopMainGuiHolder(), size, "§6§lSklep");
+        Inventory inv = Bukkit.createInventory(new ShopMainGuiHolder(), size, Branding.accent("Sklep"));
 
         int slot = 0;
         for (String category : categories) {
@@ -56,11 +56,12 @@ public class ShopGuiManager {
         Map<Integer, ShopManager.ShopItemData> items = plugin.getShop().getItems(category);
         int size = Math.min(54, Math.max(9, ((items.size() - 1) / 9 + 1) * 9));
 
-        String rawTitle = "§6§l" + plugin.getShop().getCategoryDisplayName(category);
-        String title = ChatColor.translateAlternateColorCodes('&', rawTitle);
-        if (title.length() > 32) {
-            title = title.substring(0, 32);
+        String rawName = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&',
+                plugin.getShop().getCategoryDisplayName(category)));
+        if (rawName != null && rawName.length() > 24) {
+            rawName = rawName.substring(0, 24);
         }
+        String title = Branding.accent(rawName == null ? category : rawName);
 
         Inventory inv = Bukkit.createInventory(new ShopCategoryGuiHolder(category), size, title);
 

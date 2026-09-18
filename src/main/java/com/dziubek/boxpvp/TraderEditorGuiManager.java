@@ -36,7 +36,7 @@ public class TraderEditorGuiManager {
         }
 
         Inventory inv = Bukkit.createInventory(new TraderEditorGuiHolder(traderName), 27,
-                "§6§lEdycja: §f" + traderName);
+                Branding.accent("Edycja:") + " §f" + traderName);
 
         inv.setItem(PROFESSION_SLOT, professionButton(td.profession));
         inv.setItem(TYPE_SLOT, typeButton(td.type));

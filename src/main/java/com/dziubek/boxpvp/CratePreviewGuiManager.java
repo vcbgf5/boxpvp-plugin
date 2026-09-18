@@ -26,7 +26,7 @@ public class CratePreviewGuiManager {
 
         int size = Math.min(54, Math.max(9, ((rewards.size() + 8) / 9) * 9));
         Inventory inv = Bukkit.createInventory(new CratePreviewGuiHolder(crateName), size,
-                "§6§lPodgląd: §f" + crateName);
+                Branding.accent("Podgląd:") + " §f" + crateName);
 
         int slot = 0;
         for (CrateReward reward : rewards) {

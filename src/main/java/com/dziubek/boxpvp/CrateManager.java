@@ -455,7 +455,7 @@ public class CrateManager {
     }
 
     public String getHologramTitle(String name) {
-        return data.getString(name + ".hologram-title", "&6&l✦ " + name + " ✦");
+        return data.getString(name + ".hologram-title", Branding.accent("✦ " + name + " ✦"));
     }
 
     public void setHologramTitle(String name, String title) {

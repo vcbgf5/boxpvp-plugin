@@ -58,7 +58,7 @@ public class KillstreakManager {
         if (plugin.getEconomy() != null) {
             plugin.getEconomy().depositPlayer(killer, bonus);
         }
-        Bukkit.broadcastMessage("§c§l⚔ " + killer.getName() + " §7ma serię §c§l" + streak
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§c§l⚔ " + killer.getName() + " §7ma serię §c§l" + streak
                 + " §7zabójstw! §a(+" + String.format("%.2f", bonus) + "$)");
         TitleUtil.show(killer, "§c§lSERIA x" + streak, "§7+" + String.format("%.2f", bonus) + "$");
         killer.playSound(killer.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.6f);

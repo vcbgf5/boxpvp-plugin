@@ -68,7 +68,7 @@ public class TraderManager {
             if (loc == null) {
                 continue;
             }
-            String title = data.getString(name + ".title", "§6§l" + name);
+            String title = data.getString(name + ".title", Branding.accent(name));
             Villager.Profession profession = parseProfession(data.getString(name + ".profession"));
             Villager.Type type = parseType(data.getString(name + ".type"));
             List<Trade> trades = readTrades(name);
@@ -94,13 +94,13 @@ public class TraderManager {
 
     public void createTrader(String name, Location location) {
         setLocation(name, location);
-        data.set(name + ".title", "§6§l" + name);
+        data.set(name + ".title", Branding.accent(name));
         data.set(name + ".profession", Villager.Profession.NONE.name());
         data.set(name + ".type", Villager.Type.PLAINS.name());
         save();
 
         Villager villager = spawnVillager(name, location);
-        TraderData td = new TraderData(name, villager, "§6§l" + name, Villager.Profession.NONE, Villager.Type.PLAINS, new ArrayList<>());
+        TraderData td = new TraderData(name, villager, Branding.accent(name), Villager.Profession.NONE, Villager.Type.PLAINS, new ArrayList<>());
         traders.put(name, td);
         applyAppearance(td);
     }
