@@ -8,8 +8,8 @@ public final class Branding {
 
     public static final String NAME = "VantaNet";
 
-    private static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
-    private static final int LIGHT_LAVENDER = 0xD8B4FE; // jasny fiolet / lawenda
+    static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
+    static final int LIGHT_LAVENDER = 0xD8B4FE; // jasny fiolet / lawenda
 
     /** Pogrubiony gradient - odpowiednik dawnego "§6§l" dla nagłówków/tytułów/etykiet. */
     public static String accent(String text) {

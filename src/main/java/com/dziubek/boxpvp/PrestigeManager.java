@@ -2,6 +2,8 @@ package com.dziubek.boxpvp;
 
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -79,10 +81,16 @@ public class PrestigeManager {
         data.set(player.getUniqueId() + ".level", newLevel);
         save();
 
-        Bukkit.broadcastMessage(Branding.chatPrefix() + "§d§l✦ PRESTIŻ! §f" + player.getName() + " §7awansował na prestiż §d" + newLevel + "§7!");
-        TitleUtil.show(player, "§d§l✦ PRESTIŻ " + newLevel,
+        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("✦ PRESTIŻ!") + " §f" + player.getName()
+                + " §7awansował na prestiż §d" + newLevel + "§7!");
+        TitleUtil.show(player, Branding.accent("✦ PRESTIŻ " + newLevel),
                 "§7Mnożnik zarobków: §fx" + format(getMultiplier(player.getUniqueId())));
-        player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 80, 0.5, 0.8, 0.5, 0.4);
+
+        Location burst = player.getLocation().add(0, 1, 0);
+        player.getWorld().spawnParticle(Particle.DUST, burst, 70, 0.5, 0.8, 0.5, 0.0,
+                new Particle.DustOptions(Color.fromRGB(Branding.DARK_PURPLE), 1.3f));
+        player.getWorld().spawnParticle(Particle.DUST, burst, 70, 0.5, 0.8, 0.5, 0.0,
+                new Particle.DustOptions(Color.fromRGB(Branding.LIGHT_LAVENDER), 1.3f));
         player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.2f);
         return true;
     }
