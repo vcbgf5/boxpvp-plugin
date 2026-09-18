@@ -3,16 +3,59 @@ main: com.dziubek.boxpvp.BoxPvpPlugin
 version: 1.0.0
 api-version: '1.21'
 author: Dziubek
-description: Box PvP - areny, generatory blokow, rundy PvP (ostatni zywy wygrywa)
+description: Box PvP - jeden wspolny spawn, combat log, TPA, kity, daily, sklep, skrzynie, generatory blokow i handlarze
 
 commands:
+  setsurvivalspawn:
+    description: Ustawia spawn w miejscu gdzie stoisz
+    usage: /setsurvivalspawn
+    permission: boxpvp.setspawn
+  spawn:
+    description: Teleportuje na spawn (zablokowane podczas walki)
+    usage: /spawn
+  tpa:
+    description: Wysyla prosbe o teleportacje do gracza
+    usage: /tpa <gracz>
+  tpaccept:
+    description: Akceptuje prosbe o teleportacje
+    usage: /tpaccept
+  tpdeny:
+    description: Odrzuca prosbe o teleportacje
+    usage: /tpdeny
+  kit:
+    description: Odbiera kit, tworzy go (admin) lub migruje stare kity - /kit create <nazwa>, /kit migrate
+    usage: /kit <nazwa> lub /kit create <nazwa> lub /kit migrate
+  daily:
+    description: Odbiera codzienna nagrode (z efektem) lub konfiguruje dzien/efekt (admin) - /daily setday <1-7>, /daily seteffect <efekt>
+    usage: /daily lub /daily setday <1-7> lub /daily seteffect <efekt>
+  crate:
+    description: Skrzynie - otwiera sie TYLKO klikajac fizyczny blok (/crate bind) - /crate create|givekey|bind|unbind|sethologram|seteffect|setidleeffect|setprivate|setfreecooldown|setdisplayheight|purgedisplays|preview|list
+    usage: /crate create|givekey|bind|unbind|sethologram|seteffect|setidleeffect|setprivate|setfreecooldown|preview|list
+  sklep:
+    description: Otwiera sklep z GUI - /sklep create|additem|removeitem|removecategory do konfiguracji (admin)
+    usage: /sklep
   bpvp:
-    description: Box PvP - areny, generatory blokow, rundy - /bpvp create|setlobby|addspawn|setkit|start|stop|join|leave|generator|list
-    usage: /bpvp create|setlobby|addspawn|clearspawns|setkit|start|stop|join|leave|generator|list
+    description: Generatory blokow i handlarze - /bpvp wand|create|remove|list|villager
+    usage: /bpvp wand|create <nazwa> <blok> <sekundy>|remove <nazwa>|list|villager create|remove <nazwa>
 
-softdepend: [DecentHolograms]
+softdepend: [WorldGuard, Vault, DecentHolograms]
 
 permissions:
+  boxpvp.setspawn:
+    description: Pozwala ustawic spawn
+    default: op
+  boxpvp.crate.admin:
+    description: Pozwala zarzadzac skrzyniami (create, givekey)
+    default: op
+  boxpvp.shop.admin:
+    description: Pozwala zarzadzac sklepem (create, additem, removeitem, removecategory)
+    default: op
+  boxpvp.daily.admin:
+    description: Pozwala konfigurowac nagrody daily
+    default: op
+  boxpvp.kit.admin:
+    description: Pozwala tworzyc kity i je migrowac
+    default: op
   boxpvp.admin:
-    description: Pozwala zarzadzac arenami i generatorami Box PvP
+    description: Pozwala zarzadzac generatorami blokow i handlarzami
     default: op

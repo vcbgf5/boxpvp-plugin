@@ -8,7 +8,6 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -25,9 +24,11 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Generatory bloków dla aren Box PvP: admin różdżką zaznacza pos1/pos2 (cały obszar),
- * a co skonfigurowany interwał CAŁY obszar zostaje na nowo wypełniony wybranym blokiem
- * ("fill"). Hologram nad generatorem (DecentHolograms) pokazuje odliczanie do napełnienia.
+ * Wolnostojące generatory bloków (nie należą do żadnej areny - ich tu po prostu nie ma).
+ * Admin różdżką zaznacza pos1/pos2 (cały obszar), a co skonfigurowany interwał CAŁY obszar
+ * zostaje na nowo wypełniony wybranym blokiem ("fill"). Gracze kopią wygenerowane bloki,
+ * sprzedają je w /sklep za monety i kupują lepszy sprzęt. Hologram nad generatorem
+ * (DecentHolograms) pokazuje odliczanie do kolejnego napełnienia.
  */
 public class GeneratorManager {
 
@@ -102,11 +103,15 @@ public class GeneratorManager {
 
     // ================= Zarządzanie generatorami =================
 
-    public boolean createGenerator(Player admin, String arenaName, String genName, Material material, int intervalSeconds) {
+    public boolean exists(String genName) {
+        return generators.containsKey(genName);
+    }
+
+    public boolean createGenerator(Player admin, String genName, Material material, int intervalSeconds) {
         Location p1 = pos1Selection.get(admin.getUniqueId());
         Location p2 = pos2Selection.get(admin.getUniqueId());
         if (p1 == null || p2 == null) {
-            admin.sendMessage("§cNajpierw zaznacz obie pozycje różdżką (§f/bpvp generator wand§c).");
+            admin.sendMessage("§cNajpierw zaznacz obie pozycje różdżką (§f/bpvp wand§c).");
             return false;
         }
         if (!p1.getWorld().equals(p2.getWorld())) {
@@ -114,44 +119,26 @@ public class GeneratorManager {
             return false;
         }
 
-        Generator gen = new Generator(arenaName, genName, p1, p2, material, intervalSeconds);
-        generators.put(key(arenaName, genName), gen);
+        Generator gen = new Generator(genName, p1, p2, material, intervalSeconds);
+        generators.put(genName, gen);
         saveGenerator(gen);
         fill(gen);
         return true;
     }
 
-    public boolean removeGenerator(String arenaName, String genName) {
-        Generator gen = generators.remove(key(arenaName, genName));
+    public boolean removeGenerator(String genName) {
+        Generator gen = generators.remove(genName);
         if (gen == null) {
             return false;
         }
-        data.set(arenaName + ".generators." + genName, null);
+        data.set(genName, null);
         save();
         plugin.getDecentHolograms().removeHologram(hologramId(gen));
         return true;
     }
 
-    public List<String> namesFor(String arenaName) {
-        List<String> list = new ArrayList<>();
-        for (Generator gen : generators.values()) {
-            if (gen.arenaName.equals(arenaName)) {
-                list.add(gen.name);
-            }
-        }
-        return list;
-    }
-
-    /**
-     * Wymusza natychmiastowe napełnienie wszystkich generatorów danej areny - wywoływane
-     * przy starcie rundy, żeby arena zaczynała pełna zasobów.
-     */
-    public void resetArena(String arenaName) {
-        for (Generator gen : generators.values()) {
-            if (gen.arenaName.equals(arenaName)) {
-                fill(gen);
-            }
-        }
+    public List<String> names() {
+        return new ArrayList<>(generators.keySet());
     }
 
     private void tick() {
@@ -213,7 +200,7 @@ public class GeneratorManager {
     }
 
     private String hologramId(Generator gen) {
-        return "bpvp_gen_" + gen.arenaName + "_" + gen.name;
+        return "bpvp_gen_" + gen.name;
     }
 
     private static String materialDisplayName(Material material) {
@@ -237,14 +224,10 @@ public class GeneratorManager {
         return seconds + "s";
     }
 
-    private static String key(String arenaName, String genName) {
-        return arenaName + "." + genName;
-    }
-
     // ================= Zapis/odczyt =================
 
     private void saveGenerator(Generator gen) {
-        String base = gen.arenaName + ".generators." + gen.name;
+        String base = gen.name;
         data.set(base + ".world", gen.pos1.getWorld().getName());
         data.set(base + ".x1", gen.pos1.getBlockX());
         data.set(base + ".y1", gen.pos1.getBlockY());
@@ -258,29 +241,23 @@ public class GeneratorManager {
     }
 
     private void loadAll() {
-        for (String arenaName : data.getKeys(false)) {
-            ConfigurationSection gensSection = data.getConfigurationSection(arenaName + ".generators");
-            if (gensSection == null) {
+        for (String genName : data.getKeys(false)) {
+            String base = genName;
+            String worldName = data.getString(base + ".world");
+            World world = worldName == null ? null : Bukkit.getWorld(worldName);
+            if (world == null) {
                 continue;
             }
-            for (String genName : gensSection.getKeys(false)) {
-                String base = arenaName + ".generators." + genName;
-                String worldName = data.getString(base + ".world");
-                World world = worldName == null ? null : Bukkit.getWorld(worldName);
-                if (world == null) {
-                    continue;
-                }
-                Location p1 = new Location(world, data.getInt(base + ".x1"), data.getInt(base + ".y1"), data.getInt(base + ".z1"));
-                Location p2 = new Location(world, data.getInt(base + ".x2"), data.getInt(base + ".y2"), data.getInt(base + ".z2"));
-                Material material = Material.matchMaterial(data.getString(base + ".material", "STONE"));
-                if (material == null) {
-                    material = Material.STONE;
-                }
-                int intervalSeconds = data.getInt(base + ".interval-seconds", 120);
-
-                Generator gen = new Generator(arenaName, genName, p1, p2, material, intervalSeconds);
-                generators.put(key(arenaName, genName), gen);
+            Location p1 = new Location(world, data.getInt(base + ".x1"), data.getInt(base + ".y1"), data.getInt(base + ".z1"));
+            Location p2 = new Location(world, data.getInt(base + ".x2"), data.getInt(base + ".y2"), data.getInt(base + ".z2"));
+            Material material = Material.matchMaterial(data.getString(base + ".material", "STONE"));
+            if (material == null) {
+                material = Material.STONE;
             }
+            int intervalSeconds = data.getInt(base + ".interval-seconds", 120);
+
+            Generator gen = new Generator(genName, p1, p2, material, intervalSeconds);
+            generators.put(genName, gen);
         }
     }
 
@@ -293,7 +270,6 @@ public class GeneratorManager {
     }
 
     private static final class Generator {
-        final String arenaName;
         final String name;
         final Location pos1;
         final Location pos2;
@@ -301,8 +277,7 @@ public class GeneratorManager {
         final int intervalSeconds;
         long nextFillAt;
 
-        Generator(String arenaName, String name, Location pos1, Location pos2, Material material, int intervalSeconds) {
-            this.arenaName = arenaName;
+        Generator(String name, Location pos1, Location pos2, Material material, int intervalSeconds) {
             this.name = name;
             this.pos1 = pos1;
             this.pos2 = pos2;

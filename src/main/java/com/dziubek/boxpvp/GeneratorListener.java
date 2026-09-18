@@ -4,20 +4,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 
 /**
- * Obsługuje różdżkę generatora (zaznaczanie pos1/pos2) oraz cykl życia gracza w rundzie
- * Box PvP: śmierć = eliminacja, respawn = powrót do lobby areny, wyjście z serwera = leave.
+ * Obsługuje różdżkę generatora (zaznaczanie pos1/pos2 LPM/PPM).
  */
-public class ArenaListener implements Listener {
+public class GeneratorListener implements Listener {
 
     private final BoxPvpPlugin plugin;
 
-    public ArenaListener(BoxPvpPlugin plugin) {
+    public GeneratorListener(BoxPvpPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -34,20 +30,5 @@ public class ArenaListener implements Listener {
         } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             plugin.getGenerators().setPos2(player, event.getClickedBlock().getLocation());
         }
-    }
-
-    @EventHandler
-    public void onDeath(PlayerDeathEvent event) {
-        plugin.getArenas().onPlayerDeath(event.getEntity());
-    }
-
-    @EventHandler
-    public void onRespawn(PlayerRespawnEvent event) {
-        plugin.getArenas().onPlayerRespawn(event.getPlayer(), event);
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        plugin.getArenas().leave(event.getPlayer());
     }
 }

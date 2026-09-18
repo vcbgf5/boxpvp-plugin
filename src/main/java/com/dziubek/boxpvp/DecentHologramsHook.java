@@ -19,9 +19,7 @@ public class DecentHologramsHook {
         this.plugin = plugin;
         this.available = plugin.getServer().getPluginManager().getPlugin("DecentHolograms") != null;
         if (available) {
-            plugin.getLogger().info("Wykryto DecentHolograms - integracja aktywna (hologramy generatorów).");
-        } else {
-            plugin.getLogger().warning("DecentHolograms nie znaleziony - generatory zadziałają, ale bez hologramów odliczania.");
+            plugin.getLogger().info("Wykryto DecentHolograms - integracja aktywna (/infoholo).");
         }
     }
 
