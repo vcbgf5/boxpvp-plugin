@@ -15,7 +15,6 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
@@ -29,16 +28,15 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * "Skrzynka z nieba" (envoy) - spada z góry na wcześniej ustawiony punkt jako para
- * ItemDisplayów (skrzynka + kolorowy "balonik" nad nią), a po wylądowaniu czeka na kliknięcie
- * PPM, oddaje losowe przedmioty z puli i znika.
+ * "Skrzynka z nieba" (envoy) - beczka (ItemDisplay) spadająca z góry na losowe miejsce
+ * w wyznaczonym obszarze. Gdy dotknie ziemi, zatrzymuje się i stoi na niej nieruchomo (jak
+ * postawiony blok) - dopiero wtedy można ją otworzyć PPM, co oddaje losowe przedmioty z puli.
  */
 public class EnvoyDisplayManager {
 
     private static final String TAG = "bpvp_envoy";
     private static final double FALL_START_OFFSET = 30.0;
     private static final long FALL_DURATION_MS = 3000;
-    private static final float BALLOON_HEIGHT = 1.3f;
 
     private final BoxPvpPlugin plugin;
     private final File file;
@@ -48,7 +46,6 @@ public class EnvoyDisplayManager {
     private final Random random = new Random();
 
     private ItemDisplay activeCrate;
-    private ItemDisplay activeBalloon;
     private boolean landed;
 
     public EnvoyDisplayManager(BoxPvpPlugin plugin) {
@@ -84,16 +81,13 @@ public class EnvoyDisplayManager {
     }
 
     /**
-     * Usuwa "osierocone" encje eventu sprzed restartu - te, którymi ten manager aktualnie
-     * żywo zarządza (trwająca animacja/leżąca skrzynka), zostają nietknięte.
+     * Usuwa "osierocone" encje eventu sprzed restartu - tą, którą ten manager aktualnie
+     * żywo zarządza (trwająca animacja/leżąca skrzynka), zostaje nietknięta.
      */
     public void purgeOrphans() {
         for (World world : plugin.getServer().getWorlds()) {
             for (Entity entity : world.getEntitiesByClass(ItemDisplay.class)) {
-                if (!entity.getScoreboardTags().contains(TAG)) {
-                    continue;
-                }
-                if (entity.equals(activeCrate) || entity.equals(activeBalloon)) {
+                if (!entity.getScoreboardTags().contains(TAG) || entity.equals(activeCrate)) {
                     continue;
                 }
                 entity.remove();
@@ -115,17 +109,8 @@ public class EnvoyDisplayManager {
             e.setGravity(false);
             e.setPersistent(false);
             e.setInvulnerable(true);
-            e.setItemStack(new ItemStack(Material.ENDER_CHEST));
+            e.setItemStack(new ItemStack(Material.BARREL));
             e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "crate");
-            e.addScoreboardTag(TAG);
-        });
-        activeBalloon = world.spawn(spawnAt.clone().add(0, BALLOON_HEIGHT, 0), ItemDisplay.class, e -> {
-            e.setBillboard(Display.Billboard.CENTER);
-            e.setGravity(false);
-            e.setPersistent(false);
-            e.setInvulnerable(true);
-            e.setItemStack(new ItemStack(Material.RED_CONCRETE));
-            e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "balloon");
             e.addScoreboardTag(TAG);
         });
 
@@ -149,11 +134,6 @@ public class EnvoyDisplayManager {
         applyTransform(activeCrate, spin, 1.0f);
         activeCrate.teleport(crateAt);
 
-        if (activeBalloon != null && activeBalloon.isValid()) {
-            applyTransform(activeBalloon, 0f, 0.8f);
-            activeBalloon.teleport(crateAt.clone().add(0, BALLOON_HEIGHT, 0));
-        }
-
         if (t >= 1.0) {
             onLanded(groundAnchor);
             return;
@@ -173,28 +153,20 @@ public class EnvoyDisplayManager {
         display.setTransformation(transform);
     }
 
+    /**
+     * Skrzynka dotyka ziemi i zostaje w tym miejscu nieruchomo - "stawia się" na ziemi jak
+     * postawiony blok, bez dalszego bujania/kręcenia się.
+     */
     private void onLanded(Location groundAnchor) {
         landed = true;
+        activeCrate.teleport(groundAnchor);
+        applyTransform(activeCrate, 0f, 1.0f);
+
         World world = groundAnchor.getWorld();
         world.spawnParticle(Particle.EXPLOSION, groundAnchor, 1);
         world.spawnParticle(Particle.CLOUD, groundAnchor, 40, 0.6, 0.3, 0.6, 0.05);
         world.playSound(groundAnchor, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.4f);
         Bukkit.broadcastMessage("§c§l☁ Skrzynka-event §7wylądowała! Kliknij ją PPM, żeby otworzyć.");
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (activeCrate == null || !activeCrate.isValid()) {
-                    cancel();
-                    return;
-                }
-                float bob = (float) (Math.sin(System.currentTimeMillis() / 400.0) * 0.08);
-                activeCrate.teleport(groundAnchor.clone().add(0, bob, 0));
-                if (activeBalloon != null && activeBalloon.isValid()) {
-                    activeBalloon.teleport(groundAnchor.clone().add(0, BALLOON_HEIGHT + bob, 0));
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 2L);
     }
 
     /**
@@ -236,11 +208,7 @@ public class EnvoyDisplayManager {
         if (activeCrate != null && activeCrate.isValid()) {
             activeCrate.remove();
         }
-        if (activeBalloon != null && activeBalloon.isValid()) {
-            activeBalloon.remove();
-        }
         activeCrate = null;
-        activeBalloon = null;
         landed = false;
     }
 
