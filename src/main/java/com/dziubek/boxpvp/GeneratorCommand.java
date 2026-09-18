@@ -74,8 +74,9 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp sellprice set|remove <blok> [cena] §7- ceny auto-sprzedaży bloków z generatorów");
         sender.sendMessage("§c/bpvp sellprice list §7- lista cen auto-sprzedaży");
         sender.sendMessage("§c/bpvp event start <minuty> [mnożnik] §7- czasowy event x2 (domyślnie) na monety");
-        sender.sendMessage("§c/bpvp event setpoint §7- ustawia miejsce lądowania skrzynki-eventu (tu gdzie stoisz)");
-        sender.sendMessage("§c/bpvp event envoy §7- ręcznie zrzuca skrzynkę-event");
+        sender.sendMessage("§c/bpvp event setzone1 §7- 1. róg obszaru, w którym mogą spadać skrzynki-event (tu gdzie stoisz)");
+        sender.sendMessage("§c/bpvp event setzone2 §7- 2. róg tego obszaru (przeciwległy róg)");
+        sender.sendMessage("§c/bpvp event envoy §7- ręcznie zrzuca skrzynkę-event w losowe miejsce tego obszaru");
         sender.sendMessage("§c/bpvp event envoyitem add|clear|list §7- pula nagród skrzynki-eventu (add = trzymany przedmiot)");
         sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak> §7- stawia tablicę TOP 10 tu gdzie stoisz");
     }
@@ -243,7 +244,7 @@ public class GeneratorCommand implements CommandExecutor {
 
     private boolean handleEvent(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | setpoint | envoyitem add|clear|list");
+            sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | setzone1 | setzone2 | envoyitem add|clear|list");
             return true;
         }
         String action = args[1].toLowerCase();
@@ -258,23 +259,25 @@ public class GeneratorCommand implements CommandExecutor {
             }
             case "envoy": {
                 boolean started = plugin.getEvents().spawnEnvoy();
-                sender.sendMessage(started ? "§aSkrzynka-event spada z nieba!"
-                        : "§cNajpierw ustaw miejsce lądowania: /bpvp event setpoint.");
+                sender.sendMessage(started ? "§aSkrzynka-event spada z nieba w losowe miejsce wyznaczonego obszaru!"
+                        : "§cNajpierw wyznacz obszar: /bpvp event setzone1 i /bpvp event setzone2 (dwa przeciwległe rogi).");
                 return true;
             }
-            case "setpoint": {
+            case "setzone1":
+            case "setzone2": {
                 if (!(sender instanceof Player)) {
                     sender.sendMessage("Tej komendy może użyć tylko gracz.");
                     return true;
                 }
-                plugin.getEvents().setEnvoyPoint(((Player) sender).getLocation());
-                sender.sendMessage("§aUstawiono miejsce lądowania skrzynki-eventu w tym miejscu.");
+                int corner = action.equals("setzone1") ? 1 : 2;
+                plugin.getEvents().setEnvoyZoneCorner(corner, ((Player) sender).getLocation());
+                sender.sendMessage("§aUstawiono róg " + corner + " obszaru skrzynek-event w tym miejscu.");
                 return true;
             }
             case "envoyitem":
                 return handleEnvoyItem(sender, args);
             default:
-                sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | setpoint | envoyitem add|clear|list");
+                sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | setzone1 | setzone2 | envoyitem add|clear|list");
                 return true;
         }
     }

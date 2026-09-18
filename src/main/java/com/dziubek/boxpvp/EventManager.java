@@ -10,20 +10,24 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Eventy serwerowe: czasowy mnożnik monet (auto-sprzedaż + nagrody za zabójstwa) i "skrzynka
- * z nieba" (envoy) spadająca na wcześniej ustawiony punkt.
+ * z nieba" (envoy) spadająca na LOSOWE miejsce w wyznaczonym prostokątnym obszarze (dwa rogi,
+ * jak przy zaznaczaniu generatora) - NIE na region WorldGuard, tylko własna strefa pluginu.
  */
 public class EventManager {
 
     private final BoxPvpPlugin plugin;
     private final File file;
     private final FileConfiguration data;
+    private final Random random = new Random();
 
     private double activeMultiplier = 1.0;
     private long multiplierExpiresAt = 0L;
-    private Location envoyPoint;
+    private Location envoyZoneCorner1;
+    private Location envoyZoneCorner2;
 
     public EventManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -39,7 +43,7 @@ public class EventManager {
             }
         }
         this.data = YamlConfiguration.loadConfiguration(file);
-        loadEnvoyPoint();
+        loadEnvoyZone();
     }
 
     /**
@@ -74,33 +78,68 @@ public class EventManager {
         }, minutes * 60L * 20L);
     }
 
-    public void setEnvoyPoint(Location location) {
-        this.envoyPoint = location.clone();
-        data.set("envoy.world", location.getWorld().getName());
-        data.set("envoy.x", location.getX());
-        data.set("envoy.y", location.getY());
-        data.set("envoy.z", location.getZ());
+    public void setEnvoyZoneCorner(int corner, Location location) {
+        if (corner == 1) {
+            this.envoyZoneCorner1 = location.clone();
+        } else {
+            this.envoyZoneCorner2 = location.clone();
+        }
+        String base = "envoy-zone.corner" + corner;
+        data.set(base + ".world", location.getWorld().getName());
+        data.set(base + ".x", location.getBlockX());
+        data.set(base + ".y", location.getBlockY());
+        data.set(base + ".z", location.getBlockZ());
         save();
     }
 
+    public boolean hasEnvoyZone() {
+        return envoyZoneCorner1 != null && envoyZoneCorner2 != null
+                && envoyZoneCorner1.getWorld() != null
+                && envoyZoneCorner1.getWorld().equals(envoyZoneCorner2.getWorld());
+    }
+
     public boolean spawnEnvoy() {
-        if (envoyPoint == null || envoyPoint.getWorld() == null) {
+        if (!hasEnvoyZone()) {
             return false;
         }
-        plugin.getEnvoy().spawnFallingCrate(envoyPoint.clone());
+        plugin.getEnvoy().spawnFallingCrate(randomPointInZone());
         return true;
     }
 
-    private void loadEnvoyPoint() {
-        String worldName = data.getString("envoy.world");
+    /**
+     * Losowy punkt X/Z w wyznaczonym obszarze, na wysokości "podłogi" strefy (niższy z dwóch
+     * rogów) - żeby skrzynka lądowała w środku boxa, a nie na jego dachu (highest-block trafiłby
+     * w sufit, jeśli box jest zadaszony).
+     */
+    private Location randomPointInZone() {
+        World world = envoyZoneCorner1.getWorld();
+        int minX = Math.min(envoyZoneCorner1.getBlockX(), envoyZoneCorner2.getBlockX());
+        int maxX = Math.max(envoyZoneCorner1.getBlockX(), envoyZoneCorner2.getBlockX());
+        int minY = Math.min(envoyZoneCorner1.getBlockY(), envoyZoneCorner2.getBlockY());
+        int minZ = Math.min(envoyZoneCorner1.getBlockZ(), envoyZoneCorner2.getBlockZ());
+        int maxZ = Math.max(envoyZoneCorner1.getBlockZ(), envoyZoneCorner2.getBlockZ());
+
+        int x = minX + random.nextInt(maxX - minX + 1);
+        int z = minZ + random.nextInt(maxZ - minZ + 1);
+        return new Location(world, x + 0.5, minY, z + 0.5);
+    }
+
+    private void loadEnvoyZone() {
+        envoyZoneCorner1 = loadCorner(1);
+        envoyZoneCorner2 = loadCorner(2);
+    }
+
+    private Location loadCorner(int corner) {
+        String base = "envoy-zone.corner" + corner;
+        String worldName = data.getString(base + ".world");
         if (worldName == null) {
-            return;
+            return null;
         }
         World world = Bukkit.getWorld(worldName);
         if (world == null) {
-            return;
+            return null;
         }
-        envoyPoint = new Location(world, data.getDouble("envoy.x"), data.getDouble("envoy.y"), data.getDouble("envoy.z"));
+        return new Location(world, data.getInt(base + ".x"), data.getInt(base + ".y"), data.getInt(base + ".z"));
     }
 
     private static String trim(double value) {
