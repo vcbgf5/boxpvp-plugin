@@ -47,6 +47,22 @@ public class EventManager {
     }
 
     /**
+     * Uruchamia automatyczne zrzuty skrzynek-event - domyślnie co 10 minut spadają 2 sztuki
+     * (każda z osobnym, 10-sekundowym ostrzeżeniem w miejscu lądowania).
+     */
+    public void start() {
+        long intervalTicks = plugin.getConfig().getLong("envoy.auto-interval-minutes", 10) * 60L * 20L;
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::triggerAutoEnvoys, intervalTicks, intervalTicks);
+    }
+
+    private void triggerAutoEnvoys() {
+        int count = plugin.getConfig().getInt("envoy.auto-drop-count", 2);
+        for (int i = 0; i < count; i++) {
+            spawnEnvoy();
+        }
+    }
+
+    /**
      * Łączny mnożnik zarobków danego gracza: aktywny event (jeśli trwa) razy jego trwały
      * mnożnik z prestiżu. Używane przez auto-sprzedaż i nagrody za zabójstwa/serie.
      */
@@ -102,7 +118,7 @@ public class EventManager {
         if (!hasEnvoyZone()) {
             return false;
         }
-        plugin.getEnvoy().spawnFallingCrate(randomPointInZone());
+        plugin.getEnvoy().scheduleDrop(randomPointInZone());
         return true;
     }
 

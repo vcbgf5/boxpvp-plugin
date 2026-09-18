@@ -88,6 +88,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         envoy.purgeOrphans();
         leaderboards.start();
         scoreboards.start();
+        events.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
