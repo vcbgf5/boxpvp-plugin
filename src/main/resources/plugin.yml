@@ -1,0 +1,18 @@
+name: BoxPvPManager
+main: com.dziubek.boxpvp.BoxPvpPlugin
+version: 1.0.0
+api-version: '1.21'
+author: Dziubek
+description: Box PvP - areny, generatory blokow, rundy PvP (ostatni zywy wygrywa)
+
+commands:
+  bpvp:
+    description: Box PvP - areny, generatory blokow, rundy - /bpvp create|setlobby|addspawn|setkit|start|stop|join|leave|generator|list
+    usage: /bpvp create|setlobby|addspawn|clearspawns|setkit|start|stop|join|leave|generator|list
+
+softdepend: [DecentHolograms]
+
+permissions:
+  boxpvp.admin:
+    description: Pozwala zarzadzac arenami i generatorami Box PvP
+    default: op
