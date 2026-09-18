@@ -11,6 +11,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -31,6 +32,8 @@ import java.util.Random;
  * "Skrzynka z nieba" (envoy) - beczka (ItemDisplay) spadająca z góry na losowe miejsce
  * w wyznaczonym obszarze. Gdy dotknie ziemi, zatrzymuje się i stoi na niej nieruchomo (jak
  * postawiony blok) - dopiero wtedy można ją otworzyć PPM, co oddaje losowe przedmioty z puli.
+ * Sam ItemDisplay NIE ma hitboksu (nie da się go kliknąć) - dlatego po wylądowaniu dostawiamy
+ * niewidzialną encję Interaction w tym samym miejscu, właśnie po to, żeby dało się kliknąć.
  */
 public class EnvoyDisplayManager {
 
@@ -46,6 +49,7 @@ public class EnvoyDisplayManager {
     private final Random random = new Random();
 
     private ItemDisplay activeCrate;
+    private Interaction activeHitbox;
     private boolean landed;
 
     public EnvoyDisplayManager(BoxPvpPlugin plugin) {
@@ -88,6 +92,12 @@ public class EnvoyDisplayManager {
         for (World world : plugin.getServer().getWorlds()) {
             for (Entity entity : world.getEntitiesByClass(ItemDisplay.class)) {
                 if (!entity.getScoreboardTags().contains(TAG) || entity.equals(activeCrate)) {
+                    continue;
+                }
+                entity.remove();
+            }
+            for (Entity entity : world.getEntitiesByClass(Interaction.class)) {
+                if (!entity.getScoreboardTags().contains(TAG) || entity.equals(activeHitbox)) {
                     continue;
                 }
                 entity.remove();
@@ -155,7 +165,9 @@ public class EnvoyDisplayManager {
 
     /**
      * Skrzynka dotyka ziemi i zostaje w tym miejscu nieruchomo - "stawia się" na ziemi jak
-     * postawiony blok, bez dalszego bujania/kręcenia się.
+     * postawiony blok, bez dalszego bujania/kręcenia się. Dopiero teraz dostawiamy niewidzialną
+     * encję Interaction (ItemDisplay sam w sobie nie ma hitboksu, więc bez niej nie dałoby się
+     * jej kliknąć).
      */
     private void onLanded(Location groundAnchor) {
         landed = true;
@@ -163,6 +175,15 @@ public class EnvoyDisplayManager {
         applyTransform(activeCrate, 0f, 1.0f);
 
         World world = groundAnchor.getWorld();
+        activeHitbox = world.spawn(groundAnchor, Interaction.class, e -> {
+            e.setInteractionWidth(0.9f);
+            e.setInteractionHeight(1.0f);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "hitbox");
+            e.addScoreboardTag(TAG);
+        });
+
         world.spawnParticle(Particle.EXPLOSION, groundAnchor, 1);
         world.spawnParticle(Particle.CLOUD, groundAnchor, 40, 0.6, 0.3, 0.6, 0.05);
         world.playSound(groundAnchor, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.4f);
@@ -170,11 +191,12 @@ public class EnvoyDisplayManager {
     }
 
     /**
-     * Wywoływane przez EnvoyListener przy PPM na dowolnej encji - zwraca true, jeśli to była
-     * ta skrzynka i kliknięcie zostało obsłużone (event powinien zostać anulowany).
+     * Wywoływane przez EnvoyListener przy PPM na dowolnej encji - zwraca true, jeśli to było
+     * trafienie w hitbox tej skrzynki i kliknięcie zostało obsłużone (event powinien zostać
+     * anulowany).
      */
     public boolean tryOpen(Player player, Entity clicked) {
-        if (!landed || activeCrate == null || !clicked.equals(activeCrate)) {
+        if (!landed || activeHitbox == null || !clicked.equals(activeHitbox)) {
             return false;
         }
         openFor(player);
@@ -208,7 +230,11 @@ public class EnvoyDisplayManager {
         if (activeCrate != null && activeCrate.isValid()) {
             activeCrate.remove();
         }
+        if (activeHitbox != null && activeHitbox.isValid()) {
+            activeHitbox.remove();
+        }
         activeCrate = null;
+        activeHitbox = null;
         landed = false;
     }
 
