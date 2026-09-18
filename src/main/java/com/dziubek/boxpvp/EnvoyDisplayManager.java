@@ -1,6 +1,7 @@
 package com.dziubek.boxpvp;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -33,7 +34,9 @@ import java.util.Random;
  * ostrzeżenie (unosząca się strzałka + biały snop cząsteczek jak z beacona), a dopiero potem
  * spada beczka (ItemDisplay). Po dotknięciu ziemi zatrzymuje się nieruchomo i czeka na PPM -
  * przez niewidzialną encję Interaction, bo sam ItemDisplay nie ma hitboksu. Może lecieć kilka
- * naraz (np. 2 dropy co 10 minut - patrz EventManager).
+ * naraz (np. 2 dropy co 10 minut - patrz EventManager). Rzadsza "mega" wersja (flaga `mega`
+ * przewleczona przez cały pipeline) jest większa, ma fioletowe efekty i osobną, bogatszą pulę
+ * nagród.
  */
 public class EnvoyDisplayManager {
 
@@ -43,12 +46,15 @@ public class EnvoyDisplayManager {
     private static final long WARNING_TICKS = 20L * 10;
     private static final double WARNING_HEIGHT = 2.0;
     private static final double BEACON_BEAM_HEIGHT = 12.0;
+    private static final float NORMAL_SCALE = 1.0f;
+    private static final float MEGA_SCALE = 1.6f;
 
     private final BoxPvpPlugin plugin;
     private final File file;
     private final FileConfiguration data;
     private final NamespacedKey ownerTag;
     private final List<ItemStack> rewardPool = new ArrayList<>();
+    private final List<ItemStack> megaRewardPool = new ArrayList<>();
     private final Random random = new Random();
     private final List<ActiveDrop> activeDrops = new ArrayList<>();
 
@@ -67,21 +73,36 @@ public class EnvoyDisplayManager {
         }
         this.data = YamlConfiguration.loadConfiguration(file);
         this.ownerTag = new NamespacedKey(plugin, "bpvp_envoy_owner");
-        loadRewards();
+        loadPool("rewards", rewardPool);
+        loadPool("mega-rewards", megaRewardPool);
     }
 
     public void addReward(ItemStack item) {
         rewardPool.add(item.clone());
-        saveRewards();
+        savePool("rewards", rewardPool);
     }
 
     public void clearRewards() {
         rewardPool.clear();
-        saveRewards();
+        savePool("rewards", rewardPool);
     }
 
     public List<ItemStack> rewards() {
         return rewardPool;
+    }
+
+    public void addMegaReward(ItemStack item) {
+        megaRewardPool.add(item.clone());
+        savePool("mega-rewards", megaRewardPool);
+    }
+
+    public void clearMegaRewards() {
+        megaRewardPool.clear();
+        savePool("mega-rewards", megaRewardPool);
+    }
+
+    public List<ItemStack> megaRewards() {
+        return megaRewardPool;
     }
 
     /**
@@ -115,11 +136,15 @@ public class EnvoyDisplayManager {
         return false;
     }
 
+    public void scheduleDrop(Location landAt) {
+        scheduleDrop(landAt, false);
+    }
+
     /**
      * Ostrzega 10 sekund wcześniej o miejscu lądowania (unosząca się strzałka + biały snop
      * cząsteczek jak z beacona), a dopiero potem uruchamia spadanie beczki w tym miejscu.
      */
-    public void scheduleDrop(Location landAt) {
+    public void scheduleDrop(Location landAt, boolean mega) {
         World world = landAt.getWorld();
         if (world == null) {
             return;
@@ -136,17 +161,18 @@ public class EnvoyDisplayManager {
             e.addScoreboardTag(TAG);
         });
 
-        Bukkit.broadcastMessage(Branding.chatPrefix() + "§f§l☀ Tutaj za 10 sekund spadnie skrzynka-event!");
-        world.playSound(groundAnchor, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.4f);
+        String label = mega ? Branding.accent("★ MEGA skrzynka-event!") : "§f§l☀ Skrzynka-event";
+        Bukkit.broadcastMessage(Branding.chatPrefix() + label + " §7spadnie tutaj za 10 sekund!");
+        world.playSound(groundAnchor, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, mega ? 0.8f : 1.4f);
 
-        animateWarning(groundAnchor, arrow, System.currentTimeMillis(), WARNING_TICKS);
+        animateWarning(groundAnchor, arrow, System.currentTimeMillis(), WARNING_TICKS, mega);
     }
 
     /**
      * Biały snop cząsteczek w miejscu ostrzeżenia (jak beam z beacona) + wirująca/bujająca się
      * strzałka nad ziemią, licząc w dół do momentu spadnięcia beczki.
      */
-    private void animateWarning(Location groundAnchor, ItemDisplay arrow, long start, long ticksLeft) {
+    private void animateWarning(Location groundAnchor, ItemDisplay arrow, long start, long ticksLeft, boolean mega) {
         if (!arrow.isValid()) {
             return;
         }
@@ -166,35 +192,42 @@ public class EnvoyDisplayManager {
 
         World world = groundAnchor.getWorld();
         for (double y = 0; y < BEACON_BEAM_HEIGHT; y += 0.5) {
-            world.spawnParticle(Particle.END_ROD, groundAnchor.getX(), groundAnchor.getY() + y, groundAnchor.getZ(), 1, 0, 0, 0, 0);
+            if (mega) {
+                world.spawnParticle(Particle.DUST, groundAnchor.getX(), groundAnchor.getY() + y, groundAnchor.getZ(), 1, 0, 0, 0, 0,
+                        new Particle.DustOptions(Color.fromRGB(Branding.LIGHT_LAVENDER), 1.2f));
+            } else {
+                world.spawnParticle(Particle.END_ROD, groundAnchor.getX(), groundAnchor.getY() + y, groundAnchor.getZ(), 1, 0, 0, 0, 0);
+            }
         }
 
         if (ticksLeft <= 0) {
             arrow.remove();
-            beginFall(groundAnchor);
+            beginFall(groundAnchor, mega);
             return;
         }
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateWarning(groundAnchor, arrow, start, ticksLeft - 1), 1L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateWarning(groundAnchor, arrow, start, ticksLeft - 1, mega), 1L);
     }
 
-    private void beginFall(Location groundAnchor) {
+    private void beginFall(Location groundAnchor, boolean mega) {
         World world = groundAnchor.getWorld();
         Location spawnAt = groundAnchor.clone().add(0, FALL_START_OFFSET, 0);
 
         ActiveDrop drop = new ActiveDrop();
+        drop.mega = mega;
         drop.crate = world.spawn(spawnAt, ItemDisplay.class, e -> {
             e.setBillboard(Display.Billboard.FIXED);
             e.setGravity(false);
             e.setPersistent(false);
             e.setInvulnerable(true);
-            e.setItemStack(new ItemStack(Material.BARREL));
+            e.setItemStack(new ItemStack(mega ? Material.SHULKER_BOX : Material.BARREL));
             e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "crate");
             e.addScoreboardTag(TAG);
         });
         activeDrops.add(drop);
 
-        Bukkit.broadcastMessage(Branding.chatPrefix() + "§c§l☁ Skrzynka-event §7spada z nieba!");
-        world.playSound(groundAnchor, Sound.ENTITY_ENDER_DRAGON_FLAP, 1.0f, 0.6f);
+        String label = mega ? Branding.accent("★ MEGA skrzynka-event") : "§c§l☁ Skrzynka-event";
+        Bukkit.broadcastMessage(Branding.chatPrefix() + label + " §7spada z nieba!");
+        world.playSound(groundAnchor, mega ? Sound.ENTITY_WITHER_AMBIENT : Sound.ENTITY_ENDER_DRAGON_FLAP, 1.0f, 0.6f);
 
         animateFall(drop, groundAnchor, System.currentTimeMillis());
     }
@@ -211,7 +244,7 @@ public class EnvoyDisplayManager {
 
         Location crateAt = groundAnchor.clone().add(0, heightOffset, 0);
         float spin = (float) ((System.currentTimeMillis() % 2000L) / 2000.0 * Math.PI * 2);
-        applyTransform(drop.crate, spin, 1.0f);
+        applyTransform(drop.crate, spin, drop.mega ? MEGA_SCALE : NORMAL_SCALE);
         drop.crate.teleport(crateAt);
 
         if (t >= 1.0) {
@@ -242,22 +275,32 @@ public class EnvoyDisplayManager {
     private void onLanded(ActiveDrop drop, Location groundAnchor) {
         drop.landed = true;
         drop.crate.teleport(groundAnchor);
-        applyTransform(drop.crate, 0f, 1.0f);
+        applyTransform(drop.crate, 0f, drop.mega ? MEGA_SCALE : NORMAL_SCALE);
 
         World world = groundAnchor.getWorld();
         drop.hitbox = world.spawn(groundAnchor, Interaction.class, e -> {
-            e.setInteractionWidth(0.9f);
-            e.setInteractionHeight(1.0f);
+            e.setInteractionWidth(drop.mega ? 1.3f : 0.9f);
+            e.setInteractionHeight(drop.mega ? 1.5f : 1.0f);
             e.setPersistent(false);
             e.setInvulnerable(true);
             e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "hitbox");
             e.addScoreboardTag(TAG);
         });
 
-        world.spawnParticle(Particle.EXPLOSION, groundAnchor, 1);
-        world.spawnParticle(Particle.CLOUD, groundAnchor, 40, 0.6, 0.3, 0.6, 0.05);
-        world.playSound(groundAnchor, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.4f);
-        Bukkit.broadcastMessage(Branding.chatPrefix() + "§c§l☁ Skrzynka-event §7wylądowała! Kliknij ją PPM, żeby otworzyć.");
+        if (drop.mega) {
+            world.spawnParticle(Particle.EXPLOSION, groundAnchor, 2);
+            world.spawnParticle(Particle.DUST, groundAnchor, 100, 0.8, 0.5, 0.8, 0.0,
+                    new Particle.DustOptions(Color.fromRGB(Branding.DARK_PURPLE), 1.4f));
+            world.spawnParticle(Particle.FLAME, groundAnchor, 40, 0.6, 0.3, 0.6, 0.03);
+            world.playSound(groundAnchor, Sound.ENTITY_WITHER_SPAWN, 0.6f, 1.2f);
+            Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("★ MEGA skrzynka-event")
+                    + " §7wylądowała! Kliknij ją PPM, żeby otworzyć.");
+        } else {
+            world.spawnParticle(Particle.EXPLOSION, groundAnchor, 1);
+            world.spawnParticle(Particle.CLOUD, groundAnchor, 40, 0.6, 0.3, 0.6, 0.05);
+            world.playSound(groundAnchor, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.4f);
+            Bukkit.broadcastMessage(Branding.chatPrefix() + "§c§l☁ Skrzynka-event §7wylądowała! Kliknij ją PPM, żeby otworzyć.");
+        }
     }
 
     /**
@@ -276,14 +319,16 @@ public class EnvoyDisplayManager {
     }
 
     private void openFor(Player player, ActiveDrop drop) {
-        if (rewardPool.isEmpty()) {
-            player.sendMessage("§cSkrzynka-event jest pusta (admin nie dodał jeszcze nagród: /bpvp event envoyitem add).");
+        List<ItemStack> pool = drop.mega ? megaRewardPool : rewardPool;
+        if (pool.isEmpty()) {
+            String hint = drop.mega ? "/bpvp event megaitem add" : "/bpvp event envoyitem add";
+            player.sendMessage("§cSkrzynka-event jest pusta (admin nie dodał jeszcze nagród: " + hint + ").");
             return;
         }
-        int count = 1 + random.nextInt(3);
+        int count = drop.mega ? 2 + random.nextInt(3) : 1 + random.nextInt(3);
         ItemStack lastReward = null;
         for (int i = 0; i < count; i++) {
-            ItemStack reward = rewardPool.get(random.nextInt(rewardPool.size())).clone();
+            ItemStack reward = pool.get(random.nextInt(pool.size())).clone();
             lastReward = reward;
             Map<Integer, ItemStack> leftover = player.getInventory().addItem(reward);
             for (ItemStack item : leftover.values()) {
@@ -295,6 +340,10 @@ public class EnvoyDisplayManager {
             RewardRevealEffect.playLight(plugin, player, lastReward);
         }
         player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 40, 0.4, 0.5, 0.4, 0.3);
+        if (drop.mega) {
+            Bukkit.broadcastMessage(Branding.chatPrefix() + "§e" + player.getName() + " §7otworzył(a) "
+                    + Branding.accent("★ MEGA skrzynkę-event") + "§7!");
+        }
         despawn(drop);
     }
 
@@ -308,20 +357,20 @@ public class EnvoyDisplayManager {
         activeDrops.remove(drop);
     }
 
-    private void loadRewards() {
-        List<?> raw = data.getList("rewards");
+    private void loadPool(String key, List<ItemStack> pool) {
+        List<?> raw = data.getList(key);
         if (raw == null) {
             return;
         }
         for (Object obj : raw) {
             if (obj instanceof ItemStack) {
-                rewardPool.add((ItemStack) obj);
+                pool.add((ItemStack) obj);
             }
         }
     }
 
-    private void saveRewards() {
-        data.set("rewards", rewardPool);
+    private void savePool(String key, List<ItemStack> pool) {
+        data.set(key, pool);
         try {
             data.save(file);
         } catch (IOException e) {
@@ -333,5 +382,6 @@ public class EnvoyDisplayManager {
         ItemDisplay crate;
         Interaction hitbox;
         boolean landed;
+        boolean mega;
     }
 }

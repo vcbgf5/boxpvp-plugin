@@ -77,7 +77,9 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp event setzone1 §7- 1. róg obszaru, w którym mogą spadać skrzynki-event (tu gdzie stoisz)");
         sender.sendMessage("§c/bpvp event setzone2 §7- 2. róg tego obszaru (przeciwległy róg)");
         sender.sendMessage("§c/bpvp event envoy §7- ręcznie zrzuca skrzynkę-event w losowe miejsce tego obszaru");
+        sender.sendMessage("§c/bpvp event mega §7- ręcznie zrzuca rzadszą MEGA skrzynkę-event (większa, lepszy loot)");
         sender.sendMessage("§c/bpvp event envoyitem add|clear|list §7- pula nagród skrzynki-eventu (add = trzymany przedmiot)");
+        sender.sendMessage("§c/bpvp event megaitem add|clear|list §7- pula nagród MEGA skrzynki-eventu");
         sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak|envoy> §7- stawia tablicę tu gdzie stoisz");
     }
 
@@ -244,7 +246,7 @@ public class GeneratorCommand implements CommandExecutor {
 
     private boolean handleEvent(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | setzone1 | setzone2 | envoyitem add|clear|list");
+            sendEventUsage(sender);
             return true;
         }
         String action = args[1].toLowerCase();
@@ -258,8 +260,14 @@ public class GeneratorCommand implements CommandExecutor {
                 return true;
             }
             case "envoy": {
-                boolean started = plugin.getEvents().spawnEnvoy();
+                boolean started = plugin.getEvents().spawnEnvoy(false);
                 sender.sendMessage(started ? "§aSkrzynka-event spada z nieba w losowe miejsce wyznaczonego obszaru!"
+                        : "§cNajpierw wyznacz obszar: /bpvp event setzone1 i /bpvp event setzone2 (dwa przeciwległe rogi).");
+                return true;
+            }
+            case "mega": {
+                boolean started = plugin.getEvents().spawnEnvoy(true);
+                sender.sendMessage(started ? "§5MEGA skrzynka-event spada z nieba w losowe miejsce wyznaczonego obszaru!"
                         : "§cNajpierw wyznacz obszar: /bpvp event setzone1 i /bpvp event setzone2 (dwa przeciwległe rogi).");
                 return true;
             }
@@ -276,10 +284,17 @@ public class GeneratorCommand implements CommandExecutor {
             }
             case "envoyitem":
                 return handleEnvoyItem(sender, args);
+            case "megaitem":
+                return handleMegaItem(sender, args);
             default:
-                sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | setzone1 | setzone2 | envoyitem add|clear|list");
+                sendEventUsage(sender);
                 return true;
         }
+    }
+
+    private void sendEventUsage(CommandSender sender) {
+        sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | mega | setzone1 | setzone2 "
+                + "| envoyitem add|clear|list | megaitem add|clear|list");
     }
 
     private boolean handleEnvoyItem(CommandSender sender, String[] args) {
@@ -318,6 +333,45 @@ public class GeneratorCommand implements CommandExecutor {
             return true;
         }
         sender.sendMessage("§cUżycie: /bpvp event envoyitem add|clear|list");
+        return true;
+    }
+
+    private boolean handleMegaItem(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage("§cUżycie: /bpvp event megaitem add|clear|list");
+            return true;
+        }
+        String action = args[2].toLowerCase();
+
+        if (action.equals("add")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Tej komendy może użyć tylko gracz.");
+                return true;
+            }
+            Player player = (Player) sender;
+            ItemStack hand = player.getInventory().getItemInMainHand();
+            if (hand.getType().isAir()) {
+                sender.sendMessage("§cTrzymaj w ręce przedmiot, który chcesz dodać do puli nagród mega.");
+                return true;
+            }
+            plugin.getEnvoy().addMegaReward(hand);
+            sender.sendMessage("§aDodano do puli nagród MEGA skrzynki-eventu: " + hand.getType() + " x" + hand.getAmount());
+            return true;
+        }
+        if (action.equals("clear")) {
+            plugin.getEnvoy().clearMegaRewards();
+            sender.sendMessage("§aWyczyszczono pulę nagród MEGA skrzynki-eventu.");
+            return true;
+        }
+        if (action.equals("list")) {
+            List<ItemStack> rewards = plugin.getEnvoy().megaRewards();
+            sender.sendMessage("§ePula nagród MEGA skrzynki-eventu (" + rewards.size() + "):");
+            for (ItemStack item : rewards) {
+                sender.sendMessage("§7- §f" + item.getType() + " x" + item.getAmount());
+            }
+            return true;
+        }
+        sender.sendMessage("§cUżycie: /bpvp event megaitem add|clear|list");
         return true;
     }
 

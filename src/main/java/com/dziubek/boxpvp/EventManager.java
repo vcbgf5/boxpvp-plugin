@@ -64,8 +64,13 @@ public class EventManager {
         nextAutoEnvoyAt = System.currentTimeMillis() + autoIntervalMillis;
         int count = plugin.getConfig().getInt("envoy.auto-drop-count", 2);
         for (int i = 0; i < count; i++) {
-            spawnEnvoy();
+            spawnEnvoy(rollMega());
         }
+    }
+
+    private boolean rollMega() {
+        double chance = plugin.getConfig().getDouble("envoy.mega-chance", 0.15);
+        return random.nextDouble() < chance;
     }
 
     /** Ile milisekund zostało do kolejnego automatycznego zrzutu - do wyświetlenia na tablicy. */
@@ -126,10 +131,14 @@ public class EventManager {
     }
 
     public boolean spawnEnvoy() {
+        return spawnEnvoy(false);
+    }
+
+    public boolean spawnEnvoy(boolean mega) {
         if (!hasEnvoyZone()) {
             return false;
         }
-        plugin.getEnvoy().scheduleDrop(randomPointInZone());
+        plugin.getEnvoy().scheduleDrop(randomPointInZone(), mega);
         return true;
     }
 
