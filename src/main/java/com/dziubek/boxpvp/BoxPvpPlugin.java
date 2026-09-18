@@ -39,6 +39,13 @@ public class BoxPvpPlugin extends JavaPlugin {
     private GeneratorManager generators;
     private TraderManager traders;
     private TraderEditorGuiManager traderEditorGui;
+    private SellManager sell;
+    private KillstreakManager killstreaks;
+    private PrestigeManager prestige;
+    private EventManager events;
+    private EnvoyDisplayManager envoy;
+    private LeaderboardManager leaderboards;
+    private ScoreboardManager scoreboards;
 
     @Override
     public void onEnable() {
@@ -63,19 +70,31 @@ public class BoxPvpPlugin extends JavaPlugin {
         generators = new GeneratorManager(this);
         traders = new TraderManager(this);
         traderEditorGui = new TraderEditorGuiManager(this);
+        sell = new SellManager(this);
+        prestige = new PrestigeManager(this);
+        events = new EventManager(this);
+        envoy = new EnvoyDisplayManager(this);
+        killstreaks = new KillstreakManager(this);
+        leaderboards = new LeaderboardManager(this);
+        scoreboards = new ScoreboardManager(this);
+
+        setupEconomy();
 
         crates.refreshAllHolograms();
         crates.initializeItemDisplays();
         crateItemDisplays.start();
         generators.start();
         traders.initialize();
-
-        setupEconomy();
+        envoy.purgeOrphans();
+        leaderboards.start();
+        scoreboards.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatKickListener(this), this);
         getServer().getPluginManager().registerEvents(new FirstJoinSpawnListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerSessionListener(this), this);
+        getServer().getPluginManager().registerEvents(new PvpKillListener(this), this);
         getServer().getPluginManager().registerEvents(new DailyGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new CrateGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new CrateBlockListener(this), this);
@@ -84,8 +103,10 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ShopConfigGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new ShopChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GeneratorListener(this), this);
+        getServer().getPluginManager().registerEvents(new GeneratorSellListener(this), this);
         getServer().getPluginManager().registerEvents(new TraderListener(this), this);
         getServer().getPluginManager().registerEvents(new TraderChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new EnvoyListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -99,6 +120,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("sklep").setExecutor(new ShopCommand(this));
         getCommand("bpvp").setExecutor(new GeneratorCommand(this));
         getCommand("bpvp").setTabCompleter(new GeneratorTabCompleter(this));
+        getCommand("prestige").setExecutor(new PrestigeCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -275,5 +297,33 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public TraderEditorGuiManager getTraderEditorGui() {
         return traderEditorGui;
+    }
+
+    public SellManager getSell() {
+        return sell;
+    }
+
+    public KillstreakManager getKillstreaks() {
+        return killstreaks;
+    }
+
+    public PrestigeManager getPrestige() {
+        return prestige;
+    }
+
+    public EventManager getEvents() {
+        return events;
+    }
+
+    public EnvoyDisplayManager getEnvoy() {
+        return envoy;
+    }
+
+    public LeaderboardManager getLeaderboards() {
+        return leaderboards;
+    }
+
+    public ScoreboardManager getScoreboards() {
+        return scoreboards;
     }
 }

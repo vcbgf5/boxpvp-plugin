@@ -10,8 +10,14 @@ import java.util.stream.Collectors;
 
 public class GeneratorTabCompleter implements TabCompleter {
 
-    private static final List<String> SUBCOMMANDS = List.of("wand", "create", "remove", "list", "villager");
+    private static final List<String> SUBCOMMANDS = List.of("wand", "create", "remove", "list", "villager",
+            "sellprice", "event", "leaderboard");
     private static final List<String> VILLAGER_ACTIONS = List.of("create", "remove");
+    private static final List<String> SELLPRICE_ACTIONS = List.of("set", "remove", "list");
+    private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "setpoint", "envoyitem");
+    private static final List<String> ENVOYITEM_ACTIONS = List.of("add", "clear", "list");
+    private static final List<String> LEADERBOARD_ACTIONS = List.of("setlocation");
+    private static final List<String> LEADERBOARD_TYPES = List.of("kills", "coins", "killstreak");
 
     private final BoxPvpPlugin plugin;
 
@@ -37,6 +43,28 @@ public class GeneratorTabCompleter implements TabCompleter {
             }
             if (args.length == 3 && args[1].equalsIgnoreCase("remove")) {
                 return filter(plugin.getTraders().names(), args[2]);
+            }
+        }
+
+        if (sub.equals("sellprice") && args.length == 2) {
+            return filter(SELLPRICE_ACTIONS, args[1]);
+        }
+
+        if (sub.equals("event")) {
+            if (args.length == 2) {
+                return filter(EVENT_ACTIONS, args[1]);
+            }
+            if (args.length == 3 && args[1].equalsIgnoreCase("envoyitem")) {
+                return filter(ENVOYITEM_ACTIONS, args[2]);
+            }
+        }
+
+        if (sub.equals("leaderboard")) {
+            if (args.length == 2) {
+                return filter(LEADERBOARD_ACTIONS, args[1]);
+            }
+            if (args.length == 3 && args[1].equalsIgnoreCase("setlocation")) {
+                return filter(LEADERBOARD_TYPES, args[2]);
             }
         }
 

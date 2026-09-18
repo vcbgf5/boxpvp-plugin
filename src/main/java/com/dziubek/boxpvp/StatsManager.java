@@ -59,8 +59,65 @@ public class StatsManager {
         return data.getDouble("players." + uuid + ".money-spent", 0);
     }
 
+    public void recordKill(UUID uuid, String name) {
+        increment(uuid, name, "kills");
+    }
+
+    public void recordDeath(UUID uuid, String name) {
+        increment(uuid, name, "deaths");
+    }
+
+    public int getKills(UUID uuid) {
+        return data.getInt("players." + uuid + ".kills", 0);
+    }
+
+    public int getDeaths(UUID uuid) {
+        return data.getInt("players." + uuid + ".deaths", 0);
+    }
+
+    public int getBestKillstreak(UUID uuid) {
+        return data.getInt("players." + uuid + ".best-killstreak", 0);
+    }
+
+    public void setBestKillstreakIfHigher(UUID uuid, String name, int value) {
+        if (value > getBestKillstreak(uuid)) {
+            data.set("players." + uuid + ".best-killstreak", value);
+            touchName(uuid, name);
+            save();
+        }
+    }
+
     /**
-     * Top N graczy wg wybranej statystyki ("crates", "daily" albo "money"), malejąco.
+     * Rejestruje gracza (imię + istnienie wpisu) bez zmiany żadnej statystyki - wywoływane
+     * przy każdym dołączeniu, żeby leaderboardy (np. TOP monety) wiedziały kogo w ogóle sprawdzać.
+     */
+    public void touch(UUID uuid, String name) {
+        touchName(uuid, name);
+        save();
+    }
+
+    public String getName(UUID uuid) {
+        return data.getString("players." + uuid + ".name", uuid.toString());
+    }
+
+    public List<UUID> knownPlayers() {
+        List<UUID> list = new ArrayList<>();
+        ConfigurationSection players = data.getConfigurationSection("players");
+        if (players == null) {
+            return list;
+        }
+        for (String uuidStr : players.getKeys(false)) {
+            try {
+                list.add(UUID.fromString(uuidStr));
+            } catch (IllegalArgumentException ignored) {
+                // klucz spoza formatu UUID - pomiń
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Top N graczy wg wybranej statystyki ("crates", "daily", "money", "kills" albo "killstreak"), malejąco.
      */
     public List<TopEntry> topN(String stat, int limit) {
         List<TopEntry> list = new ArrayList<>();
@@ -78,6 +135,12 @@ public class StatsManager {
                     break;
                 case "money":
                     value = data.getDouble(base + ".money-spent", 0);
+                    break;
+                case "kills":
+                    value = data.getInt(base + ".kills", 0);
+                    break;
+                case "killstreak":
+                    value = data.getInt(base + ".best-killstreak", 0);
                     break;
                 default:
                     value = data.getInt(base + ".crates-opened", 0);

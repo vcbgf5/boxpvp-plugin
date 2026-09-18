@@ -141,6 +141,37 @@ public class GeneratorManager {
         return new ArrayList<>(generators.keySet());
     }
 
+    /**
+     * Czy dany blok leży w obszarze KTÓREGOKOLWIEK generatora - używane przez auto-sprzedaż,
+     * żeby sprzedawać tylko bloki faktycznie wykopane z generatora, a nie np. postawione ręcznie.
+     */
+    public boolean isGeneratorBlock(Location location) {
+        for (Generator gen : generators.values()) {
+            if (contains(gen, location)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean contains(Generator gen, Location location) {
+        World world = gen.pos1.getWorld();
+        if (world == null || !world.equals(location.getWorld())) {
+            return false;
+        }
+        int minX = Math.min(gen.pos1.getBlockX(), gen.pos2.getBlockX());
+        int maxX = Math.max(gen.pos1.getBlockX(), gen.pos2.getBlockX());
+        int minY = Math.min(gen.pos1.getBlockY(), gen.pos2.getBlockY());
+        int maxY = Math.max(gen.pos1.getBlockY(), gen.pos2.getBlockY());
+        int minZ = Math.min(gen.pos1.getBlockZ(), gen.pos2.getBlockZ());
+        int maxZ = Math.max(gen.pos1.getBlockZ(), gen.pos2.getBlockZ());
+
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
+        return x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ;
+    }
+
     private void tick() {
         long now = System.currentTimeMillis();
         for (Generator gen : generators.values()) {

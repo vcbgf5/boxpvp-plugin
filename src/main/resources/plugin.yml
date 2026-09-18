@@ -35,8 +35,11 @@ commands:
     description: Otwiera sklep z GUI - /sklep create|additem|removeitem|removecategory do konfiguracji (admin)
     usage: /sklep
   bpvp:
-    description: Generatory blokow i handlarze - /bpvp wand|create|remove|list|villager
-    usage: /bpvp wand|create <nazwa> <blok> <sekundy>|remove <nazwa>|list|villager create|remove <nazwa>
+    description: Generatory, handlarze, auto-sprzedaz, eventy i leaderboardy - /bpvp wand|create|remove|list|villager|sellprice|event|leaderboard
+    usage: /bpvp wand|create <nazwa> <blok> <sekundy>|remove <nazwa>|list|villager create|remove <nazwa>|sellprice set|remove|list|event start|envoy|setpoint|envoyitem|leaderboard setlocation
+  prestige:
+    description: Oddaje cala gotowke za trwaly mnoznik zarobkow (auto-sprzedaz i zabojstwa) - /prestige confirm
+    usage: /prestige [confirm]
 
 softdepend: [WorldGuard, Vault, DecentHolograms]
 
