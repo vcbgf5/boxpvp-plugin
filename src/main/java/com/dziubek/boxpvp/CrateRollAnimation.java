@@ -175,6 +175,7 @@ public class CrateRollAnimation {
         }
 
         plugin.getStats().recordCrateOpened(player.getUniqueId(), player.getName());
+        plugin.getMissions().addProgress(player, MissionManager.Type.CRATES_OPENED, 1);
 
         String name = itemDisplayName(won);
         player.sendMessage("§aWygrałeś: §f" + name + " §7(x" + won.getAmount() + ") §7ze skrzyni '" + crateName + "'!");

@@ -23,6 +23,7 @@ public class PvpKillListener implements Listener {
         if (killer != null && !killer.getUniqueId().equals(victim.getUniqueId())) {
             plugin.getStats().recordKill(killer.getUniqueId(), killer.getName());
             plugin.getKillstreaks().onKill(killer);
+            plugin.getMissions().addProgress(killer, MissionManager.Type.KILLS, 1);
         }
     }
 }

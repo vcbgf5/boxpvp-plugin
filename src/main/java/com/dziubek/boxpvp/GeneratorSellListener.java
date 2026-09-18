@@ -30,6 +30,7 @@ public class GeneratorSellListener implements Listener {
             return;
         }
         event.setDropItems(false);
+        plugin.getMissions().addProgress(event.getPlayer(), MissionManager.Type.BLOCKS_MINED, 1);
 
         if (plugin.getEconomy() == null) {
             return;

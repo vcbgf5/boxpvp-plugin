@@ -41,6 +41,15 @@ commands:
   prestige:
     description: Oddaje cala gotowke za trwaly mnoznik zarobkow (auto-sprzedaz i zabojstwa) - /prestige confirm
     usage: /prestige [confirm]
+  stats:
+    description: Otwiera GUI z Twoimi statystykami (zabojstwa, smierci, K/D, monety, prestiz, seria, skrzynie)
+    usage: /stats
+  party:
+    description: Druzyny - /party create|invite|accept|leave|kick|list
+    usage: /party create|invite <gracz>|accept|leave|kick <gracz>|list
+  missions:
+    description: Otwiera GUI z dziennymi/tygodniowymi misjami i odbiorem nagrod
+    usage: /missions
 
 softdepend: [WorldGuard, Vault, DecentHolograms]
 

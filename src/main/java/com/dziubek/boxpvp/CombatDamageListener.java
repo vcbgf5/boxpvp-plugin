@@ -30,6 +30,10 @@ public class CombatDamageListener implements Listener {
         if (attacker.getUniqueId().equals(victim.getUniqueId())) {
             return;
         }
+        if (plugin.getParty().sameParty(attacker.getUniqueId(), victim.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
 
         long duration = plugin.getCombatDurationSeconds();
         alertIfFreshTag(victim, duration);

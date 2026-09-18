@@ -46,6 +46,10 @@ public class BoxPvpPlugin extends JavaPlugin {
     private EnvoyDisplayManager envoy;
     private LeaderboardManager leaderboards;
     private ScoreboardManager scoreboards;
+    private StatsGuiManager statsGui;
+    private PartyManager party;
+    private MissionManager missions;
+    private MissionsGuiManager missionsGui;
 
     @Override
     public void onEnable() {
@@ -77,6 +81,10 @@ public class BoxPvpPlugin extends JavaPlugin {
         killstreaks = new KillstreakManager(this);
         leaderboards = new LeaderboardManager(this);
         scoreboards = new ScoreboardManager(this);
+        statsGui = new StatsGuiManager(this);
+        party = new PartyManager(this);
+        missions = new MissionManager(this);
+        missionsGui = new MissionsGuiManager(this);
 
         setupEconomy();
 
@@ -108,6 +116,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TraderListener(this), this);
         getServer().getPluginManager().registerEvents(new TraderChatListener(this), this);
         getServer().getPluginManager().registerEvents(new EnvoyListener(this), this);
+        getServer().getPluginManager().registerEvents(new StatsGuiListener(this), this);
+        getServer().getPluginManager().registerEvents(new PartyQuitListener(this), this);
+        getServer().getPluginManager().registerEvents(new MissionsGuiListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -122,6 +133,10 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("bpvp").setExecutor(new GeneratorCommand(this));
         getCommand("bpvp").setTabCompleter(new GeneratorTabCompleter(this));
         getCommand("prestige").setExecutor(new PrestigeCommand(this));
+        getCommand("stats").setExecutor(new StatsCommand(this));
+        getCommand("party").setExecutor(new PartyCommand(this));
+        getCommand("party").setTabCompleter(new PartyTabCompleter());
+        getCommand("missions").setExecutor(new MissionsCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -326,5 +341,21 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public ScoreboardManager getScoreboards() {
         return scoreboards;
+    }
+
+    public StatsGuiManager getStatsGui() {
+        return statsGui;
+    }
+
+    public PartyManager getParty() {
+        return party;
+    }
+
+    public MissionManager getMissions() {
+        return missions;
+    }
+
+    public MissionsGuiManager getMissionsGui() {
+        return missionsGui;
     }
 }
