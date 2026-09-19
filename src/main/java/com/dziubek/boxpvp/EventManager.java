@@ -54,11 +54,37 @@ public class EventManager {
 
     /**
      * Uruchamia automatyczne zrzuty skrzynek-event - domyślnie co 10 minut spadają 2 sztuki
-     * (każda z osobnym, 10-sekundowym ostrzeżeniem w miejscu lądowania).
+     * (każda z osobnym, 10-sekundowym ostrzeżeniem w miejscu lądowania). Osobno: zwykły
+     * zombie-event co minutę (zawsze), szansa na mega-zombie co 5 minut, i gwarancja mega-
+     * zombie co 10 minut, jeśli akurat żaden nie trwa.
      */
     public void start() {
         long intervalTicks = autoIntervalMillis / 50L;
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::triggerAutoEnvoys, intervalTicks, intervalTicks);
+
+        long oneMinuteTicks = 20L * 60;
+        long fiveMinuteTicks = 20L * 60 * 5;
+        long tenMinuteTicks = 20L * 60 * 10;
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::triggerAutoZombie, oneMinuteTicks, oneMinuteTicks);
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::triggerMegaZombieChance, fiveMinuteTicks, fiveMinuteTicks);
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::guaranteeMegaZombie, tenMinuteTicks, tenMinuteTicks);
+    }
+
+    private void triggerAutoZombie() {
+        spawnZombieEvent();
+    }
+
+    private void triggerMegaZombieChance() {
+        double chance = plugin.getConfig().getDouble("envoy.megazombie-chance", 0.5);
+        if (random.nextDouble() < chance) {
+            spawnMegaZombieEvent();
+        }
+    }
+
+    private void guaranteeMegaZombie() {
+        if (!plugin.getGiantEvent().isEventActive()) {
+            spawnMegaZombieEvent();
+        }
     }
 
     private void triggerAutoEnvoys() {
@@ -91,7 +117,7 @@ public class EventManager {
     }
 
     public boolean spawnMegaZombieEvent() {
-        if (!hasEnvoyZone()) {
+        if (!hasEnvoyZone() || plugin.getGiantEvent().isEventActive()) {
             return false;
         }
         plugin.getGiantEvent().dropCrate(randomPointInZone());

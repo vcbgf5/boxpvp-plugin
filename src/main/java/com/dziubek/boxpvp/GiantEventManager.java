@@ -82,6 +82,7 @@ public class GiantEventManager {
     private final List<ItemStack> rewardPool = new ArrayList<>();
     private final Random random = new Random();
     private final Map<UUID, TrackedGiant> tracked = new HashMap<>();
+    private volatile boolean eventActive = false;
 
     public GiantEventManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -119,6 +120,11 @@ public class GiantEventManager {
         return tracked.containsKey(entity.getUniqueId());
     }
 
+    /** Czy jakaś wielka skrzynka/Giant jest aktualnie w trakcie (spada, otwiera się, albo żyje). */
+    public boolean isEventActive() {
+        return eventActive;
+    }
+
     /** Usuwa osierocone Giganty sprzed restartu (nie ma ich w świeżej mapie tracked). */
     public void purgeOrphans() {
         for (World world : plugin.getServer().getWorlds()) {
@@ -138,6 +144,7 @@ public class GiantEventManager {
         if (world == null) {
             return;
         }
+        eventActive = true;
         Location groundAnchor = landAt.clone().add(0.5, 0, 0.5);
         Location spawnAt = groundAnchor.clone().add(0, CRATE_FALL_START_OFFSET, 0);
 
@@ -386,6 +393,7 @@ public class GiantEventManager {
         if (tg == null) {
             return;
         }
+        eventActive = false;
         if (tg.lifetimeTask != null) {
             tg.lifetimeTask.cancel();
         }
@@ -406,6 +414,7 @@ public class GiantEventManager {
         if (tg == null) {
             return;
         }
+        eventActive = false;
         if (tg.lifetimeTask != null) {
             tg.lifetimeTask.cancel();
         }
@@ -417,6 +426,7 @@ public class GiantEventManager {
         if (tg == null) {
             return;
         }
+        eventActive = false;
         if (tg.giant != null && tg.giant.isValid()) {
             tg.giant.remove();
         }

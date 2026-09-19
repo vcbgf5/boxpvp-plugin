@@ -360,6 +360,10 @@ public class GeneratorCommand implements CommandExecutor {
             case "zombieitem":
                 return handleZombieItem(sender, args);
             case "megazombie": {
+                if (plugin.getGiantEvent().isEventActive()) {
+                    sender.sendMessage("§cMega-zombie już trwa - poczekaj, aż zniknie albo zostanie zabity.");
+                    return true;
+                }
                 boolean started = plugin.getEvents().spawnMegaZombieEvent();
                 sender.sendMessage(started ? "§4WIELKA SKRZYNKA spada z nieba w losowe miejsce wyznaczonego obszaru - wyjdzie z niej Giant!"
                         : "§cNajpierw wyznacz obszar: /bpvp event setzone1 i /bpvp event setzone2 (dwa przeciwległe rogi).");
