@@ -106,6 +106,12 @@ public class BoxPvpPlugin extends JavaPlugin {
 
         setupEconomy();
 
+        // TraderListener musi być zarejestrowany PRZED traders.initialize() - handlarz to
+        // prawdziwy Villager, a jego spawn na starcie serwera (gdy nie ma jeszcze przetrwałej
+        // encji) podlega fladze WorldGuard "mob-spawning"; bez zarejestrowanego listenera nikt
+        // nie cofnie anulowania CreatureSpawnEvent i handlarz po restarcie się nie pojawi.
+        getServer().getPluginManager().registerEvents(new TraderListener(this), this);
+
         crates.refreshAllHolograms();
         crates.initializeItemDisplays();
         crateItemDisplays.start();
@@ -135,7 +141,6 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ShopChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GeneratorListener(this), this);
         getServer().getPluginManager().registerEvents(new GeneratorSellListener(this), this);
-        getServer().getPluginManager().registerEvents(new TraderListener(this), this);
         getServer().getPluginManager().registerEvents(new TraderChatListener(this), this);
         getServer().getPluginManager().registerEvents(new EnvoyListener(this), this);
         getServer().getPluginManager().registerEvents(new StatsGuiListener(this), this);
