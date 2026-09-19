@@ -53,9 +53,9 @@ commands:
   gamma:
     description: Przelacza stale night vision (zamiennik gammy)
     usage: /gamma
-  bank:
-    description: Kantor - kup/sprzedaj fizyczne banknoty (slonecznik, zelazo, zloto, diament, netheryt) za monety u NPC - /bank create|remove|list|price
-    usage: /bank create <nazwa>|remove <nazwa>|list|price set|remove|list
+  bank-serwer:
+    description: Kantor - kup/sprzedaj fizyczne banknoty (slonecznik, zelazo, zloto, diament, netheryt) za monety u NPC - /bank-serwer create|remove|list|price
+    usage: /bank-serwer create <nazwa>|remove <nazwa>|list|price set|remove|list
 
 softdepend: [WorldGuard, Vault, DecentHolograms]
 

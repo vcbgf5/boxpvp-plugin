@@ -150,8 +150,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("party").setTabCompleter(new PartyTabCompleter());
         getCommand("missions").setExecutor(new MissionsCommand(this));
         getCommand("gamma").setExecutor(new GammaCommand());
-        getCommand("bank").setExecutor(new BankCommand(this));
-        getCommand("bank").setTabCompleter(new BankTabCompleter(this));
+        getCommand("bank-serwer").setExecutor(new BankCommand(this));
+        getCommand("bank-serwer").setTabCompleter(new BankTabCompleter(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);

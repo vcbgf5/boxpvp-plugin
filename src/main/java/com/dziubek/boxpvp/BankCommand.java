@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * /bank - Kantor: admin stawia/usuwa NPC i ustawia nominały (materiał -> wartość w monetach),
- * gracze wymieniają monety na fizyczne "banknoty" i z powrotem przez PPM na NPC (BankListener).
+ * /bank-serwer - Kantor: admin stawia/usuwa NPC i ustawia nominały (materiał -> wartość w
+ * monetach), gracze wymieniają monety na fizyczne "banknoty" i z powrotem przez PPM na NPC
+ * (BankListener). Nazwa "bank-serwer" zamiast "bank", bo "/bank" koliduje z komendą banku
+ * z pluginu ekonomii (Essentials i podobne).
  */
 public class BankCommand implements CommandExecutor {
 
@@ -53,13 +55,13 @@ public class BankCommand implements CommandExecutor {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(Branding.accent("--- /bank ---"));
-        sender.sendMessage("§c/bank create <nazwa> §7- stawia Kantor w Twojej pozycji");
-        sender.sendMessage("§c/bank remove <nazwa> §7- usuwa Kantor");
-        sender.sendMessage("§c/bank list §7- lista Kantorów");
-        sender.sendMessage("§c/bank price set <materiał> <wartość> §7- ustawia nominał (np. IRON_INGOT 10)");
-        sender.sendMessage("§c/bank price remove <materiał> §7- usuwa nominał");
-        sender.sendMessage("§c/bank price list §7- lista aktualnych nominałów");
+        sender.sendMessage(Branding.accent("--- /bank-serwer---"));
+        sender.sendMessage("§c/bank-serwercreate <nazwa> §7- stawia Kantor w Twojej pozycji");
+        sender.sendMessage("§c/bank-serwerremove <nazwa> §7- usuwa Kantor");
+        sender.sendMessage("§c/bank-serwerlist §7- lista Kantorów");
+        sender.sendMessage("§c/bank-serwerprice set <materiał> <wartość> §7- ustawia nominał (np. IRON_INGOT 10)");
+        sender.sendMessage("§c/bank-serwerprice remove <materiał> §7- usuwa nominał");
+        sender.sendMessage("§c/bank-serwerprice list §7- lista aktualnych nominałów");
     }
 
     private boolean handleCreate(CommandSender sender, String[] args) {
@@ -68,7 +70,7 @@ public class BankCommand implements CommandExecutor {
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage("§cUżycie: /bank create <nazwa>");
+            sender.sendMessage("§cUżycie: /bank-serwercreate <nazwa>");
             return true;
         }
         String name = args[1];
@@ -83,7 +85,7 @@ public class BankCommand implements CommandExecutor {
 
     private boolean handleRemove(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("§cUżycie: /bank remove <nazwa>");
+            sender.sendMessage("§cUżycie: /bank-serwerremove <nazwa>");
             return true;
         }
         boolean removed = plugin.getBanks().removeBank(args[1]);
@@ -103,7 +105,7 @@ public class BankCommand implements CommandExecutor {
 
     private boolean handlePrice(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("§cUżycie: /bank price set <materiał> <wartość>|remove <materiał>|list");
+            sender.sendMessage("§cUżycie: /bank-serwerprice set <materiał> <wartość>|remove <materiał>|list");
             return true;
         }
         String action = args[1].toLowerCase();
@@ -115,7 +117,7 @@ public class BankCommand implements CommandExecutor {
         switch (action) {
             case "set": {
                 if (args.length < 4) {
-                    sender.sendMessage("§cUżycie: /bank price set <materiał> <wartość>");
+                    sender.sendMessage("§cUżycie: /bank-serwerprice set <materiał> <wartość>");
                     return true;
                 }
                 Material material = Material.matchMaterial(args[2].toUpperCase());
@@ -140,7 +142,7 @@ public class BankCommand implements CommandExecutor {
             }
             case "remove": {
                 if (args.length < 3) {
-                    sender.sendMessage("§cUżycie: /bank price remove <materiał>");
+                    sender.sendMessage("§cUżycie: /bank-serwerprice remove <materiał>");
                     return true;
                 }
                 Material material = Material.matchMaterial(args[2].toUpperCase());
@@ -161,7 +163,7 @@ public class BankCommand implements CommandExecutor {
                 return true;
             }
             default:
-                sender.sendMessage("§cUżycie: /bank price set <materiał> <wartość>|remove <materiał>|list");
+                sender.sendMessage("§cUżycie: /bank-serwerprice set <materiał> <wartość>|remove <materiał>|list");
                 return true;
         }
     }

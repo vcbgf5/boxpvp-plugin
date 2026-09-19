@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Nominały fizycznej waluty Kantoru - każdy skonfigurowany materiał (słonecznik, sztabki itd.)
  * ma stałą wartość w monetach (Vault). Przy pierwszym uruchomieniu (pusty plik) zasiewa
- * domyślną progresję, admin może ją potem dowolnie zmienić przez /bank price.
+ * domyślną progresję, admin może ją potem dowolnie zmienić przez /bank-serwer price.
  */
 public class CurrencyManager {
 
