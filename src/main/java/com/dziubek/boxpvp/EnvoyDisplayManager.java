@@ -256,13 +256,6 @@ public class EnvoyDisplayManager {
         animateFall(drop, groundAnchor, System.currentTimeMillis());
     }
 
-    /**
-     * Poza czasową animacją (ease-out do wcześniej wyliczonej "podłogi" strefy) co klatkę
-     * sprawdza realną wysokość terenu pod skrzynką (getHighestBlockYAt) i ląduje NATYCHMIAST
-     * po jej dotknięciu - teren w strefie eventów bywa nierówny, więc sama animacja czasowa
-     * potrafiła wbić skrzynkę pod ziemię, jeśli teren w danym punkcie był wyższy niż podłoga
-     * strefy.
-     */
     private void animateFall(ActiveDrop drop, Location groundAnchor, long start) {
         if (drop.crate == null || !drop.crate.isValid()) {
             activeDrops.remove(drop);
@@ -274,13 +267,6 @@ public class EnvoyDisplayManager {
         double heightOffset = (1.0 - eased) * FALL_START_OFFSET;
 
         Location crateAt = groundAnchor.clone().add(0, heightOffset, 0);
-        World world = groundAnchor.getWorld();
-        double groundY = world.getHighestBlockYAt((int) Math.floor(crateAt.getX()), (int) Math.floor(crateAt.getZ()));
-        boolean touchedGround = crateAt.getY() <= groundY;
-        if (touchedGround) {
-            crateAt.setY(groundY);
-        }
-
         float spin = (float) ((System.currentTimeMillis() % 2000L) / 2000.0 * Math.PI * 2);
         applyTransform(drop.crate, spin, drop.mega ? MEGA_SCALE : NORMAL_SCALE);
         drop.crate.teleport(crateAt);
@@ -288,8 +274,8 @@ public class EnvoyDisplayManager {
             drop.label.teleport(crateAt.clone().add(0, LABEL_HEIGHT_OFFSET, 0));
         }
 
-        if (touchedGround || t >= 1.0) {
-            onLanded(drop, crateAt);
+        if (t >= 1.0) {
+            onLanded(drop, groundAnchor);
             return;
         }
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateFall(drop, groundAnchor, start), 1L);
