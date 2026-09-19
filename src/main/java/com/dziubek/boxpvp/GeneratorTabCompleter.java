@@ -1,17 +1,19 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class GeneratorTabCompleter implements TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of("wand", "create", "remove", "list", "villager",
-            "sellprice", "event", "leaderboard", "movehologram");
+            "sellprice", "event", "leaderboard", "movehologram", "craftblock");
     private static final List<String> VILLAGER_ACTIONS = List.of("create", "remove");
     private static final List<String> SELLPRICE_ACTIONS = List.of("set", "remove", "list");
     private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "mega", "zombie", "setzone1", "setzone2",
@@ -19,6 +21,7 @@ public class GeneratorTabCompleter implements TabCompleter {
     private static final List<String> ENVOYITEM_ACTIONS = List.of("add", "clear", "list");
     private static final List<String> LEADERBOARD_ACTIONS = List.of("setlocation");
     private static final List<String> LEADERBOARD_TYPES = List.of("kills", "coins", "killstreak", "envoy");
+    private static final List<String> CRAFTBLOCK_ACTIONS = List.of("add", "remove", "list");
 
     private final BoxPvpPlugin plugin;
 
@@ -70,11 +73,29 @@ public class GeneratorTabCompleter implements TabCompleter {
             }
         }
 
+        if (sub.equals("craftblock")) {
+            if (args.length == 2) {
+                return filter(CRAFTBLOCK_ACTIONS, args[1]);
+            }
+            if (args.length == 3 && (args[1].equalsIgnoreCase("add") || args[1].equalsIgnoreCase("remove"))) {
+                return filterMaterials(args[2]);
+            }
+        }
+
         return new ArrayList<>();
     }
 
     private List<String> filter(List<String> options, String prefix) {
         String lower = prefix.toLowerCase();
         return options.stream().filter(o -> o.toLowerCase().startsWith(lower)).collect(Collectors.toList());
+    }
+
+    private List<String> filterMaterials(String prefix) {
+        String upper = prefix.toUpperCase();
+        return Arrays.stream(Material.values())
+                .map(Enum::name)
+                .filter(name -> name.startsWith(upper))
+                .limit(30)
+                .collect(Collectors.toList());
     }
 }

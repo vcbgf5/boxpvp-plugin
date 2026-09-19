@@ -54,6 +54,9 @@ public class BoxPvpPlugin extends JavaPlugin {
     private CurrencyManager currency;
     private BankManager banks;
     private BankGuiManager bankGui;
+    private MarketManager market;
+    private MarketGuiManager marketGui;
+    private CraftBlockManager craftBlocks;
 
     @Override
     public void onEnable() {
@@ -93,6 +96,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         currency = new CurrencyManager(this);
         banks = new BankManager(this);
         bankGui = new BankGuiManager(this);
+        market = new MarketManager(this);
+        marketGui = new MarketGuiManager(this);
+        craftBlocks = new CraftBlockManager(this);
 
         setupEconomy();
 
@@ -107,6 +113,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         leaderboards.start();
         scoreboards.start();
         events.start();
+        market.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
@@ -131,6 +138,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MissionsGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new ZombieEventListener(this), this);
         getServer().getPluginManager().registerEvents(new BankListener(this), this);
+        getServer().getPluginManager().registerEvents(new BankChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new MarketListener(this), this);
+        getServer().getPluginManager().registerEvents(new CraftBlockListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -152,6 +162,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("gamma").setExecutor(new GammaCommand());
         getCommand("bank-serwer").setExecutor(new BankCommand(this));
         getCommand("bank-serwer").setTabCompleter(new BankTabCompleter(this));
+        getCommand("wymiana").setExecutor(new WymianaCommand(this));
+        getCommand("rynek").setExecutor(new RynekCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -388,5 +400,17 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public BankGuiManager getBankGui() {
         return bankGui;
+    }
+
+    public MarketManager getMarket() {
+        return market;
+    }
+
+    public MarketGuiManager getMarketGui() {
+        return marketGui;
+    }
+
+    public CraftBlockManager getCraftBlocks() {
+        return craftBlocks;
     }
 }

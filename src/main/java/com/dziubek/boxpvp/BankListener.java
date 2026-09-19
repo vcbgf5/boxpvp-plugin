@@ -4,19 +4,20 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * PPM na Kantorze zawsze otwiera GUI wymiany (bez warunku shift - w przeciwieństwie do
- * TraderListener, bo nie ma tu osobnego GUI edycji admina). Kliknięcia w GUI: LPM = kup 1,
- * Shift+LPM = kup tyle ile stać (do 64), PPM = sprzedaj wszystkie posiadane sztuki danego
- * materiału. Cała matematyka idzie przez Vault (plugin.getEconomy()), bez wanilijnego handlu.
+ * PPM na Kantorze albo realizuje trzymany czek (BankManager.redeemCheck), albo otwiera GUI
+ * wymiany. Kliknięcia w GUI: LPM = kup 1, Shift+LPM = kup tyle ile stać (do 64), środkowy klik =
+ * kup dowolną ilość wpisaną na czacie, PPM = sprzedaj wszystkie posiadane sztuki, Shift+PPM =
+ * sprzedaj dowolną ilość wpisaną na czacie. Cała matematyka/transakcje żyją w BankManager, żeby
+ * dzielić je z BankChatListener (wpisana na czacie ilość/kwota).
  */
 public class BankListener implements Listener {
 
@@ -36,7 +37,15 @@ public class BankListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        plugin.getBankGui().open(event.getPlayer());
+        Player player = event.getPlayer();
+
+        ItemStack held = player.getInventory().getItemInMainHand();
+        Double checkAmount = plugin.getBanks().getCheckAmount(held);
+        if (checkAmount != null) {
+            plugin.getBanks().redeemCheck(player, held, checkAmount);
+            return;
+        }
+        plugin.getBankGui().open(player);
     }
 
     @EventHandler
@@ -54,70 +63,43 @@ public class BankListener implements Listener {
         }
         Player player = (Player) event.getWhoClicked();
 
+        if (slot == BankGuiManager.CHECK_SLOT) {
+            plugin.getBanks().awaitCheckAmount(player);
+            return;
+        }
+
         List<Material> ordered = plugin.getCurrency().orderedMaterials();
         int index = slot - BankGuiManager.FIRST_SLOT;
         if (index < 0 || index >= ordered.size() || index >= BankGuiManager.MAX_DENOMINATIONS) {
             return;
         }
         Material material = ordered.get(index);
-        double price = plugin.getCurrency().getPrice(material);
 
-        if (event.isRightClick()) {
-            sell(player, material, price);
+        if (event.getClick() == ClickType.MIDDLE) {
+            plugin.getBanks().awaitBuyAmount(player, material);
+        } else if (event.isRightClick() && event.isShiftClick()) {
+            plugin.getBanks().awaitSellAmount(player, material);
+        } else if (event.isRightClick()) {
+            plugin.getBanks().sell(player, material, plugin.getBanks().countOwned(player, material));
+        } else if (event.isShiftClick()) {
+            buyMax(player, material);
         } else {
-            buy(player, material, price, event.isShiftClick());
+            plugin.getBanks().buy(player, material, 1);
         }
     }
 
-    private void buy(Player player, Material material, double price, boolean shift) {
+    private void buyMax(Player player, Material material) {
         if (plugin.getEconomy() == null) {
             player.sendMessage("§cKantor jest niedostępny - brak podłączonego systemu ekonomii.");
             return;
         }
+        double price = plugin.getCurrency().getPrice(material);
         double balance = plugin.getEconomy().getBalance(player);
-        int amount = shift ? Math.min(64, (int) (balance / price)) : 1;
-        double cost = amount * price;
-        if (amount <= 0 || balance < cost) {
-            player.sendMessage("§cNie masz wystarczająco środków! Potrzebujesz §f" + BankGuiManager.formatMoney(price)
-                    + "§c, masz §f" + BankGuiManager.formatMoney(balance) + "§c.");
+        int amount = Math.min(64, (int) (balance / price));
+        if (amount <= 0) {
+            player.sendMessage("§cNie stać Cię na ani jedną sztukę (" + BankGuiManager.formatMoney(price) + " monet).");
             return;
         }
-
-        plugin.getEconomy().withdrawPlayer(player, cost);
-        Map<Integer, ItemStack> leftover = player.getInventory().addItem(new ItemStack(material, amount));
-        for (ItemStack item : leftover.values()) {
-            player.getWorld().dropItemNaturally(player.getLocation(), item);
-        }
-        player.sendMessage("§aKupiono §f" + amount + "x " + BankGuiManager.formatName(material)
-                + " §aza §f" + BankGuiManager.formatMoney(cost) + " §amonet.");
-    }
-
-    private void sell(Player player, Material material, double price) {
-        if (plugin.getEconomy() == null) {
-            player.sendMessage("§cKantor jest niedostępny - brak podłączonego systemu ekonomii.");
-            return;
-        }
-        ItemStack[] contents = player.getInventory().getContents();
-        int count = 0;
-        for (ItemStack item : contents) {
-            if (item != null && item.getType() == material) {
-                count += item.getAmount();
-            }
-        }
-        if (count <= 0) {
-            player.sendMessage("§cNie masz żadnego " + BankGuiManager.formatName(material) + " do sprzedania.");
-            return;
-        }
-        for (int i = 0; i < contents.length; i++) {
-            ItemStack item = contents[i];
-            if (item != null && item.getType() == material) {
-                player.getInventory().setItem(i, null);
-            }
-        }
-
-        double payout = count * price;
-        plugin.getEconomy().depositPlayer(player, payout);
-        player.sendMessage("§aSprzedano §f" + count + "x " + BankGuiManager.formatName(material)
-                + " §aza §f" + BankGuiManager.formatMoney(payout) + " §amonet.");
+        plugin.getBanks().buy(player, material, amount);
     }
 }

@@ -19,6 +19,7 @@ public class BankGuiManager {
 
     public static final int FIRST_SLOT = 10;
     public static final int MAX_DENOMINATIONS = 7;
+    public static final int CHECK_SLOT = 22;
 
     private final BoxPvpPlugin plugin;
 
@@ -38,6 +39,7 @@ public class BankGuiManager {
             inv.setItem(slot, buildDisplayItem(material, plugin.getCurrency().getPrice(material)));
             slot++;
         }
+        inv.setItem(CHECK_SLOT, buildCheckButton());
 
         GuiDecor.fillEmpty(inv);
         player.openInventory(inv);
@@ -54,11 +56,30 @@ public class BankGuiManager {
             lore.add(" ");
             lore.add("§aLPM §7- kup 1 sztukę");
             lore.add("§aShift+LPM §7- kup tyle, ile stać Cię (do 64)");
+            lore.add("§aŚrodkowy klik §7- kup ile chcesz (wpisz na czacie)");
             lore.add("§cPPM §7- sprzedaj WSZYSTKIE swoje " + formatName(material) + " z ekwipunku");
+            lore.add("§cShift+PPM §7- sprzedaj ile chcesz (wpisz na czacie)");
             meta.setLore(lore);
             display.setItemMeta(meta);
         }
         return display;
+    }
+
+    private ItemStack buildCheckButton() {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§e§lWypłać czek");
+            List<String> lore = new ArrayList<>();
+            lore.add("§7Wypłać dowolną kwotę (maks. " + formatMoney(BankManager.MAX_CHECK_VALUE) + ")");
+            lore.add("§7jako pojedynczy przedmiot, który możesz");
+            lore.add("§7dać innemu graczowi.");
+            lore.add(" ");
+            lore.add("§aLPM §7- wpisz kwotę na czacie");
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     static String formatName(Material material) {
@@ -74,9 +95,6 @@ public class BankGuiManager {
     }
 
     static String formatMoney(double value) {
-        if (value == Math.floor(value)) {
-            return String.valueOf((long) value);
-        }
-        return String.format("%.2f", value);
+        return MoneyFormat.format(value);
     }
 }

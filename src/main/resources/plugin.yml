@@ -36,8 +36,8 @@ commands:
     description: Otwiera sklep z GUI - /sklep create|additem|removeitem|removecategory do konfiguracji (admin)
     usage: /sklep
   bpvp:
-    description: Generatory, handlarze, auto-sprzedaz, eventy i leaderboardy - /bpvp wand|create|remove|list|villager|sellprice|event|leaderboard
-    usage: /bpvp wand|create <nazwa> <blok> <sekundy>|remove <nazwa>|list|villager create|remove <nazwa>|sellprice set|remove|list|event start|envoy|setpoint|envoyitem|leaderboard setlocation
+    description: Generatory, handlarze, auto-sprzedaz, eventy, leaderboardy i blokada craftingu - /bpvp wand|create|remove|list|villager|sellprice|event|leaderboard|craftblock
+    usage: /bpvp wand|create <nazwa> <blok> <sekundy>|remove <nazwa>|list|villager create|remove <nazwa>|sellprice set|remove|list|event start|envoy|setpoint|envoyitem|leaderboard setlocation|craftblock add|remove|list
   prestige:
     description: Oddaje cala gotowke za trwaly mnoznik zarobkow (auto-sprzedaz i zabojstwa) - /prestige confirm
     usage: /prestige [confirm]
@@ -54,8 +54,14 @@ commands:
     description: Przelacza stale night vision (zamiennik gammy)
     usage: /gamma
   bank-serwer:
-    description: Kantor - kup/sprzedaj fizyczne banknoty (slonecznik, zelazo, zloto, diament, netheryt) za monety u NPC - /bank-serwer create|remove|list|price
+    description: Kantor - kup/sprzedaj fizyczne banknoty (slonecznik, zelazo, zloto, diament, netheryt) za monety u NPC, wyplac czek - /bank-serwer create|remove|list|price
     usage: /bank-serwer create <nazwa>|remove <nazwa>|list|price set|remove|list
+  wymiana:
+    description: Wystawia trzymany przedmiot na Rynku na 3 dni - /wymiana <cena>
+    usage: /wymiana <cena>
+  rynek:
+    description: Otwiera GUI Rynku graczy - kupuj przedmioty wystawione przez innych graczy za monety
+    usage: /rynek
 
 softdepend: [WorldGuard, Vault, DecentHolograms]
 

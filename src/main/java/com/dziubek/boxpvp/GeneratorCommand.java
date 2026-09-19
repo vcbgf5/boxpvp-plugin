@@ -34,7 +34,7 @@ public class GeneratorCommand implements CommandExecutor {
 
         String sub = args[0].toLowerCase();
 
-        boolean publicSub = sub.equals("list") || sub.equals("sellprice");
+        boolean publicSub = sub.equals("list") || sub.equals("sellprice") || sub.equals("craftblock");
         if (!publicSub && !sender.hasPermission(ADMIN_PERMISSION)) {
             sender.sendMessage("§cNie masz uprawnień do zarządzania generatorami/handlarzami.");
             return true;
@@ -59,6 +59,8 @@ public class GeneratorCommand implements CommandExecutor {
                 return handleLeaderboard(sender, args);
             case "movehologram":
                 return handleMoveHologram(sender, args);
+            case "craftblock":
+                return handleCraftBlock(sender, args);
             default:
                 sendHelp(sender);
                 return true;
@@ -86,6 +88,8 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp event zombieitem add|clear|list §7- pula nagród za zabicie zombie-eventu");
         sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak|envoy> §7- stawia tablicę tu gdzie stoisz");
         sender.sendMessage("§c/bpvp movehologram <nazwa> §7- przestawia hologram generatora w to miejsce gdzie stoisz");
+        sender.sendMessage("§c/bpvp craftblock add|remove <materiał> §7- blokuje/odblokowuje crafting materiału (np. NETHERITE_BLOCK)");
+        sender.sendMessage("§c/bpvp craftblock list §7- lista zablokowanych materiałów");
     }
 
     private boolean handleWand(CommandSender sender) {
@@ -245,6 +249,60 @@ public class GeneratorCommand implements CommandExecutor {
             }
             default:
                 sender.sendMessage("§cUżycie: /bpvp sellprice set <blok> <cena>|remove <blok>|list");
+                return true;
+        }
+    }
+
+    private boolean handleCraftBlock(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("§cUżycie: /bpvp craftblock add <materiał>|remove <materiał>|list");
+            return true;
+        }
+        String action = args[1].toLowerCase();
+        if (!action.equals("list") && !sender.hasPermission(ADMIN_PERMISSION)) {
+            sender.sendMessage("§cNie masz uprawnień do zarządzania blokadami craftingu.");
+            return true;
+        }
+
+        switch (action) {
+            case "add": {
+                if (args.length < 3) {
+                    sender.sendMessage("§cUżycie: /bpvp craftblock add <materiał>");
+                    return true;
+                }
+                Material material = Material.matchMaterial(args[2].toUpperCase());
+                if (material == null) {
+                    sender.sendMessage("§cNieznany materiał: '" + args[2] + "'.");
+                    return true;
+                }
+                boolean added = plugin.getCraftBlocks().add(material);
+                sender.sendMessage(added ? "§aZablokowano crafting " + material + "." : "§cTen materiał jest już zablokowany.");
+                return true;
+            }
+            case "remove": {
+                if (args.length < 3) {
+                    sender.sendMessage("§cUżycie: /bpvp craftblock remove <materiał>");
+                    return true;
+                }
+                Material material = Material.matchMaterial(args[2].toUpperCase());
+                boolean removed = material != null && plugin.getCraftBlocks().remove(material);
+                sender.sendMessage(removed ? "§aOdblokowano crafting." : "§cTen materiał nie jest zablokowany.");
+                return true;
+            }
+            case "list": {
+                List<Material> blocked = plugin.getCraftBlocks().all();
+                if (blocked.isEmpty()) {
+                    sender.sendMessage("§eZablokowane materiały: §fbrak");
+                    return true;
+                }
+                sender.sendMessage(Branding.accent("--- Zablokowany crafting ---"));
+                for (Material material : blocked) {
+                    sender.sendMessage("§7- §f" + material);
+                }
+                return true;
+            }
+            default:
+                sender.sendMessage("§cUżycie: /bpvp craftblock add <materiał>|remove <materiał>|list");
                 return true;
         }
     }

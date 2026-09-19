@@ -22,5 +22,6 @@ public class PlayerSessionListener implements Listener {
         Player player = event.getPlayer();
         plugin.getStats().touch(player.getUniqueId(), player.getName());
         plugin.getScoreboards().assign(player);
+        plugin.getMarket().deliverPendingReturns(player);
     }
 }
