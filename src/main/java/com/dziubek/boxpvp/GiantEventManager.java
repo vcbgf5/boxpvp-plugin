@@ -59,20 +59,36 @@ public class GiantEventManager {
 
     private static final String TAG = "bpvp_giant_event";
     private static final double MAX_HEALTH = 500.0;
-    private static final double ATTACK_DAMAGE = 25.0;
-    private static final long ATTACK_COOLDOWN_MS = 3_000L;
-    private static final double ATTACK_RANGE = 3.5;
     private static final double MOVE_SPEED = 1.0;
     private static final double DETECT_RANGE = 64.0;
+    private static final double HOP_VELOCITY = 0.45;
     private static final long RETARGET_INTERVAL_TICKS = 20L;
     private static final long LIFETIME_TICKS = 20L * 60 * 8;
     private static final long TICK_INTERVAL = 5L;
+
+    private static final double THROW_DAMAGE = 6.0;
+    private static final long THROW_COOLDOWN_MS = 3_000L;
+    private static final double THROW_RANGE = 20.0;
+    private static final double THROW_SPEED = 1.1;
+    private static final double THROW_HIT_RADIUS = 1.2;
+    private static final long THROW_LIFETIME_TICKS = 20L * 3;
+
+    private static final double SPIKE_DAMAGE = 8.0;
+    private static final long SPIKE_COOLDOWN_MS = 8_000L;
+    private static final double SPIKE_TRIGGER_RANGE = 10.0;
+    private static final int SPIKE_COUNT = 10;
+    private static final int WAVE_PARTICLE_POINTS = 24;
+    private static final double SPIKE_RADIUS = 3.5;
+    private static final double SPIKE_HIT_RADIUS = 1.3;
+    private static final long WAVE_EXPAND_TICKS = 12L;
+    private static final long SPIKE_RISE_TICKS = 6L;
+    private static final long SPIKE_LIFETIME_TICKS = 30L;
 
     private static final double CRATE_FALL_START_OFFSET = 60.0;
     private static final long CRATE_FALL_DURATION_MS = 5_000L;
     private static final double CRATE_LABEL_HEIGHT_OFFSET = 2.4;
     private static final double CRATE_GROUND_CHECK_DISTANCE = 2.0;
-    private static final long OPENING_TICKS = 20L * 10;
+    private static final long OPENING_TICKS = 20L * 30;
     private static final float CRATE_SCALE = 3.0f;
 
     private final BoxPvpPlugin plugin;
@@ -153,6 +169,7 @@ public class GiantEventManager {
             e.setGravity(false);
             e.setPersistent(false);
             e.setInvulnerable(true);
+            e.setGlowing(true);
             e.setItemStack(new ItemStack(Material.CHISELED_DEEPSLATE));
             e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "crate");
             e.addScoreboardTag(TAG);
@@ -162,6 +179,7 @@ public class GiantEventManager {
             e.setGravity(false);
             e.setPersistent(false);
             e.setInvulnerable(true);
+            e.setGlowing(true);
             e.setText("§4§l☠ WIELKA SKRZYNKA");
             e.setSeeThrough(false);
             e.setShadowed(false);
@@ -228,7 +246,7 @@ public class GiantEventManager {
         World world = landedAt.getWorld();
         world.spawnParticle(Particle.EXPLOSION, landedAt, 1);
         world.playSound(landedAt, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 0.6f);
-        Bukkit.broadcastMessage(Branding.chatPrefix() + "§4§l☠ Wielka skrzynka §7wylądowała - otworzy się za 10 sekund!");
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§4§l☠ Wielka skrzynka §7wylądowała - otworzy się za 30 sekund!");
         BossBarUtil.showTimed(plugin, "§4§l☠ Skrzynka się otwiera...", BarColor.RED, OPENING_TICKS);
 
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> openCrateAndSpawnGiant(crate, label, landedAt), OPENING_TICKS);
@@ -304,7 +322,8 @@ public class GiantEventManager {
                     ticksSinceRetarget = 0;
                     retarget(giant);
                 }
-                tryMeleeAttack(giant, tg);
+                tryThrowAttack(giant, tg);
+                trySpikeAttack(giant, tg);
                 tg.healthBar.setTitle(bossBarTitle(giant));
                 tg.healthBar.setProgress(Math.max(0.0, Math.min(1.0, giant.getHealth() / giant.getMaxHealth())));
             }
@@ -321,6 +340,9 @@ public class GiantEventManager {
         Player nearest = nearestPlayer(giant, DETECT_RANGE);
         if (nearest != null) {
             giant.getPathfinder().moveTo(nearest.getLocation(), MOVE_SPEED);
+            if (giant.isOnGround()) {
+                giant.setVelocity(giant.getVelocity().setY(HOP_VELOCITY));
+            }
         }
     }
 
@@ -368,23 +390,204 @@ public class GiantEventManager {
         }
     }
 
-    private void tryMeleeAttack(Giant giant, TrackedGiant tg) {
+    /**
+     * Giant nie bije ręką - rzuca blokiem (ItemDisplay lecący po torze) w najbliższego gracza.
+     * Obrażenia idą przez Player#damage (nie setHealth), żeby zbroja/odporności naprawdę
+     * redukowały obrażenia - to jedyne źródło EntityDamageByEntityEvent z Gianta jako damagerem,
+     * więc GiantEventListener już go nie anuluje (usunięte razem z tą zmianą).
+     */
+    private void tryThrowAttack(Giant giant, TrackedGiant tg) {
         long now = System.currentTimeMillis();
-        if (now - tg.lastAttackAt < ATTACK_COOLDOWN_MS) {
+        if (now - tg.lastAttackAt < THROW_COOLDOWN_MS) {
             return;
         }
-        Player nearest = nearestPlayer(giant, ATTACK_RANGE);
+        Player nearest = nearestPlayer(giant, THROW_RANGE);
         if (nearest == null) {
             return;
         }
         tg.lastAttackAt = now;
-        nearest.setHealth(Math.max(0.0, nearest.getHealth() - ATTACK_DAMAGE));
-        nearest.playSound(nearest.getLocation(), Sound.ENTITY_RAVAGER_ATTACK, 1.0f, 0.6f);
 
-        Vector knockback = nearest.getLocation().toVector().subtract(giant.getLocation().toVector());
-        if (knockback.lengthSquared() > 0) {
-            knockback.normalize().multiply(0.6).setY(0.3);
-            nearest.setVelocity(nearest.getVelocity().add(knockback));
+        World world = giant.getWorld();
+        Location handAt = giant.getEyeLocation().subtract(0, 1.5, 0);
+        Vector direction = nearest.getEyeLocation().toVector().subtract(handAt.toVector());
+        double distance = Math.max(1.0, direction.length());
+        Vector velocity = direction.normalize().multiply(THROW_SPEED).setY(Math.min(0.6, distance / 20.0));
+
+        ItemDisplay block = world.spawn(handAt, ItemDisplay.class, e -> {
+            e.setBillboard(Display.Billboard.FIXED);
+            e.setGravity(false);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.setItemStack(new ItemStack(Material.COBBLESTONE));
+            e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "throw");
+            e.addScoreboardTag(TAG);
+        });
+        world.playSound(handAt, Sound.ENTITY_RAVAGER_ATTACK, 1.0f, 0.7f);
+        animateThrow(giant, block, handAt.clone(), velocity, System.currentTimeMillis());
+    }
+
+    private void animateThrow(Giant giant, ItemDisplay block, Location position, Vector velocity, long start) {
+        if (!block.isValid() || System.currentTimeMillis() - start > THROW_LIFETIME_TICKS * 50L) {
+            if (block.isValid()) {
+                block.remove();
+            }
+            return;
+        }
+        velocity.setY(velocity.getY() - 0.02);
+        Location at = position.add(velocity.clone().multiply(0.1));
+        World world = block.getWorld();
+
+        float spin = (float) ((System.currentTimeMillis() % 1000L) / 1000.0 * Math.PI * 2);
+        Transformation transform = new Transformation(
+                new Vector3f(0f, 0f, 0f),
+                new Quaternionf(new AxisAngle4f(spin, 1f, 1f, 0f)),
+                new Vector3f(0.7f, 0.7f, 0.7f),
+                new Quaternionf()
+        );
+        block.setInterpolationDelay(0);
+        block.setInterpolationDuration(2);
+        block.setTransformation(transform);
+        block.teleport(at);
+
+        for (Player player : world.getPlayers()) {
+            if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
+                continue;
+            }
+            if (player.getEyeLocation().distance(at) <= THROW_HIT_RADIUS) {
+                block.remove();
+                player.damage(THROW_DAMAGE, giant);
+                player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_HURT, 1.0f, 0.8f);
+                Vector knockback = player.getLocation().toVector().subtract(at.toVector());
+                if (knockback.lengthSquared() > 0) {
+                    knockback.normalize().multiply(0.6).setY(0.3);
+                    player.setVelocity(player.getVelocity().add(knockback));
+                }
+                world.spawnParticle(Particle.BLOCK, at, 15, 0.2, 0.2, 0.2, Material.COBBLESTONE.createBlockData());
+                return;
+            }
+        }
+
+        RayTraceResult hit = world.rayTraceBlocks(at, velocity.clone().normalize(), 0.5, FluidCollisionMode.NEVER, true);
+        if (hit != null && hit.getHitBlock() != null) {
+            world.spawnParticle(Particle.BLOCK, at, 15, 0.2, 0.2, 0.2, Material.COBBLESTONE.createBlockData());
+            world.playSound(at, Sound.BLOCK_STONE_BREAK, 0.8f, 0.9f);
+            block.remove();
+            return;
+        }
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateThrow(giant, block, position, velocity, start), 2L);
+    }
+
+    /**
+     * Rozchodząca się fala cząsteczek, a zaraz po niej 10 kolców wychodzących z ziemi w kręgu
+     * wokół Gianta - trafieni gracze dostają obrażenia (przez Player#damage, więc zbroja działa).
+     * Osobna umiejętność od rzutu blokiem, na dłuższym cooldownie.
+     */
+    private void trySpikeAttack(Giant giant, TrackedGiant tg) {
+        long now = System.currentTimeMillis();
+        if (now - tg.lastSpikeAt < SPIKE_COOLDOWN_MS) {
+            return;
+        }
+        if (nearestPlayer(giant, SPIKE_TRIGGER_RANGE) == null) {
+            return;
+        }
+        tg.lastSpikeAt = now;
+        animateSpikeWave(giant, giant.getLocation(), 0L);
+    }
+
+    private void animateSpikeWave(Giant giant, Location center, long tick) {
+        if (!giant.isValid() || giant.isDead()) {
+            return;
+        }
+        World world = center.getWorld();
+        double radius = SPIKE_RADIUS * (tick / (double) WAVE_EXPAND_TICKS);
+        for (int i = 0; i < WAVE_PARTICLE_POINTS; i++) {
+            double angle = 2 * Math.PI * i / WAVE_PARTICLE_POINTS;
+            double x = center.getX() + radius * Math.cos(angle);
+            double z = center.getZ() + radius * Math.sin(angle);
+            world.spawnParticle(Particle.CRIT, x, center.getY() + 0.1, z, 1, 0, 0, 0, 0);
+        }
+
+        if (tick >= WAVE_EXPAND_TICKS) {
+            spawnSpikeRing(giant, center);
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateSpikeWave(giant, center, tick + 1), 1L);
+    }
+
+    private void spawnSpikeRing(Giant giant, Location center) {
+        World world = center.getWorld();
+        world.playSound(center, Sound.ENTITY_RAVAGER_ROAR, 1.0f, 1.4f);
+        List<ItemDisplay> spikes = new ArrayList<>();
+        List<Location> spikeSpots = new ArrayList<>();
+        for (int i = 0; i < SPIKE_COUNT; i++) {
+            double angle = 2 * Math.PI * i / SPIKE_COUNT;
+            Location spot = center.clone().add(SPIKE_RADIUS * Math.cos(angle), 0, SPIKE_RADIUS * Math.sin(angle));
+            spikeSpots.add(spot);
+            ItemDisplay spike = world.spawn(spot.clone().subtract(0, 1.5, 0), ItemDisplay.class, e -> {
+                e.setBillboard(Display.Billboard.FIXED);
+                e.setGravity(false);
+                e.setPersistent(false);
+                e.setInvulnerable(true);
+                e.setItemStack(new ItemStack(Material.POINTED_DRIPSTONE));
+                e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "spike");
+                e.addScoreboardTag(TAG);
+            });
+            spikes.add(spike);
+        }
+        animateSpikeRise(giant, spikes, spikeSpots, 0L);
+    }
+
+    private void animateSpikeRise(Giant giant, List<ItemDisplay> spikes, List<Location> spikeSpots, long tick) {
+        double t = Math.min(1.0, tick / (double) SPIKE_RISE_TICKS);
+        for (int i = 0; i < spikes.size(); i++) {
+            ItemDisplay spike = spikes.get(i);
+            if (!spike.isValid()) {
+                continue;
+            }
+            Location spot = spikeSpots.get(i);
+            spike.teleport(spot.clone().subtract(0, 1.5 * (1.0 - t), 0));
+        }
+
+        if (t >= 1.0) {
+            dealSpikeDamage(giant, spikeSpots);
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> removeSpikes(spikes), SPIKE_LIFETIME_TICKS);
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateSpikeRise(giant, spikes, spikeSpots, tick + 1), 1L);
+    }
+
+    private void dealSpikeDamage(Giant giant, List<Location> spikeSpots) {
+        World world = giant.getWorld();
+        List<UUID> hit = new ArrayList<>();
+        for (Player player : world.getPlayers()) {
+            if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
+                continue;
+            }
+            if (hit.contains(player.getUniqueId())) {
+                continue;
+            }
+            for (Location spot : spikeSpots) {
+                if (player.getLocation().distance(spot) <= SPIKE_HIT_RADIUS) {
+                    hit.add(player.getUniqueId());
+                    player.damage(SPIKE_DAMAGE, giant);
+                    player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_HURT, 1.0f, 0.7f);
+                    Vector knockback = player.getLocation().toVector().subtract(giant.getLocation().toVector());
+                    if (knockback.lengthSquared() > 0) {
+                        knockback.normalize().multiply(0.7).setY(0.4);
+                        player.setVelocity(player.getVelocity().add(knockback));
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private void removeSpikes(List<ItemDisplay> spikes) {
+        for (ItemDisplay spike : spikes) {
+            if (spike.isValid()) {
+                spike.remove();
+            }
         }
     }
 
@@ -472,6 +675,7 @@ public class GiantEventManager {
         final Location safeAnchor;
         final BossBar healthBar;
         long lastAttackAt;
+        long lastSpikeAt;
         BukkitTask lifetimeTask;
 
         TrackedGiant(Giant giant, Location safeAnchor, BossBar healthBar) {
