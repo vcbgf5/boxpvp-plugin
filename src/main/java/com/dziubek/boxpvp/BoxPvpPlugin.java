@@ -61,6 +61,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private GiantEventManager giantEvent;
     private DuelManager duels;
     private PlaytimeManager playtime;
+    private TradeManager trades;
 
     @Override
     public void onEnable() {
@@ -107,6 +108,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         giantEvent = new GiantEventManager(this);
         duels = new DuelManager(this);
         playtime = new PlaytimeManager(this);
+        trades = new TradeManager(this);
 
         setupEconomy();
 
@@ -161,6 +163,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CraftBlockListener(this), this);
         getServer().getPluginManager().registerEvents(new GiantEventListener(this), this);
         getServer().getPluginManager().registerEvents(new DuelListener(this), this);
+        getServer().getPluginManager().registerEvents(new TradeListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -186,6 +189,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("rynek").setExecutor(new RynekCommand(this));
         getCommand("duel").setExecutor(new DuelCommand(this));
         getCommand("playtime").setExecutor(new PlaytimeCommand(this));
+        getCommand("trade").setExecutor(new TradeCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -459,5 +463,9 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public PlaytimeManager getPlaytime() {
         return playtime;
+    }
+
+    public TradeManager getTrades() {
+        return trades;
     }
 }

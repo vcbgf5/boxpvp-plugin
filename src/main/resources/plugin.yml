@@ -69,6 +69,9 @@ commands:
   playtime:
     description: Pokazuje Twoj laczny czas gry na serwerze i czas do nastepnej nagrody
     usage: /playtime
+  trade:
+    description: Bezpieczna wymiana przedmiotow z innym graczem - /trade <gracz>|accept|cancel
+    usage: /trade <gracz>|accept|cancel
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 
