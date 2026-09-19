@@ -70,6 +70,10 @@ public class GeneratorCommand implements CommandExecutor {
                 return handleTeleportTo(sender, args);
             case "duel":
                 return handleDuelSetup(sender, args);
+            case "booster":
+                return handleBooster(sender, args);
+            case "rotshop":
+                return handleRotShop(sender, args);
             default:
                 sendHelp(sender);
                 return true;
@@ -110,6 +114,11 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp duel setworld <świat> §7- ustawia świat-szablon areny pojedynków i przenosi Cię tam");
         sender.sendMessage("§c/bpvp duel setpos1 §7/ §c setpos2 §7- ustawia OSOBNE pozycje startowe dla gracza 1 i 2 (musisz być w świecie-szablonie)");
         sender.sendMessage("§c/bpvp duel gototemplateworld §7- wraca do świata-szablonu areny (np. żeby coś dobudować)");
+        sender.sendMessage("§c/bpvp booster give <gracz> <mnożnik> <minuty> §7- daje osobisty czasowy booster zarobków "
+                + "(użyj jako komendy przedmiotu w /sklep, np. 'bpvp booster give %player% 2 30')");
+        sender.sendMessage("§c/bpvp rotshop add <cena> §7- dodaje trzymany przedmiot do puli rotującego sklepu (/rotshop)");
+        sender.sendMessage("§c/bpvp rotshop remove <numer> §7- usuwa przedmiot z puli (numer z /bpvp rotshop list)");
+        sender.sendMessage("§c/bpvp rotshop list §7- lista puli rotującego sklepu");
     }
 
     private boolean handleWand(CommandSender sender) {
@@ -721,6 +730,97 @@ public class GeneratorCommand implements CommandExecutor {
         }
         sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>|setpos1|setpos2|gototemplateworld");
         return true;
+    }
+
+    private boolean handleBooster(CommandSender sender, String[] args) {
+        if (args.length < 5 || !args[1].equalsIgnoreCase("give")) {
+            sender.sendMessage("§cUżycie: /bpvp booster give <gracz> <mnożnik> <minuty>");
+            return true;
+        }
+        Player target = Bukkit.getPlayer(args[2]);
+        if (target == null || !target.isOnline()) {
+            sender.sendMessage("§cGracz '" + args[2] + "' nie jest online.");
+            return true;
+        }
+        double multiplier;
+        int minutes;
+        try {
+            multiplier = Double.parseDouble(args[3]);
+            minutes = Integer.parseInt(args[4]);
+        } catch (NumberFormatException e) {
+            sender.sendMessage("§cMnożnik i minuty muszą być liczbami.");
+            return true;
+        }
+        plugin.getBoosters().give(target, multiplier, minutes);
+        return true;
+    }
+
+    private boolean handleRotShop(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("§cUżycie: /bpvp rotshop add <cena>|remove <numer>|list");
+            return true;
+        }
+        String action = args[1].toLowerCase();
+        switch (action) {
+            case "add": {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("Tej komendy może użyć tylko gracz.");
+                    return true;
+                }
+                if (args.length < 3) {
+                    sender.sendMessage("§cUżycie: /bpvp rotshop add <cena bazowa>");
+                    return true;
+                }
+                Player player = (Player) sender;
+                ItemStack hand = player.getInventory().getItemInMainHand();
+                if (hand.getType().isAir()) {
+                    sender.sendMessage("§cTrzymaj w ręce przedmiot, który chcesz dodać do puli.");
+                    return true;
+                }
+                double price;
+                try {
+                    price = Double.parseDouble(args[2]);
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("§cCena musi być liczbą.");
+                    return true;
+                }
+                plugin.getRotatingShop().addToPool(hand, price);
+                sender.sendMessage("§aDodano do puli rotującego sklepu: " + hand.getType() + " za " + price + "$ (bazowo).");
+                return true;
+            }
+            case "remove": {
+                if (args.length < 3) {
+                    sender.sendMessage("§cUżycie: /bpvp rotshop remove <numer>");
+                    return true;
+                }
+                int index;
+                try {
+                    index = Integer.parseInt(args[2]) - 1;
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("§cNumer musi być liczbą.");
+                    return true;
+                }
+                boolean removed = plugin.getRotatingShop().removeFromPool(index);
+                sender.sendMessage(removed ? "§aUsunięto z puli." : "§cNie znaleziono takiego numeru.");
+                return true;
+            }
+            case "list": {
+                List<RotatingShopManager.PoolEntry> pool = plugin.getRotatingShop().getPool();
+                if (pool.isEmpty()) {
+                    sender.sendMessage("§ePula rotującego sklepu: §fbrak");
+                    return true;
+                }
+                sender.sendMessage(Branding.accent("--- Pula rotującego sklepu ---"));
+                for (int i = 0; i < pool.size(); i++) {
+                    RotatingShopManager.PoolEntry entry = pool.get(i);
+                    sender.sendMessage("§7#" + (i + 1) + " §f" + entry.icon.getType() + " §7- §a" + entry.basePrice + "$");
+                }
+                return true;
+            }
+            default:
+                sender.sendMessage("§cUżycie: /bpvp rotshop add <cena>|remove <numer>|list");
+                return true;
+        }
     }
 
     private boolean handleTeleportTo(CommandSender sender, String[] args) {

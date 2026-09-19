@@ -81,6 +81,12 @@ commands:
   elo:
     description: Pokazuje Twoj ranking ELO z pojedynkow (/duel) albo /elo top 10 najlepszych
     usage: /elo|top
+  booster:
+    description: Pokazuje Twoj aktywny booster zarobkow kupiony w /sklep
+    usage: /booster
+  rotshop:
+    description: Otwiera rotujacy sklep - co godzine inna oferta specjalna z rabatem 20-50%
+    usage: /rotshop
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 

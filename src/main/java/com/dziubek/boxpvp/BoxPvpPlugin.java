@@ -65,6 +65,9 @@ public class BoxPvpPlugin extends JavaPlugin {
     private HillEventManager hillEvent;
     private LastManStandingManager lms;
     private EloManager elo;
+    private BoosterManager boosters;
+    private RotatingShopManager rotatingShop;
+    private RotatingShopGuiManager rotatingShopGui;
 
     @Override
     public void onEnable() {
@@ -115,6 +118,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         hillEvent = new HillEventManager(this);
         lms = new LastManStandingManager(this);
         elo = new EloManager(this);
+        boosters = new BoosterManager();
+        rotatingShop = new RotatingShopManager(this);
+        rotatingShopGui = new RotatingShopGuiManager(this);
 
         setupEconomy();
 
@@ -141,6 +147,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         stats.start();
         playtime.start();
         elo.start();
+        rotatingShop.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
@@ -172,6 +179,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new DuelListener(this), this);
         getServer().getPluginManager().registerEvents(new TradeListener(this), this);
         getServer().getPluginManager().registerEvents(new LmsListener(this), this);
+        getServer().getPluginManager().registerEvents(new RotatingShopListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -201,6 +209,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("lms").setExecutor(new LmsCommand(this));
         getCommand("reportduel").setExecutor(new ReportDuelCommand(this));
         getCommand("elo").setExecutor(new EloCommand(this));
+        getCommand("booster").setExecutor(new BoosterCommand(this));
+        getCommand("rotshop").setExecutor(new RotShopCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -493,5 +503,17 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public EloManager getElo() {
         return elo;
+    }
+
+    public BoosterManager getBoosters() {
+        return boosters;
+    }
+
+    public RotatingShopManager getRotatingShop() {
+        return rotatingShop;
+    }
+
+    public RotatingShopGuiManager getRotatingShopGui() {
+        return rotatingShopGui;
     }
 }

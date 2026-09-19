@@ -135,10 +135,12 @@ public class EventManager {
 
     /**
      * Łączny mnożnik zarobków danego gracza: aktywny event (jeśli trwa) razy jego trwały
-     * mnożnik z prestiżu. Używane przez auto-sprzedaż i nagrody za zabójstwa/serie.
+     * mnożnik z prestiżu razy jego osobisty, czasowy booster ze sklepu (jeśli ma aktywny).
+     * Używane przez auto-sprzedaż i nagrody za zabójstwa/serie.
      */
     public double totalMultiplier(Player player) {
-        return getActiveMultiplier() * plugin.getPrestige().getMultiplier(player.getUniqueId());
+        return getActiveMultiplier() * plugin.getPrestige().getMultiplier(player.getUniqueId())
+                * plugin.getBoosters().getMultiplier(player.getUniqueId());
     }
 
     public double getActiveMultiplier() {
