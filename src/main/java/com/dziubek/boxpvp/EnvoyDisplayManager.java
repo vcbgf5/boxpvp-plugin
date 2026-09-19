@@ -16,6 +16,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
@@ -42,11 +43,12 @@ import java.util.Random;
 public class EnvoyDisplayManager {
 
     private static final String TAG = "bpvp_envoy";
-    private static final double FALL_START_OFFSET = 14.0;
-    private static final long FALL_DURATION_MS = 1600;
+    private static final double FALL_START_OFFSET = 100.0;
+    private static final long FALL_DURATION_MS = 10_000L;
     private static final long WARNING_TICKS = 20L * 10;
     private static final double WARNING_HEIGHT = 2.0;
     private static final double BEACON_BEAM_HEIGHT = 14.0;
+    private static final double LABEL_HEIGHT_OFFSET = 1.9;
     private static final float NORMAL_SCALE = 1.0f;
     private static final float MEGA_SCALE = 1.6f;
 
@@ -125,12 +127,18 @@ public class EnvoyDisplayManager {
                 }
                 entity.remove();
             }
+            for (Entity entity : world.getEntitiesByClass(TextDisplay.class)) {
+                if (!entity.getScoreboardTags().contains(TAG) || isTracked(entity)) {
+                    continue;
+                }
+                entity.remove();
+            }
         }
     }
 
     private boolean isTracked(Entity entity) {
         for (ActiveDrop drop : activeDrops) {
-            if (entity.equals(drop.crate) || entity.equals(drop.hitbox)) {
+            if (entity.equals(drop.crate) || entity.equals(drop.hitbox) || entity.equals(drop.label)) {
                 return true;
             }
         }
@@ -222,9 +230,21 @@ public class EnvoyDisplayManager {
             e.setPersistent(false);
             e.setInvulnerable(true);
             e.setItemStack(new ItemStack(mega ? Material.SHULKER_BOX : Material.BARREL));
-            e.setCustomName(mega ? Branding.accent("★ MEGA Skrzynka-event") : "§c§lSkrzynka-event");
-            e.setCustomNameVisible(true);
             e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "crate");
+            e.addScoreboardTag(TAG);
+        });
+
+        String labelText = mega ? Branding.accent("★ MEGA Skrzynka-event") : "§c§lSkrzynka-event";
+        drop.label = world.spawn(spawnAt.clone().add(0, LABEL_HEIGHT_OFFSET, 0), TextDisplay.class, e -> {
+            e.setBillboard(Display.Billboard.CENTER);
+            e.setGravity(false);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.setText(labelText);
+            e.setSeeThrough(false);
+            e.setShadowed(false);
+            e.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+            e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "label");
             e.addScoreboardTag(TAG);
         });
         activeDrops.add(drop);
@@ -250,6 +270,9 @@ public class EnvoyDisplayManager {
         float spin = (float) ((System.currentTimeMillis() % 2000L) / 2000.0 * Math.PI * 2);
         applyTransform(drop.crate, spin, drop.mega ? MEGA_SCALE : NORMAL_SCALE);
         drop.crate.teleport(crateAt);
+        if (drop.label != null && drop.label.isValid()) {
+            drop.label.teleport(crateAt.clone().add(0, LABEL_HEIGHT_OFFSET, 0));
+        }
 
         if (t >= 1.0) {
             onLanded(drop, groundAnchor);
@@ -280,6 +303,9 @@ public class EnvoyDisplayManager {
         drop.landed = true;
         drop.crate.teleport(groundAnchor);
         applyTransform(drop.crate, 0f, drop.mega ? MEGA_SCALE : NORMAL_SCALE);
+        if (drop.label != null && drop.label.isValid()) {
+            drop.label.teleport(groundAnchor.clone().add(0, LABEL_HEIGHT_OFFSET, 0));
+        }
 
         World world = groundAnchor.getWorld();
         drop.hitbox = world.spawn(groundAnchor, Interaction.class, e -> {
@@ -358,6 +384,9 @@ public class EnvoyDisplayManager {
         if (drop.hitbox != null && drop.hitbox.isValid()) {
             drop.hitbox.remove();
         }
+        if (drop.label != null && drop.label.isValid()) {
+            drop.label.remove();
+        }
         activeDrops.remove(drop);
     }
 
@@ -385,6 +414,7 @@ public class EnvoyDisplayManager {
     private static final class ActiveDrop {
         ItemDisplay crate;
         Interaction hitbox;
+        TextDisplay label;
         boolean landed;
         boolean mega;
     }

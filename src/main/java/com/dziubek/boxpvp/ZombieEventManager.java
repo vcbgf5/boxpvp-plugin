@@ -8,6 +8,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -20,6 +21,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -128,6 +130,7 @@ public class ZombieEventManager {
             z.setHealth(MAX_HEALTH);
             z.getPersistentDataContainer().set(ownerTag, PersistentDataType.BYTE, (byte) 1);
             z.addScoreboardTag(TAG);
+            equipRandomGear(z);
         });
 
         TrackedZombie tz = new TrackedZombie(zombie, groundAnchor);
@@ -139,6 +142,38 @@ public class ZombieEventManager {
         Bukkit.broadcastMessage(Branding.chatPrefix() + "§c§l☠ Silny zombie §7spadł z nieba w obszarze eventów!");
         BossBarUtil.showTimed(plugin, "§c§l☠ ZOMBIE-EVENT! §7Zabij go, zanim ucieknie!", BarColor.RED, 15L * 20L);
         world.playSound(groundAnchor, Sound.ENTITY_ZOMBIE_AMBIENT, 1.0f, 0.6f);
+    }
+
+    private static final Material[][] ARMOR_TIERS = {
+            {Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS},
+            {Material.IRON_HELMET, Material.IRON_CHESTPLATE, Material.IRON_LEGGINGS, Material.IRON_BOOTS},
+            {Material.DIAMOND_HELMET, Material.DIAMOND_CHESTPLATE, Material.DIAMOND_LEGGINGS, Material.DIAMOND_BOOTS}
+    };
+    private static final Material[] WEAPONS = {Material.STONE_SWORD, Material.IRON_SWORD, Material.DIAMOND_SWORD,
+            Material.IRON_AXE, Material.DIAMOND_AXE};
+
+    /**
+     * Bukkit nie ekwipuje programowo zespawnowanych moby (w przeciwieniu do naturalnego spawnu
+     * wanilijnego) - trzeba ręcznie dać losową zbroję (jedną z 3 tierów) i broń, z zerowym
+     * dropchance, żeby po śmierci nic z tego nie wypadło.
+     */
+    private void equipRandomGear(Zombie zombie) {
+        EntityEquipment equipment = zombie.getEquipment();
+        if (equipment == null) {
+            return;
+        }
+        Material[] tier = ARMOR_TIERS[random.nextInt(ARMOR_TIERS.length)];
+        equipment.setHelmet(new ItemStack(tier[0]));
+        equipment.setChestplate(new ItemStack(tier[1]));
+        equipment.setLeggings(new ItemStack(tier[2]));
+        equipment.setBoots(new ItemStack(tier[3]));
+        equipment.setItemInMainHand(new ItemStack(WEAPONS[random.nextInt(WEAPONS.length)]));
+
+        equipment.setHelmetDropChance(0f);
+        equipment.setChestplateDropChance(0f);
+        equipment.setLeggingsDropChance(0f);
+        equipment.setBootsDropChance(0f);
+        equipment.setItemInMainHandDropChance(0f);
     }
 
     private void startTicking(TrackedZombie tz) {
