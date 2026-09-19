@@ -63,6 +63,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private PlaytimeManager playtime;
     private TradeManager trades;
     private HillEventManager hillEvent;
+    private LastManStandingManager lms;
 
     @Override
     public void onEnable() {
@@ -111,6 +112,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         playtime = new PlaytimeManager(this);
         trades = new TradeManager(this);
         hillEvent = new HillEventManager(this);
+        lms = new LastManStandingManager(this);
 
         setupEconomy();
 
@@ -166,6 +168,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GiantEventListener(this), this);
         getServer().getPluginManager().registerEvents(new DuelListener(this), this);
         getServer().getPluginManager().registerEvents(new TradeListener(this), this);
+        getServer().getPluginManager().registerEvents(new LmsListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -192,6 +195,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("duel").setExecutor(new DuelCommand(this));
         getCommand("playtime").setExecutor(new PlaytimeCommand(this));
         getCommand("trade").setExecutor(new TradeCommand(this));
+        getCommand("lms").setExecutor(new LmsCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -473,5 +477,9 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public HillEventManager getHillEvent() {
         return hillEvent;
+    }
+
+    public LastManStandingManager getLms() {
+        return lms;
     }
 }

@@ -17,7 +17,8 @@ public class GeneratorTabCompleter implements TabCompleter {
     private static final List<String> VILLAGER_ACTIONS = List.of("create", "remove");
     private static final List<String> SELLPRICE_ACTIONS = List.of("set", "remove", "list");
     private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "mega", "zombie", "megazombie", "setzone1", "setzone2",
-            "envoyitem", "megaitem", "zombieitem", "megazombieitem", "hill", "hillzone1", "hillzone2");
+            "envoyitem", "megaitem", "zombieitem", "megazombieitem", "hill", "hillzone1", "hillzone2",
+            "lms", "lmszone1", "lmszone2");
     private static final List<String> ENVOYITEM_ACTIONS = List.of("add", "clear", "list");
     private static final List<String> LEADERBOARD_ACTIONS = List.of("setlocation");
     private static final List<String> LEADERBOARD_TYPES = List.of("kills", "coins", "killstreak", "envoy");

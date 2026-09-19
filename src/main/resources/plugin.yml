@@ -72,6 +72,9 @@ commands:
   trade:
     description: Bezpieczna wymiana przedmiotow z innym graczem - /trade <gracz>|accept|cancel
     usage: /trade <gracz>|accept|cancel
+  lms:
+    description: Zapisy na event Ostatni Ocalaly (admin startuje przez /bpvp event lms) - /lms join|leave
+    usage: /lms join|leave
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 

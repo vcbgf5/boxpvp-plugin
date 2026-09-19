@@ -98,6 +98,8 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp event megazombieitem add|clear|list §7- pula nagród za zabicie mega-zombie");
         sender.sendMessage("§c/bpvp event hillzone1 §7/ §c hillzone2 §7- wyznacza strefę Króla Wzgórza (dwa przeciwległe rogi)");
         sender.sendMessage("§c/bpvp event hill <minuty> §7- startuje Króla Wzgórza (najwięcej sekund w strefie wygrywa)");
+        sender.sendMessage("§c/bpvp event lmszone1 §7/ §c lmszone2 §7- wyznacza strefę Ostatniego Ocalałego (dwa przeciwległe rogi)");
+        sender.sendMessage("§c/bpvp event lms §7- otwiera zapisy (/lms join) na Ostatniego Ocalałego");
         sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak|envoy> §7- stawia tablicę tu gdzie stoisz");
         sender.sendMessage("§c/bpvp movehologram <nazwa> §7- przestawia hologram generatora w to miejsce gdzie stoisz");
         sender.sendMessage("§c/bpvp craftblock add|remove <materiał> §7- blokuje/odblokowuje crafting materiału (np. NETHERITE_BLOCK)");
@@ -407,6 +409,27 @@ public class GeneratorCommand implements CommandExecutor {
                         : "§cNajpierw wyznacz strefę: /bpvp event hillzone1 i /bpvp event hillzone2 (dwa przeciwległe rogi).");
                 return true;
             }
+            case "lmszone1":
+            case "lmszone2": {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("Tej komendy może użyć tylko gracz.");
+                    return true;
+                }
+                int corner = action.equals("lmszone1") ? 1 : 2;
+                plugin.getLms().setCorner(corner, ((Player) sender).getLocation());
+                sender.sendMessage("§aUstawiono róg " + corner + " strefy Ostatniego Ocalałego w tym miejscu.");
+                return true;
+            }
+            case "lms": {
+                if (plugin.getLms().isSignupOpen() || plugin.getLms().isRunning()) {
+                    sender.sendMessage("§cOstatni ocalały już trwa albo zapisy są otwarte.");
+                    return true;
+                }
+                boolean opened = plugin.getLms().openSignup();
+                sender.sendMessage(opened ? "§aOtworzono zapisy na Ostatniego Ocalałego!"
+                        : "§cNajpierw wyznacz strefę: /bpvp event lmszone1 i /bpvp event lmszone2 (dwa przeciwległe rogi).");
+                return true;
+            }
             default:
                 sendEventUsage(sender);
                 return true;
@@ -416,7 +439,7 @@ public class GeneratorCommand implements CommandExecutor {
     private void sendEventUsage(CommandSender sender) {
         sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | mega | zombie | megazombie | setzone1 | setzone2 "
                 + "| envoyitem add|clear|list | megaitem add|clear|list | zombieitem add|clear|list | megazombieitem add|clear|list "
-                + "| hill <minuty> | hillzone1 | hillzone2");
+                + "| hill <minuty> | hillzone1 | hillzone2 | lms | lmszone1 | lmszone2");
     }
 
     private boolean handleEnvoyItem(CommandSender sender, String[] args) {
