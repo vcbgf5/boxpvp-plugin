@@ -1,13 +1,19 @@
 package com.dziubek.boxpvp;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Villager;
+import org.bukkit.entity.Interaction;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.TextDisplay;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
@@ -18,15 +24,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Kantor - wioskowy NPC do wymiany monet (Vault) na fizyczne "banknoty" (słonecznik, żelazo,
- * złoto, diament, netheryt - patrz CurrencyManager) i z powrotem. W przeciwieństwie do
- * TraderManager NIE używa wanilijnego handlu (MerchantRecipe) - cała wymiana idzie przez
- * własne GUI (BankGuiManager/BankListener), więc wygląd jest stały (Profession.NONE, brak
- * recept), a PPM zawsze otwiera GUI zamiast czegokolwiek wanilijnego.
+ * Kantor - zamiast żywej encji Villager (jej programowy spawn bywa cicho blokowany, np. flagą
+ * WorldGuard "mob-spawning" na chronionym spawnie) używa dokładnie tego samego triku co
+ * skrzynki-event (EnvoyDisplayManager): ItemDisplay jako "prop" + TextDisplay jako etykieta +
+ * niewidzialna Interaction jako hitbox do PPM. Żadna z tych encji nie jest "stworzeniem"
+ * (CreatureSpawnEvent), więc nic ich nie blokuje. Nietrwałe (setPersistent(false)) - odtwarzane
+ * od zera przy każdym starcie pluginu z zapisanej lokalizacji, tak jak tablice w
+ * LeaderboardManager.
  */
 public class BankManager {
 
     private static final String TAG = "bpvp_bank";
+    private static final double LABEL_HEIGHT_OFFSET = 0.9;
 
     private final BoxPvpPlugin plugin;
     private final File file;
@@ -52,23 +61,15 @@ public class BankManager {
         this.nameTag = new NamespacedKey(plugin, "bpvp_bank_name");
     }
 
-    /**
-     * Wczytuje wszystkich skonfigurowanych kantorowych NPC - jeśli w świecie już stoi ich
-     * encja (przeżyła restart, bo jest trwała), przejmuje ją zamiast tworzyć duplikat.
-     */
+    /** Sprząta osierocone encje sprzed restartu, potem odtwarza wszystkie skonfigurowane Kantory. */
     public void initialize() {
+        purgeOrphans();
         for (String name : data.getKeys(false)) {
             Location loc = readLocation(name);
             if (loc == null) {
                 continue;
             }
-            Villager villager = findExisting(name, loc);
-            if (villager == null) {
-                villager = spawnVillager(name, loc);
-            }
-            BankData bd = new BankData(name, villager);
-            banks.put(name, bd);
-            applyAppearance(bd);
+            banks.put(name, spawnEntities(name, loc));
         }
     }
 
@@ -83,11 +84,7 @@ public class BankManager {
     public void createBank(String name, Location location) {
         setLocation(name, location);
         save();
-
-        Villager villager = spawnVillager(name, location);
-        BankData bd = new BankData(name, villager);
-        banks.put(name, bd);
-        applyAppearance(bd);
+        banks.put(name, spawnEntities(name, location));
     }
 
     public boolean removeBank(String name) {
@@ -95,9 +92,7 @@ public class BankManager {
         if (bd == null) {
             return false;
         }
-        if (bd.villager.isValid()) {
-            bd.villager.remove();
-        }
+        despawn(bd);
         data.set(name, null);
         save();
         return true;
@@ -111,40 +106,75 @@ public class BankManager {
         return banks.get(name);
     }
 
-    private Villager spawnVillager(String name, Location loc) {
+    private BankData spawnEntities(String name, Location loc) {
         World world = loc.getWorld();
         loc.getChunk().load();
-        return world.spawn(loc, Villager.class, v -> {
-            v.setAI(false);
-            v.setInvulnerable(true);
-            v.setPersistent(true);
-            v.setProfession(Villager.Profession.NONE);
-            v.getPersistentDataContainer().set(nameTag, PersistentDataType.STRING, name);
-            v.addScoreboardTag(TAG);
+
+        ItemDisplay icon = world.spawn(loc, ItemDisplay.class, e -> {
+            e.setBillboard(Display.Billboard.CENTER);
+            e.setGravity(false);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.setItemStack(new ItemStack(Material.EMERALD));
+            e.getPersistentDataContainer().set(nameTag, PersistentDataType.STRING, name);
+            e.addScoreboardTag(TAG);
         });
+
+        TextDisplay label = world.spawn(loc.clone().add(0, LABEL_HEIGHT_OFFSET, 0), TextDisplay.class, e -> {
+            e.setBillboard(Display.Billboard.CENTER);
+            e.setGravity(false);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.setText(Branding.accent("Kantor"));
+            e.setSeeThrough(false);
+            e.setShadowed(false);
+            e.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+            e.getPersistentDataContainer().set(nameTag, PersistentDataType.STRING, name);
+            e.addScoreboardTag(TAG);
+        });
+
+        Interaction hitbox = world.spawn(loc, Interaction.class, e -> {
+            e.setInteractionWidth(1.0f);
+            e.setInteractionHeight(1.4f);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.getPersistentDataContainer().set(nameTag, PersistentDataType.STRING, name);
+            e.addScoreboardTag(TAG);
+        });
+
+        return new BankData(name, icon, label, hitbox);
     }
 
-    private Villager findExisting(String name, Location loc) {
-        World world = loc.getWorld();
-        if (world == null) {
-            return null;
+    private void despawn(BankData bd) {
+        if (bd.icon != null && bd.icon.isValid()) {
+            bd.icon.remove();
         }
-        loc.getChunk().load();
-        for (Entity entity : world.getNearbyEntities(loc, 3, 3, 3)) {
-            if (entity instanceof Villager && name.equals(entity.getPersistentDataContainer().get(nameTag, PersistentDataType.STRING))) {
-                return (Villager) entity;
+        if (bd.label != null && bd.label.isValid()) {
+            bd.label.remove();
+        }
+        if (bd.hitbox != null && bd.hitbox.isValid()) {
+            bd.hitbox.remove();
+        }
+    }
+
+    private void purgeOrphans() {
+        for (World world : plugin.getServer().getWorlds()) {
+            for (Entity entity : world.getEntitiesByClass(ItemDisplay.class)) {
+                if (entity.getScoreboardTags().contains(TAG)) {
+                    entity.remove();
+                }
+            }
+            for (Entity entity : world.getEntitiesByClass(TextDisplay.class)) {
+                if (entity.getScoreboardTags().contains(TAG)) {
+                    entity.remove();
+                }
+            }
+            for (Entity entity : world.getEntitiesByClass(Interaction.class)) {
+                if (entity.getScoreboardTags().contains(TAG)) {
+                    entity.remove();
+                }
             }
         }
-        return null;
-    }
-
-    private void applyAppearance(BankData bd) {
-        if (!bd.villager.isValid()) {
-            return;
-        }
-        bd.villager.setCustomName(Branding.accent("Kantor"));
-        bd.villager.setCustomNameVisible(true);
-        bd.villager.setProfession(Villager.Profession.NONE);
     }
 
     private void setLocation(String name, Location location) {
@@ -183,11 +213,15 @@ public class BankManager {
 
     public static final class BankData {
         final String name;
-        final Villager villager;
+        final ItemDisplay icon;
+        final TextDisplay label;
+        final Interaction hitbox;
 
-        BankData(String name, Villager villager) {
+        BankData(String name, ItemDisplay icon, TextDisplay label, Interaction hitbox) {
             this.name = name;
-            this.villager = villager;
+            this.icon = icon;
+            this.label = label;
+            this.hitbox = hitbox;
         }
     }
 }
