@@ -64,6 +64,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private TradeManager trades;
     private HillEventManager hillEvent;
     private LastManStandingManager lms;
+    private EloManager elo;
 
     @Override
     public void onEnable() {
@@ -113,6 +114,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         trades = new TradeManager(this);
         hillEvent = new HillEventManager(this);
         lms = new LastManStandingManager(this);
+        elo = new EloManager(this);
 
         setupEconomy();
 
@@ -138,6 +140,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         missions.start();
         stats.start();
         playtime.start();
+        elo.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
@@ -197,6 +200,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("trade").setExecutor(new TradeCommand(this));
         getCommand("lms").setExecutor(new LmsCommand(this));
         getCommand("reportduel").setExecutor(new ReportDuelCommand(this));
+        getCommand("elo").setExecutor(new EloCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -228,6 +232,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         }
         if (stats != null) {
             stats.flush();
+        }
+        if (elo != null) {
+            elo.flush();
         }
         if (playtime != null) {
             playtime.flush();
@@ -482,5 +489,9 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public LastManStandingManager getLms() {
         return lms;
+    }
+
+    public EloManager getElo() {
+        return elo;
     }
 }

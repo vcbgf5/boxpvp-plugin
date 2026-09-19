@@ -78,6 +78,9 @@ commands:
   lms:
     description: Zapisy na event Ostatni Ocalaly (admin startuje przez /bpvp event lms) - /lms join|leave
     usage: /lms join|leave
+  elo:
+    description: Pokazuje Twoj ranking ELO z pojedynkow (/duel) albo /elo top 10 najlepszych
+    usage: /elo|top
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 

@@ -101,7 +101,7 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp event hill <minuty> §7- startuje Króla Wzgórza (najwięcej sekund w strefie wygrywa)");
         sender.sendMessage("§c/bpvp event lmszone1 §7/ §c lmszone2 §7- wyznacza strefę Ostatniego Ocalałego (dwa przeciwległe rogi)");
         sender.sendMessage("§c/bpvp event lms §7- otwiera zapisy (/lms join) na Ostatniego Ocalałego");
-        sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak|envoy> §7- stawia tablicę tu gdzie stoisz");
+        sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak|elo|envoy> §7- stawia tablicę tu gdzie stoisz");
         sender.sendMessage("§c/bpvp movehologram <nazwa> §7- przestawia hologram generatora w to miejsce gdzie stoisz");
         sender.sendMessage("§c/bpvp craftblock add|remove <materiał> §7- blokuje/odblokowuje crafting materiału (np. NETHERITE_BLOCK)");
         sender.sendMessage("§c/bpvp craftblock list §7- lista zablokowanych materiałów");
@@ -617,7 +617,7 @@ public class GeneratorCommand implements CommandExecutor {
 
     private boolean handleLeaderboard(CommandSender sender, String[] args) {
         if (args.length < 3 || !args[1].equalsIgnoreCase("setlocation")) {
-            sender.sendMessage("§cUżycie: /bpvp leaderboard setlocation <kills|coins|killstreak|envoy>");
+            sender.sendMessage("§cUżycie: /bpvp leaderboard setlocation <kills|coins|killstreak|elo|envoy>");
             return true;
         }
         if (!(sender instanceof Player)) {
@@ -625,8 +625,8 @@ public class GeneratorCommand implements CommandExecutor {
             return true;
         }
         String type = args[2].toLowerCase();
-        if (!type.equals("kills") && !type.equals("coins") && !type.equals("killstreak") && !type.equals("envoy")) {
-            sender.sendMessage("§cDostępne tablice: kills, coins, killstreak, envoy.");
+        if (!type.equals("kills") && !type.equals("coins") && !type.equals("killstreak") && !type.equals("elo") && !type.equals("envoy")) {
+            sender.sendMessage("§cDostępne tablice: kills, coins, killstreak, elo, envoy.");
             return true;
         }
         plugin.getLeaderboards().setLocation(type, ((Player) sender).getLocation());

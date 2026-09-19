@@ -369,6 +369,13 @@ public class DuelManager {
             plugin.getEconomy().depositPlayer(Bukkit.getOfflinePlayer(winnerUuid), duel.bet);
         }
 
+        // Ranking ELO liczy się tylko dla realnie rozegranych pojedynków (payout=true) - przerwane
+        // przez admina (payout=false) nie wpływają na rating.
+        int[] eloChange = null;
+        if (payout) {
+            eloChange = plugin.getElo().recordDuelResult(winnerUuid, nameOf(winnerUuid), loserUuid, nameOf(loserUuid));
+        }
+
         Snapshot winnerSnapshot = duel.playerA.equals(winnerUuid) ? duel.snapshotA : duel.snapshotB;
         Location winnerReturn = duel.playerA.equals(winnerUuid) ? duel.returnA : duel.returnB;
         Snapshot loserSnapshot = duel.playerA.equals(loserUuid) ? duel.snapshotA : duel.snapshotB;
@@ -379,6 +386,7 @@ public class DuelManager {
             restoreNow(winner, winnerSnapshot, winnerReturn);
             winner.sendMessage(payout
                     ? "§a§lWygrałeś pojedynek! §f+" + BankGuiManager.formatMoney(duel.bet) + "$"
+                    + " §7(ELO: " + formatEloChange(eloChange[0]) + ")"
                     : "§ePojedynek przerwany przez administrację.");
         }
 
@@ -391,6 +399,7 @@ public class DuelManager {
             }
             loser.sendMessage(payout
                     ? "§c§lPrzegrałeś pojedynek. §f-" + BankGuiManager.formatMoney(duel.bet) + "$"
+                    + " §7(ELO: " + formatEloChange(eloChange[1]) + ")"
                     : "§ePojedynek przerwany przez administrację.");
         }
 
@@ -489,6 +498,19 @@ public class DuelManager {
         s.food = player.getFoodLevel();
         s.gameMode = player.getGameMode();
         return s;
+    }
+
+    private static String nameOf(UUID uuid) {
+        Player online = Bukkit.getPlayer(uuid);
+        if (online != null) {
+            return online.getName();
+        }
+        String name = Bukkit.getOfflinePlayer(uuid).getName();
+        return name != null ? name : uuid.toString();
+    }
+
+    private static String formatEloChange(int change) {
+        return change >= 0 ? "§a+" + change : "§c" + change;
     }
 
     private static ItemStack[] deepClone(ItemStack[] source) {

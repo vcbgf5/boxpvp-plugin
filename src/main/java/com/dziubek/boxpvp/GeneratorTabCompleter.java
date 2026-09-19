@@ -21,7 +21,7 @@ public class GeneratorTabCompleter implements TabCompleter {
             "lms", "lmszone1", "lmszone2");
     private static final List<String> ENVOYITEM_ACTIONS = List.of("add", "clear", "list");
     private static final List<String> LEADERBOARD_ACTIONS = List.of("setlocation");
-    private static final List<String> LEADERBOARD_TYPES = List.of("kills", "coins", "killstreak", "envoy");
+    private static final List<String> LEADERBOARD_TYPES = List.of("kills", "coins", "killstreak", "elo", "envoy");
     private static final List<String> CRAFTBLOCK_ACTIONS = List.of("add", "remove", "list");
     private static final List<String> GIVESET_LEVELS = List.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
     private static final List<String> TELEPORTTO_TARGETS = List.of("normal", "mega", "megazombie");
