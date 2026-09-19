@@ -36,8 +36,8 @@ commands:
     description: Otwiera sklep z GUI - /sklep create|additem|removeitem|removecategory do konfiguracji (admin)
     usage: /sklep
   bpvp:
-    description: Generatory, handlarze, auto-sprzedaz, eventy, leaderboardy, blokada craftingu i zestawy PvP - /bpvp wand|create|remove|list|villager|sellprice|event|leaderboard|craftblock|giveset
-    usage: /bpvp wand|create <nazwa> <blok> <sekundy>|remove <nazwa>|list|villager create|remove <nazwa>|sellprice set|remove|list|event start|envoy|setpoint|envoyitem|leaderboard setlocation|craftblock add|remove|list|giveset <poziom 1-10>
+    description: Generatory, handlarze, auto-sprzedaz, eventy, leaderboardy, blokada craftingu, zestawy PvP i teleport do skrzynek - /bpvp wand|create|remove|list|villager|sellprice|event|leaderboard|craftblock|giveset|teleportto
+    usage: /bpvp wand|create <nazwa> <blok> <sekundy>|remove <nazwa>|list|villager create|remove <nazwa>|sellprice set|remove|list|event start|envoy|setpoint|envoyitem|leaderboard setlocation|craftblock add|remove|list|giveset <poziom 1-10>|teleportto normal|mega|megazombie
   prestige:
     description: Oddaje cala gotowke za trwaly mnoznik zarobkow (auto-sprzedaz i zabojstwa) - /prestige confirm
     usage: /prestige [confirm]

@@ -64,6 +64,8 @@ public class EnvoyDisplayManager {
     private final List<ItemStack> megaRewardPool = new ArrayList<>();
     private final Random random = new Random();
     private final List<ActiveDrop> activeDrops = new ArrayList<>();
+    private Location lastNormalLocation;
+    private Location lastMegaLocation;
 
     public EnvoyDisplayManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -110,6 +112,12 @@ public class EnvoyDisplayManager {
 
     public List<ItemStack> megaRewards() {
         return megaRewardPool;
+    }
+
+    /** Miejsce ostatniej skrzynki-event danego typu (do /bpvp teleportto) - null, jeśli jeszcze żadna nie spadła. */
+    public Location getLastLocation(boolean mega) {
+        Location loc = mega ? lastMegaLocation : lastNormalLocation;
+        return loc == null ? null : loc.clone();
     }
 
     /**
@@ -163,6 +171,11 @@ public class EnvoyDisplayManager {
             return;
         }
         Location groundAnchor = landAt.clone().add(0.5, 0, 0.5);
+        if (mega) {
+            lastMegaLocation = groundAnchor.clone();
+        } else {
+            lastNormalLocation = groundAnchor.clone();
+        }
 
         ItemDisplay arrow = world.spawn(groundAnchor.clone().add(0, WARNING_HEIGHT, 0), ItemDisplay.class, e -> {
             e.setBillboard(Display.Billboard.CENTER);

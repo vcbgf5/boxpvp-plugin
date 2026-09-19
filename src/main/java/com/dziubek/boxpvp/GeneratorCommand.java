@@ -1,5 +1,6 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -63,6 +64,8 @@ public class GeneratorCommand implements CommandExecutor {
                 return handleCraftBlock(sender, args);
             case "giveset":
                 return handleGiveSet(sender, args);
+            case "teleportto":
+                return handleTeleportTo(sender, args);
             default:
                 sendHelp(sender);
                 return true;
@@ -95,6 +98,7 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp craftblock add|remove <materiał> §7- blokuje/odblokowuje crafting materiału (np. NETHERITE_BLOCK)");
         sender.sendMessage("§c/bpvp craftblock list §7- lista zablokowanych materiałów");
         sender.sendMessage("§c/bpvp giveset <poziom 1-10> §7- daje pełny zestaw PvP (zbroja + miecz/kilof/siekiera/łopata)");
+        sender.sendMessage("§c/bpvp teleportto normal|mega|megazombie §7- teleportuje Cię tam, gdzie ostatnio spadła dana skrzynka");
     }
 
     private boolean handleWand(CommandSender sender) {
@@ -597,6 +601,44 @@ public class GeneratorCommand implements CommandExecutor {
         }
         GearSetManager.giveSet((Player) sender, level);
         sender.sendMessage("§aOtrzymujesz zestaw PvP - Poziom " + level + " (zbroja + miecz, kilof, siekiera, łopata).");
+        return true;
+    }
+
+    private boolean handleTeleportTo(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Tej komendy może użyć tylko gracz.");
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("§cUżycie: /bpvp teleportto normal|mega|megazombie");
+            return true;
+        }
+        String type = args[1].toLowerCase();
+        Location target;
+        String label;
+        switch (type) {
+            case "normal":
+                target = plugin.getEnvoy().getLastLocation(false);
+                label = "Skrzynka-event";
+                break;
+            case "mega":
+                target = plugin.getEnvoy().getLastLocation(true);
+                label = "MEGA skrzynka-event";
+                break;
+            case "megazombie":
+                target = plugin.getGiantEvent().getLastLocation();
+                label = "Wielka skrzynka (mega-zombie)";
+                break;
+            default:
+                sender.sendMessage("§cUżycie: /bpvp teleportto normal|mega|megazombie");
+                return true;
+        }
+        if (target == null || target.getWorld() == null) {
+            sender.sendMessage("§cJeszcze żadna taka skrzynka nie spadła.");
+            return true;
+        }
+        ((Player) sender).teleport(target.clone().add(0, 1, 0));
+        sender.sendMessage("§aTeleportowano do miejsca ostatniej: " + label + ".");
         return true;
     }
 

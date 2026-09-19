@@ -107,6 +107,7 @@ public class GiantEventManager {
     private final Random random = new Random();
     private final Map<UUID, TrackedGiant> tracked = new HashMap<>();
     private volatile boolean eventActive = false;
+    private Location lastLocation;
 
     public GiantEventManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -149,6 +150,11 @@ public class GiantEventManager {
         return eventActive;
     }
 
+    /** Miejsce ostatniej wielkiej skrzynki/Gianta (do /bpvp teleportto) - null, jeśli jeszcze żadna nie spadła. */
+    public Location getLastLocation() {
+        return lastLocation == null ? null : lastLocation.clone();
+    }
+
     /** Usuwa osierocone Giganty sprzed restartu (nie ma ich w świeżej mapie tracked). */
     public void purgeOrphans() {
         for (World world : plugin.getServer().getWorlds()) {
@@ -170,6 +176,7 @@ public class GiantEventManager {
         }
         eventActive = true;
         Location groundAnchor = landAt.clone().add(0.5, 0, 0.5);
+        lastLocation = groundAnchor.clone();
         Location spawnAt = groundAnchor.clone().add(0, CRATE_FALL_START_OFFSET, 0);
 
         ItemDisplay crate = world.spawn(spawnAt, ItemDisplay.class, e -> {

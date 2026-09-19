@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class GeneratorTabCompleter implements TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of("wand", "create", "remove", "list", "villager",
-            "sellprice", "event", "leaderboard", "movehologram", "craftblock");
+            "sellprice", "event", "leaderboard", "movehologram", "craftblock", "giveset", "teleportto");
     private static final List<String> VILLAGER_ACTIONS = List.of("create", "remove");
     private static final List<String> SELLPRICE_ACTIONS = List.of("set", "remove", "list");
     private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "mega", "zombie", "megazombie", "setzone1", "setzone2",
@@ -22,6 +22,8 @@ public class GeneratorTabCompleter implements TabCompleter {
     private static final List<String> LEADERBOARD_ACTIONS = List.of("setlocation");
     private static final List<String> LEADERBOARD_TYPES = List.of("kills", "coins", "killstreak", "envoy");
     private static final List<String> CRAFTBLOCK_ACTIONS = List.of("add", "remove", "list");
+    private static final List<String> GIVESET_LEVELS = List.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
+    private static final List<String> TELEPORTTO_TARGETS = List.of("normal", "mega", "megazombie");
 
     private final BoxPvpPlugin plugin;
 
@@ -80,6 +82,14 @@ public class GeneratorTabCompleter implements TabCompleter {
             if (args.length == 3 && (args[1].equalsIgnoreCase("add") || args[1].equalsIgnoreCase("remove"))) {
                 return filterMaterials(args[2]);
             }
+        }
+
+        if (sub.equals("giveset") && args.length == 2) {
+            return filter(GIVESET_LEVELS, args[1]);
+        }
+
+        if (sub.equals("teleportto") && args.length == 2) {
+            return filter(TELEPORTTO_TARGETS, args[1]);
         }
 
         return new ArrayList<>();
