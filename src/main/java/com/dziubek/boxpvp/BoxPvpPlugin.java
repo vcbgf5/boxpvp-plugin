@@ -59,6 +59,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private CraftBlockManager craftBlocks;
     private LuckPermsHook luckPerms;
     private GiantEventManager giantEvent;
+    private DuelManager duels;
 
     @Override
     public void onEnable() {
@@ -103,6 +104,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         craftBlocks = new CraftBlockManager(this);
         luckPerms = new LuckPermsHook(this);
         giantEvent = new GiantEventManager(this);
+        duels = new DuelManager(this);
 
         setupEconomy();
 
@@ -154,6 +156,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MarketListener(this), this);
         getServer().getPluginManager().registerEvents(new CraftBlockListener(this), this);
         getServer().getPluginManager().registerEvents(new GiantEventListener(this), this);
+        getServer().getPluginManager().registerEvents(new DuelListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -177,6 +180,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("bank-serwer").setTabCompleter(new BankTabCompleter(this));
         getCommand("wymiana").setExecutor(new WymianaCommand(this));
         getCommand("rynek").setExecutor(new RynekCommand(this));
+        getCommand("duel").setExecutor(new DuelCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -436,5 +440,9 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public GiantEventManager getGiantEvent() {
         return giantEvent;
+    }
+
+    public DuelManager getDuels() {
+        return duels;
     }
 }

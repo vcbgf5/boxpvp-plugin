@@ -62,6 +62,10 @@ commands:
   rynek:
     description: Otwiera GUI Rynku graczy - kupuj przedmioty wystawione przez innych graczy za monety
     usage: /rynek
+  duel:
+    description: Pojedynki 1v1 na zaklad - swiezy klon areny na kazdy pojedynek, ekwipunek wraca po zakonczeniu - /duel invite|accept|leave|stop
+    usage: /duel invite <gracz> <stawka>|accept|leave|stop <gracz>
+    aliases: [duels]
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 

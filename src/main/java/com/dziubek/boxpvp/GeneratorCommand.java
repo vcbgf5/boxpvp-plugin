@@ -2,6 +2,7 @@ package com.dziubek.boxpvp;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -66,6 +67,8 @@ public class GeneratorCommand implements CommandExecutor {
                 return handleGiveSet(sender, args);
             case "teleportto":
                 return handleTeleportTo(sender, args);
+            case "duel":
+                return handleDuelSetup(sender, args);
             default:
                 sendHelp(sender);
                 return true;
@@ -99,6 +102,8 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp craftblock list §7- lista zablokowanych materiałów");
         sender.sendMessage("§c/bpvp giveset <poziom 1-10> §7- daje pełny zestaw PvP (zbroja + miecz/kilof/siekiera/łopata)");
         sender.sendMessage("§c/bpvp teleportto normal|mega|megazombie §7- teleportuje Cię tam, gdzie ostatnio spadła dana skrzynka");
+        sender.sendMessage("§c/bpvp duel setworld <świat> §7- ustawia świat-szablon areny pojedynków i przenosi Cię tam");
+        sender.sendMessage("§c/bpvp duel setpos §7- ustawia pozycję startową areny w miejscu gdzie stoisz (musisz być w świecie-szablonie)");
     }
 
     private boolean handleWand(CommandSender sender) {
@@ -601,6 +606,51 @@ public class GeneratorCommand implements CommandExecutor {
         }
         GearSetManager.giveSet((Player) sender, level);
         sender.sendMessage("§aOtrzymujesz zestaw PvP - Poziom " + level + " (zbroja + miecz, kilof, siekiera, łopata).");
+        return true;
+    }
+
+    private boolean handleDuelSetup(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Tej komendy może użyć tylko gracz.");
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>|setpos");
+            return true;
+        }
+        Player player = (Player) sender;
+        String action = args[1].toLowerCase();
+
+        if (action.equals("setworld")) {
+            if (args.length < 3) {
+                sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>");
+                return true;
+            }
+            World world = plugin.getDuels().setTemplateWorld(args[2]);
+            if (world == null) {
+                sender.sendMessage("§cNie udało się wczytać/utworzyć świata '" + args[2] + "'.");
+                return true;
+            }
+            player.teleport(world.getSpawnLocation());
+            sender.sendMessage("§aUstawiono świat-szablon areny na '" + args[2] + "' i przeniesiono Cię tam. "
+                    + "Stań w miejscu startowym areny i wpisz §f/bpvp duel setpos§a.");
+            return true;
+        }
+        if (action.equals("setpos")) {
+            String templateWorld = plugin.getDuels().getTemplateWorldName();
+            if (templateWorld == null) {
+                sender.sendMessage("§cNajpierw ustaw świat-szablon: /bpvp duel setworld <świat>.");
+                return true;
+            }
+            if (!templateWorld.equals(player.getWorld().getName())) {
+                sender.sendMessage("§cMusisz stać w świecie-szablonie areny ('" + templateWorld + "'), żeby ustawić pozycję.");
+                return true;
+            }
+            plugin.getDuels().setArenaPosition(player.getLocation());
+            sender.sendMessage("§aUstawiono pozycję startową areny pojedynków w tym miejscu.");
+            return true;
+        }
+        sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>|setpos");
         return true;
     }
 
