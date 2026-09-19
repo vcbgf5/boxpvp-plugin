@@ -56,6 +56,12 @@ public class StatsGuiManager {
                 List.of("§7" + plugin.getStats().getCratesOpened(uuid))));
         inv.setItem(21, buildStatItem(Material.SUNFLOWER, "§dOdebrane daily",
                 List.of("§7" + plugin.getStats().getDailyClaims(uuid))));
+        inv.setItem(22, buildStatItem(Material.DIAMOND_PICKAXE, "§dWykopane bloki",
+                List.of("§7" + plugin.getStats().getBlocksMined(uuid))));
+        inv.setItem(23, buildStatItem(Material.EMERALD, "§dWydane monety",
+                List.of("§a" + String.format("%.2f", plugin.getStats().getMoneySpent(uuid)) + "$")));
+        inv.setItem(24, buildStatItem(Material.CLOCK, "§dCzas gry",
+                List.of("§7" + PlaytimeManager.formatDuration(plugin.getPlaytime().getSeconds(uuid)))));
 
         GuiDecor.fillEmpty(inv);
         player.openInventory(inv);

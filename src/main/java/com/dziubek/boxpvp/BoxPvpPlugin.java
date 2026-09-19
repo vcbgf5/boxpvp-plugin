@@ -60,6 +60,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private LuckPermsHook luckPerms;
     private GiantEventManager giantEvent;
     private DuelManager duels;
+    private PlaytimeManager playtime;
 
     @Override
     public void onEnable() {
@@ -105,6 +106,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         luckPerms = new LuckPermsHook(this);
         giantEvent = new GiantEventManager(this);
         duels = new DuelManager(this);
+        playtime = new PlaytimeManager(this);
 
         setupEconomy();
 
@@ -128,6 +130,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         events.start();
         market.start();
         missions.start();
+        stats.start();
+        playtime.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
@@ -181,6 +185,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("wymiana").setExecutor(new WymianaCommand(this));
         getCommand("rynek").setExecutor(new RynekCommand(this));
         getCommand("duel").setExecutor(new DuelCommand(this));
+        getCommand("playtime").setExecutor(new PlaytimeCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -209,6 +214,12 @@ public class BoxPvpPlugin extends JavaPlugin {
         }
         if (missions != null) {
             missions.flush();
+        }
+        if (stats != null) {
+            stats.flush();
+        }
+        if (playtime != null) {
+            playtime.flush();
         }
     }
 
@@ -444,5 +455,9 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public DuelManager getDuels() {
         return duels;
+    }
+
+    public PlaytimeManager getPlaytime() {
+        return playtime;
     }
 }

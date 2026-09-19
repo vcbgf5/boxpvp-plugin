@@ -66,6 +66,9 @@ commands:
     description: Pojedynki 1v1 na zaklad - swiezy klon areny na kazdy pojedynek, ekwipunek wraca po zakonczeniu - /duel invite|accept|leave|stop
     usage: /duel invite <gracz> <stawka>|accept|leave|stop <gracz>
     aliases: [duels]
+  playtime:
+    description: Pokazuje Twoj laczny czas gry na serwerze i czas do nastepnej nagrody
+    usage: /playtime
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 

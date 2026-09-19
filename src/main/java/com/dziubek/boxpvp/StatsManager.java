@@ -12,9 +12,12 @@ import java.util.UUID;
 
 public class StatsManager {
 
+    private static final long FLUSH_INTERVAL_TICKS = 20L * 30;
+
     private final BoxPvpPlugin plugin;
     private final File file;
     private final FileConfiguration data;
+    private volatile boolean dirty = false;
 
     public StatsManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -32,6 +35,14 @@ public class StatsManager {
         this.data = YamlConfiguration.loadConfiguration(file);
     }
 
+    /**
+     * Tak jak MissionManager - zapis na dysk nie idzie już przy każdym increment() (kille,
+     * bloki wykopane itd.), tylko raz na 30s i tylko jeśli coś się realnie zmieniło.
+     */
+    public void start() {
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::flush, FLUSH_INTERVAL_TICKS, FLUSH_INTERVAL_TICKS);
+    }
+
     public void recordCrateOpened(UUID uuid, String name) {
         increment(uuid, name, "crates-opened");
     }
@@ -44,7 +55,7 @@ public class StatsManager {
         String path = "players." + uuid + ".money-spent";
         data.set(path, data.getDouble(path, 0) + amount);
         touchName(uuid, name);
-        save();
+        markDirty();
     }
 
     public int getCratesOpened(UUID uuid) {
@@ -75,6 +86,14 @@ public class StatsManager {
         return data.getInt("players." + uuid + ".deaths", 0);
     }
 
+    public void recordBlockMined(UUID uuid, String name) {
+        increment(uuid, name, "blocks-mined");
+    }
+
+    public int getBlocksMined(UUID uuid) {
+        return data.getInt("players." + uuid + ".blocks-mined", 0);
+    }
+
     public int getBestKillstreak(UUID uuid) {
         return data.getInt("players." + uuid + ".best-killstreak", 0);
     }
@@ -83,7 +102,7 @@ public class StatsManager {
         if (value > getBestKillstreak(uuid)) {
             data.set("players." + uuid + ".best-killstreak", value);
             touchName(uuid, name);
-            save();
+            markDirty();
         }
     }
 
@@ -93,7 +112,7 @@ public class StatsManager {
      */
     public void touch(UUID uuid, String name) {
         touchName(uuid, name);
-        save();
+        markDirty();
     }
 
     public String getName(UUID uuid) {
@@ -164,7 +183,7 @@ public class StatsManager {
         String path = "players." + uuid + "." + key;
         data.set(path, data.getInt(path, 0) + 1);
         touchName(uuid, name);
-        save();
+        markDirty();
     }
 
     private void touchName(UUID uuid, String name) {
@@ -173,7 +192,15 @@ public class StatsManager {
         }
     }
 
-    private void save() {
+    private void markDirty() {
+        dirty = true;
+    }
+
+    public void flush() {
+        if (!dirty) {
+            return;
+        }
+        dirty = false;
         try {
             data.save(file);
         } catch (IOException e) {

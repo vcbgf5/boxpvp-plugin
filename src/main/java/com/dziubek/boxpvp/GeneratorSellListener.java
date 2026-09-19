@@ -43,6 +43,7 @@ public class GeneratorSellListener implements Listener {
         event.setDropItems(false);
         Player player = event.getPlayer();
         plugin.getMissions().addProgress(player, MissionManager.Type.BLOCKS_MINED, 1);
+        plugin.getStats().recordBlockMined(player.getUniqueId(), player.getName());
         playTrail(player, event.getBlock().getLocation());
         int combo = trackCombo(player);
 
