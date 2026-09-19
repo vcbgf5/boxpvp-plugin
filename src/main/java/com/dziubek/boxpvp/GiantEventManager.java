@@ -42,9 +42,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -58,7 +60,7 @@ import java.util.UUID;
 public class GiantEventManager {
 
     private static final String TAG = "bpvp_giant_event";
-    private static final double MAX_HEALTH = 500.0;
+    private static final double MAX_HEALTH = 1000.0;
     private static final double MOVE_SPEED = 1.0;
     private static final double DETECT_RANGE = 64.0;
     private static final double HOP_VELOCITY = 0.45;
@@ -66,23 +68,29 @@ public class GiantEventManager {
     private static final long LIFETIME_TICKS = 20L * 60 * 8;
     private static final long TICK_INTERVAL = 5L;
 
-    private static final double THROW_DAMAGE = 6.0;
+    private static final double THROW_DAMAGE = 8.0;
     private static final long THROW_COOLDOWN_MS = 3_000L;
     private static final double THROW_RANGE = 20.0;
-    private static final double THROW_SPEED = 1.1;
+    private static final double THROW_SPEED = 1.4;
     private static final double THROW_HIT_RADIUS = 1.2;
-    private static final long THROW_LIFETIME_TICKS = 20L * 3;
+    private static final long THROW_LIFETIME_TICKS = 20L * 2;
 
-    private static final double SPIKE_DAMAGE = 8.0;
-    private static final long SPIKE_COOLDOWN_MS = 8_000L;
-    private static final double SPIKE_TRIGGER_RANGE = 10.0;
-    private static final int SPIKE_COUNT = 10;
-    private static final int WAVE_PARTICLE_POINTS = 24;
-    private static final double SPIKE_RADIUS = 3.5;
-    private static final double SPIKE_HIT_RADIUS = 1.3;
-    private static final long WAVE_EXPAND_TICKS = 12L;
-    private static final long SPIKE_RISE_TICKS = 6L;
-    private static final long SPIKE_LIFETIME_TICKS = 30L;
+    private static final long WAVE_COOLDOWN_MS = 8_000L;
+    private static final double WAVE_TRIGGER_RANGE = 40.0;
+    private static final double WAVE_MAX_RADIUS = 40.0;
+    private static final long WAVE_EXPAND_TICKS = 50L;
+    private static final double WAVE_BAND = 1.5;
+    private static final double WAVE_DAMAGE = 10.0;
+    private static final double WAVE_LAUNCH_VELOCITY = 1.2;
+    private static final int WAVE_PARTICLE_POINTS = 48;
+
+    private static final int BOMBARD_COUNT = 8;
+    private static final double BOMBARD_RADIUS = 29.0;
+    private static final long BOMBARD_TELEGRAPH_TICKS = 20L;
+    private static final double BOMBARD_FALL_HEIGHT = 15.0;
+    private static final long BOMBARD_FALL_DURATION_MS = 700L;
+    private static final double BOMBARD_DAMAGE = 10.0;
+    private static final double BOMBARD_HIT_RADIUS = 1.5;
 
     private static final double CRATE_FALL_START_OFFSET = 60.0;
     private static final long CRATE_FALL_DURATION_MS = 5_000L;
@@ -323,7 +331,7 @@ public class GiantEventManager {
                     retarget(giant);
                 }
                 tryThrowAttack(giant, tg);
-                trySpikeAttack(giant, tg);
+                tryWaveAttack(giant, tg);
                 tg.healthBar.setTitle(bossBarTitle(giant));
                 tg.healthBar.setProgress(Math.max(0.0, Math.min(1.0, giant.getHealth() / giant.getMaxHealth())));
             }
@@ -433,8 +441,8 @@ public class GiantEventManager {
             }
             return;
         }
-        velocity.setY(velocity.getY() - 0.02);
-        Location at = position.add(velocity.clone().multiply(0.1));
+        velocity.setY(velocity.getY() - 0.03);
+        Location at = position.add(velocity);
         World world = block.getWorld();
 
         float spin = (float) ((System.currentTimeMillis() % 1000L) / 1000.0 * Math.PI * 2);
@@ -475,32 +483,33 @@ public class GiantEventManager {
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateThrow(giant, block, position, velocity, start), 2L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateThrow(giant, block, position, velocity, start), 1L);
     }
 
     /**
-     * Rozchodząca się fala cząsteczek, a zaraz po niej 10 kolców wychodzących z ziemi w kręgu
-     * wokół Gianta - trafieni gracze dostają obrażenia (przez Player#damage, więc zbroja działa).
-     * Osobna umiejętność od rzutu blokiem, na dłuższym cooldownie.
+     * Rozchodząca się fala do WAVE_MAX_RADIUS (40 bloków) - wyrzuca w powietrze i zadaje
+     * obrażenia każdemu graczowi, którego "czoło fali" dosięgnie, CHYBA że gracz akurat jest w
+     * powietrzu (skoczył) - unik przez wyskoczenie w porę. Jeśli fala kogokolwiek trafi, zaraz
+     * po niej odpala się bombardowanie z nieba (startBombardment).
      */
-    private void trySpikeAttack(Giant giant, TrackedGiant tg) {
+    private void tryWaveAttack(Giant giant, TrackedGiant tg) {
         long now = System.currentTimeMillis();
-        if (now - tg.lastSpikeAt < SPIKE_COOLDOWN_MS) {
+        if (now - tg.lastWaveAt < WAVE_COOLDOWN_MS) {
             return;
         }
-        if (nearestPlayer(giant, SPIKE_TRIGGER_RANGE) == null) {
+        if (nearestPlayer(giant, WAVE_TRIGGER_RANGE) == null) {
             return;
         }
-        tg.lastSpikeAt = now;
-        animateSpikeWave(giant, giant.getLocation(), 0L);
+        tg.lastWaveAt = now;
+        animateWave(giant, giant.getLocation(), 0L, new HashSet<>());
     }
 
-    private void animateSpikeWave(Giant giant, Location center, long tick) {
+    private void animateWave(Giant giant, Location center, long tick, Set<UUID> hitSoFar) {
         if (!giant.isValid() || giant.isDead()) {
             return;
         }
         World world = center.getWorld();
-        double radius = SPIKE_RADIUS * (tick / (double) WAVE_EXPAND_TICKS);
+        double radius = WAVE_MAX_RADIUS * (tick / (double) WAVE_EXPAND_TICKS);
         for (int i = 0; i < WAVE_PARTICLE_POINTS; i++) {
             double angle = 2 * Math.PI * i / WAVE_PARTICLE_POINTS;
             double x = center.getX() + radius * Math.cos(angle);
@@ -508,87 +517,116 @@ public class GiantEventManager {
             world.spawnParticle(Particle.CRIT, x, center.getY() + 0.1, z, 1, 0, 0, 0, 0);
         }
 
-        if (tick >= WAVE_EXPAND_TICKS) {
-            spawnSpikeRing(giant, center);
-            return;
-        }
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateSpikeWave(giant, center, tick + 1), 1L);
-    }
-
-    private void spawnSpikeRing(Giant giant, Location center) {
-        World world = center.getWorld();
-        world.playSound(center, Sound.ENTITY_RAVAGER_ROAR, 1.0f, 1.4f);
-        List<ItemDisplay> spikes = new ArrayList<>();
-        List<Location> spikeSpots = new ArrayList<>();
-        for (int i = 0; i < SPIKE_COUNT; i++) {
-            double angle = 2 * Math.PI * i / SPIKE_COUNT;
-            Location spot = center.clone().add(SPIKE_RADIUS * Math.cos(angle), 0, SPIKE_RADIUS * Math.sin(angle));
-            spikeSpots.add(spot);
-            ItemDisplay spike = world.spawn(spot.clone().subtract(0, 1.5, 0), ItemDisplay.class, e -> {
-                e.setBillboard(Display.Billboard.FIXED);
-                e.setGravity(false);
-                e.setPersistent(false);
-                e.setInvulnerable(true);
-                e.setItemStack(new ItemStack(Material.POINTED_DRIPSTONE));
-                e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "spike");
-                e.addScoreboardTag(TAG);
-            });
-            spikes.add(spike);
-        }
-        animateSpikeRise(giant, spikes, spikeSpots, 0L);
-    }
-
-    private void animateSpikeRise(Giant giant, List<ItemDisplay> spikes, List<Location> spikeSpots, long tick) {
-        double t = Math.min(1.0, tick / (double) SPIKE_RISE_TICKS);
-        for (int i = 0; i < spikes.size(); i++) {
-            ItemDisplay spike = spikes.get(i);
-            if (!spike.isValid()) {
-                continue;
-            }
-            Location spot = spikeSpots.get(i);
-            spike.teleport(spot.clone().subtract(0, 1.5 * (1.0 - t), 0));
-        }
-
-        if (t >= 1.0) {
-            dealSpikeDamage(giant, spikeSpots);
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> removeSpikes(spikes), SPIKE_LIFETIME_TICKS);
-            return;
-        }
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateSpikeRise(giant, spikes, spikeSpots, tick + 1), 1L);
-    }
-
-    private void dealSpikeDamage(Giant giant, List<Location> spikeSpots) {
-        World world = giant.getWorld();
-        List<UUID> hit = new ArrayList<>();
         for (Player player : world.getPlayers()) {
             if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
                 continue;
             }
-            if (hit.contains(player.getUniqueId())) {
+            if (hitSoFar.contains(player.getUniqueId())) {
                 continue;
             }
-            for (Location spot : spikeSpots) {
-                if (player.getLocation().distance(spot) <= SPIKE_HIT_RADIUS) {
-                    hit.add(player.getUniqueId());
-                    player.damage(SPIKE_DAMAGE, giant);
-                    player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_HURT, 1.0f, 0.7f);
-                    Vector knockback = player.getLocation().toVector().subtract(giant.getLocation().toVector());
-                    if (knockback.lengthSquared() > 0) {
-                        knockback.normalize().multiply(0.7).setY(0.4);
-                        player.setVelocity(player.getVelocity().add(knockback));
-                    }
-                    break;
-                }
+            double dist = player.getLocation().distance(center);
+            if (Math.abs(dist - radius) > WAVE_BAND) {
+                continue;
             }
+            if (!player.isOnGround()) {
+                continue; // gracz w powietrzu - unik, fala go nie dosięga
+            }
+            hitSoFar.add(player.getUniqueId());
+            player.damage(WAVE_DAMAGE, giant);
+            player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_HURT, 1.0f, 0.6f);
+            player.setVelocity(player.getVelocity().setY(WAVE_LAUNCH_VELOCITY));
+        }
+
+        if (tick >= WAVE_EXPAND_TICKS) {
+            if (!hitSoFar.isEmpty()) {
+                startBombardment(giant, center);
+            }
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateWave(giant, center, tick + 1, hitSoFar), 1L);
+    }
+
+    /**
+     * Bombardowanie z nieba - odpala się tylko jeśli fala kogoś trafiła. Losuje BOMBARD_COUNT
+     * miejsc w promieniu do BOMBARD_RADIUS od Gianta, telegrafuje każde (kolumna cząsteczek), a
+     * potem zrzuca na nie kolec z góry - każdy punkt bombardowania jest niezależny.
+     */
+    private void startBombardment(Giant giant, Location center) {
+        World world = center.getWorld();
+        world.playSound(center, Sound.ENTITY_RAVAGER_ROAR, 1.0f, 1.4f);
+        for (int i = 0; i < BOMBARD_COUNT; i++) {
+            double angle = random.nextDouble() * 2 * Math.PI;
+            double dist = random.nextDouble() * BOMBARD_RADIUS;
+            Location point = center.clone().add(dist * Math.cos(angle), 0, dist * Math.sin(angle));
+            telegraphBombard(giant, point, 0L);
         }
     }
 
-    private void removeSpikes(List<ItemDisplay> spikes) {
-        for (ItemDisplay spike : spikes) {
-            if (spike.isValid()) {
-                spike.remove();
-            }
+    private void telegraphBombard(Giant giant, Location point, long tick) {
+        if (!giant.isValid() || giant.isDead()) {
+            return;
         }
+        World world = point.getWorld();
+        world.spawnParticle(Particle.FLAME, point.clone().add(0, 0.2, 0), 3, 0.2, 0.1, 0.2, 0.01);
+        if (tick == 0) {
+            world.playSound(point, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5f, 1.6f);
+        }
+
+        if (tick >= BOMBARD_TELEGRAPH_TICKS) {
+            dropBombardSpike(giant, point, System.currentTimeMillis());
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> telegraphBombard(giant, point, tick + 1), 1L);
+    }
+
+    private void dropBombardSpike(Giant giant, Location point, long start) {
+        World world = point.getWorld();
+        ItemDisplay spike = world.spawn(point.clone().add(0, BOMBARD_FALL_HEIGHT, 0), ItemDisplay.class, e -> {
+            e.setBillboard(Display.Billboard.FIXED);
+            e.setGravity(false);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.setItemStack(new ItemStack(Material.POINTED_DRIPSTONE));
+            e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "bombard");
+            e.addScoreboardTag(TAG);
+        });
+        animateBombardFall(giant, spike, point, start);
+    }
+
+    private void animateBombardFall(Giant giant, ItemDisplay spike, Location landAt, long start) {
+        if (!spike.isValid()) {
+            return;
+        }
+        double t = Math.min(1.0, (System.currentTimeMillis() - start) / (double) BOMBARD_FALL_DURATION_MS);
+        double heightOffset = (1.0 - t) * BOMBARD_FALL_HEIGHT;
+        spike.teleport(landAt.clone().add(0, heightOffset, 0));
+
+        if (t >= 1.0) {
+            World world = landAt.getWorld();
+            world.spawnParticle(Particle.EXPLOSION, landAt, 1);
+            world.playSound(landAt, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.2f);
+            for (Player player : world.getPlayers()) {
+                if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
+                    continue;
+                }
+                if (player.getLocation().distance(landAt) <= BOMBARD_HIT_RADIUS) {
+                    player.damage(BOMBARD_DAMAGE, giant);
+                    player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_HURT, 1.0f, 0.7f);
+                    Vector knockback = player.getLocation().toVector().subtract(landAt.toVector());
+                    if (knockback.lengthSquared() > 0) {
+                        knockback.normalize().multiply(0.5).setY(0.3);
+                        player.setVelocity(player.getVelocity().add(knockback));
+                    }
+                }
+            }
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (spike.isValid()) {
+                    spike.remove();
+                }
+            }, 20L);
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateBombardFall(giant, spike, landAt, start), 1L);
     }
 
     public void onKilled(Giant giant) {
@@ -675,7 +713,7 @@ public class GiantEventManager {
         final Location safeAnchor;
         final BossBar healthBar;
         long lastAttackAt;
-        long lastSpikeAt;
+        long lastWaveAt;
         BukkitTask lifetimeTask;
 
         TrackedGiant(Giant giant, Location safeAnchor, BossBar healthBar) {
