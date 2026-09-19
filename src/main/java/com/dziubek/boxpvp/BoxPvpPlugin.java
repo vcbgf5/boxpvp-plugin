@@ -125,6 +125,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         scoreboards.start();
         events.start();
         market.start();
+        missions.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
@@ -201,6 +202,9 @@ public class BoxPvpPlugin extends JavaPlugin {
     public void onDisable() {
         if (crateItemDisplays != null) {
             crateItemDisplays.shutdown();
+        }
+        if (missions != null) {
+            missions.flush();
         }
     }
 

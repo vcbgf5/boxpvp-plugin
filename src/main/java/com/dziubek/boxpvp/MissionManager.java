@@ -44,9 +44,12 @@ public class MissionManager {
                     Material.ENDER_CHEST, 3, 200)
     );
 
+    private static final long FLUSH_INTERVAL_TICKS = 20L * 30;
+
     private final BoxPvpPlugin plugin;
     private final File file;
     private final FileConfiguration data;
+    private volatile boolean dirty = false;
 
     public MissionManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -62,6 +65,16 @@ public class MissionManager {
             }
         }
         this.data = YamlConfiguration.loadConfiguration(file);
+    }
+
+    /**
+     * Zapis na dysk NIE idzie już przy każdym postępie misji (np. co wykopany blok przy
+     * auto-sprzedaży) - to powodowało zauważalne lagi przy szybkim kopaniu (pełny plik
+     * missions.yml zapisywany synchronicznie na głównym wątku nawet kilka razy na sekundę).
+     * Zamiast tego zmiany tylko oznaczają dane jako "brudne", a osobny, rzadki task je zrzuca.
+     */
+    public void start() {
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::flush, FLUSH_INTERVAL_TICKS, FLUSH_INTERVAL_TICKS);
     }
 
     public List<Definition> definitions() {
@@ -111,7 +124,7 @@ public class MissionManager {
             }
             int after = Math.min(target, before + amount);
             data.set(progressPath(uuid, def), after);
-            save();
+            markDirty();
             if (after >= target && before < target) {
                 player.sendMessage(Branding.chatPrefix() + "§aUkończono misję: §f" + def.displayName()
                         + " §a- odbierz nagrodę w §f/missions§a!");
@@ -130,7 +143,8 @@ public class MissionManager {
             plugin.getEconomy().depositPlayer(player, reward);
         }
         data.set(claimedPath(uuid, def), true);
-        save();
+        markDirty();
+        flush(); // odbiór nagrody jest rzadki (ręczny klik w GUI) - warto zapisać od razu, nie czekać na flush
         return true;
     }
 
@@ -148,7 +162,7 @@ public class MissionManager {
         }
         data.set("players." + uuid + "." + period.name(), null);
         data.set(bucketPath, currentBucket);
-        save();
+        markDirty();
     }
 
     private long currentBucket(Period period) {
@@ -164,7 +178,16 @@ public class MissionManager {
         return "players." + uuid + "." + def.period().name() + ".claimed." + def.id();
     }
 
-    private void save() {
+    private void markDirty() {
+        dirty = true;
+    }
+
+    /** Zapisuje na dysk tylko jeśli coś się realnie zmieniło od ostatniego zapisu. */
+    public void flush() {
+        if (!dirty) {
+            return;
+        }
+        dirty = false;
         try {
             data.save(file);
         } catch (IOException e) {
