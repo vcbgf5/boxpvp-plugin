@@ -142,6 +142,26 @@ public class GeneratorManager {
     }
 
     /**
+     * Przestawia hologram konkretnego generatora w dowolne, ręcznie wskazane miejsce - inaczej
+     * hologram zawsze liczy się automatycznie ze środka obszaru generatora.
+     */
+    public boolean setHologramLocation(String genName, Location location) {
+        Generator gen = generators.get(genName);
+        if (gen == null) {
+            return false;
+        }
+        gen.hologramOverride = location.clone();
+        String base = genName + ".hologram-override";
+        data.set(base + ".world", location.getWorld().getName());
+        data.set(base + ".x", location.getX());
+        data.set(base + ".y", location.getY());
+        data.set(base + ".z", location.getZ());
+        save();
+        updateHologram(gen, Math.max(0, gen.nextFillAt - System.currentTimeMillis()));
+        return true;
+    }
+
+    /**
      * Czy dany blok leży w obszarze KTÓREGOKOLWIEK generatora - używane przez auto-sprzedaż,
      * żeby sprzedawać tylko bloki faktycznie wykopane z generatora, a nie np. postawione ręcznie.
      */
@@ -224,6 +244,9 @@ public class GeneratorManager {
     }
 
     private Location generatorHologramLocation(Generator gen) {
+        if (gen.hologramOverride != null) {
+            return gen.hologramOverride;
+        }
         int maxY = Math.max(gen.pos1.getBlockY(), gen.pos2.getBlockY());
         double centerX = (gen.pos1.getBlockX() + gen.pos2.getBlockX()) / 2.0 + 0.5;
         double centerZ = (gen.pos1.getBlockZ() + gen.pos2.getBlockZ()) / 2.0 + 0.5;
@@ -288,6 +311,14 @@ public class GeneratorManager {
             int intervalSeconds = data.getInt(base + ".interval-seconds", 120);
 
             Generator gen = new Generator(genName, p1, p2, material, intervalSeconds);
+            String hologramWorldName = data.getString(base + ".hologram-override.world");
+            World hologramWorld = hologramWorldName == null ? null : Bukkit.getWorld(hologramWorldName);
+            if (hologramWorld != null) {
+                gen.hologramOverride = new Location(hologramWorld,
+                        data.getDouble(base + ".hologram-override.x"),
+                        data.getDouble(base + ".hologram-override.y"),
+                        data.getDouble(base + ".hologram-override.z"));
+            }
             generators.put(genName, gen);
         }
     }
@@ -307,6 +338,7 @@ public class GeneratorManager {
         final Material material;
         final int intervalSeconds;
         long nextFillAt;
+        Location hologramOverride;
 
         Generator(String name, Location pos1, Location pos2, Material material, int intervalSeconds) {
             this.name = name;

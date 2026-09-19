@@ -8,6 +8,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.boss.BarColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Display;
@@ -41,11 +42,11 @@ import java.util.Random;
 public class EnvoyDisplayManager {
 
     private static final String TAG = "bpvp_envoy";
-    private static final double FALL_START_OFFSET = 30.0;
-    private static final long FALL_DURATION_MS = 3000;
+    private static final double FALL_START_OFFSET = 14.0;
+    private static final long FALL_DURATION_MS = 1600;
     private static final long WARNING_TICKS = 20L * 10;
     private static final double WARNING_HEIGHT = 2.0;
-    private static final double BEACON_BEAM_HEIGHT = 12.0;
+    private static final double BEACON_BEAM_HEIGHT = 14.0;
     private static final float NORMAL_SCALE = 1.0f;
     private static final float MEGA_SCALE = 1.6f;
 
@@ -163,6 +164,7 @@ public class EnvoyDisplayManager {
 
         String label = mega ? Branding.accent("★ MEGA skrzynka-event!") : "§f§l☀ Skrzynka-event";
         Bukkit.broadcastMessage(Branding.chatPrefix() + label + " §7spadnie tutaj za 10 sekund!");
+        BossBarUtil.showTimed(plugin, label + " §7ląduje...", mega ? BarColor.PURPLE : BarColor.WHITE, WARNING_TICKS);
         world.playSound(groundAnchor, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, mega ? 0.8f : 1.4f);
 
         animateWarning(groundAnchor, arrow, System.currentTimeMillis(), WARNING_TICKS, mega);
@@ -191,12 +193,12 @@ public class EnvoyDisplayManager {
         arrow.setTransformation(transform);
 
         World world = groundAnchor.getWorld();
-        for (double y = 0; y < BEACON_BEAM_HEIGHT; y += 0.5) {
+        for (double y = 0; y < BEACON_BEAM_HEIGHT; y += 0.25) {
             if (mega) {
-                world.spawnParticle(Particle.DUST, groundAnchor.getX(), groundAnchor.getY() + y, groundAnchor.getZ(), 1, 0, 0, 0, 0,
-                        new Particle.DustOptions(Color.fromRGB(Branding.LIGHT_LAVENDER), 1.2f));
+                world.spawnParticle(Particle.DUST, groundAnchor.getX(), groundAnchor.getY() + y, groundAnchor.getZ(), 3, 0.05, 0, 0.05, 0,
+                        new Particle.DustOptions(Color.fromRGB(Branding.LIGHT_LAVENDER), 1.6f));
             } else {
-                world.spawnParticle(Particle.END_ROD, groundAnchor.getX(), groundAnchor.getY() + y, groundAnchor.getZ(), 1, 0, 0, 0, 0);
+                world.spawnParticle(Particle.END_ROD, groundAnchor.getX(), groundAnchor.getY() + y, groundAnchor.getZ(), 3, 0.05, 0, 0.05, 0.01);
             }
         }
 
@@ -220,6 +222,8 @@ public class EnvoyDisplayManager {
             e.setPersistent(false);
             e.setInvulnerable(true);
             e.setItemStack(new ItemStack(mega ? Material.SHULKER_BOX : Material.BARREL));
+            e.setCustomName(mega ? Branding.accent("★ MEGA Skrzynka-event") : "§c§lSkrzynka-event");
+            e.setCustomNameVisible(true);
             e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "crate");
             e.addScoreboardTag(TAG);
         });

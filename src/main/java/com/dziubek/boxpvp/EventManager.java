@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.boss.BarColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -66,11 +67,27 @@ public class EventManager {
         for (int i = 0; i < count; i++) {
             spawnEnvoy(rollMega());
         }
+        if (rollZombie()) {
+            spawnZombieEvent();
+        }
     }
 
     private boolean rollMega() {
         double chance = plugin.getConfig().getDouble("envoy.mega-chance", 0.15);
         return random.nextDouble() < chance;
+    }
+
+    private boolean rollZombie() {
+        double chance = plugin.getConfig().getDouble("envoy.zombie-chance", 0.2);
+        return random.nextDouble() < chance;
+    }
+
+    public boolean spawnZombieEvent() {
+        if (!hasEnvoyZone()) {
+            return false;
+        }
+        plugin.getZombieEvent().spawnZombie(randomPointInZone());
+        return true;
     }
 
     /** Ile milisekund zostało do kolejnego automatycznego zrzutu - do wyświetlenia na tablicy. */
@@ -102,6 +119,7 @@ public class EventManager {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         }
+        BossBarUtil.showTimed(plugin, "§6§l★ EVENT: §fMonety x" + trim(multiplier), BarColor.YELLOW, minutes * 60L * 20L);
 
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (multiplierExpiresAt == expiresAt && System.currentTimeMillis() >= multiplierExpiresAt) {

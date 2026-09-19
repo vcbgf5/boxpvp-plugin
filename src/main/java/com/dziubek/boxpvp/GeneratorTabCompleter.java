@@ -11,10 +11,11 @@ import java.util.stream.Collectors;
 public class GeneratorTabCompleter implements TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of("wand", "create", "remove", "list", "villager",
-            "sellprice", "event", "leaderboard");
+            "sellprice", "event", "leaderboard", "movehologram");
     private static final List<String> VILLAGER_ACTIONS = List.of("create", "remove");
     private static final List<String> SELLPRICE_ACTIONS = List.of("set", "remove", "list");
-    private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "mega", "setzone1", "setzone2", "envoyitem", "megaitem");
+    private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "mega", "zombie", "setzone1", "setzone2",
+            "envoyitem", "megaitem", "zombieitem");
     private static final List<String> ENVOYITEM_ACTIONS = List.of("add", "clear", "list");
     private static final List<String> LEADERBOARD_ACTIONS = List.of("setlocation");
     private static final List<String> LEADERBOARD_TYPES = List.of("kills", "coins", "killstreak", "envoy");
@@ -33,7 +34,7 @@ public class GeneratorTabCompleter implements TabCompleter {
 
         String sub = args[0].toLowerCase();
 
-        if (sub.equals("remove") && args.length == 2) {
+        if ((sub.equals("remove") || sub.equals("movehologram")) && args.length == 2) {
             return filter(plugin.getGenerators().names(), args[1]);
         }
 
@@ -54,7 +55,8 @@ public class GeneratorTabCompleter implements TabCompleter {
             if (args.length == 2) {
                 return filter(EVENT_ACTIONS, args[1]);
             }
-            if (args.length == 3 && (args[1].equalsIgnoreCase("envoyitem") || args[1].equalsIgnoreCase("megaitem"))) {
+            if (args.length == 3 && (args[1].equalsIgnoreCase("envoyitem") || args[1].equalsIgnoreCase("megaitem")
+                    || args[1].equalsIgnoreCase("zombieitem"))) {
                 return filter(ENVOYITEM_ACTIONS, args[2]);
             }
         }

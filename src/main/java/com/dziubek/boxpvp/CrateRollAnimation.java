@@ -244,6 +244,8 @@ public class CrateRollAnimation {
                     + " §dwylosował(a) RZADKI przedmiot §f" + itemName
                     + " §dze skrzyni '" + crateName + "'! " + Branding.accent("✦");
             Bukkit.getServer().broadcastMessage(broadcast);
+            BossBarUtil.showTimed(plugin, Branding.accent("✦ LEGENDARY: ") + "§e" + player.getName() + " §7- §f" + itemName,
+                    org.bukkit.boss.BarColor.YELLOW, 8L * 20L);
         } else if (chance < RARE_THRESHOLD) {
             TitleUtil.show(player, "§b§lRZADKI!", "§f" + itemName);
             player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.0f);

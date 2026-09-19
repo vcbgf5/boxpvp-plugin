@@ -50,6 +50,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private PartyManager party;
     private MissionManager missions;
     private MissionsGuiManager missionsGui;
+    private ZombieEventManager zombieEvent;
 
     @Override
     public void onEnable() {
@@ -85,6 +86,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         party = new PartyManager(this);
         missions = new MissionManager(this);
         missionsGui = new MissionsGuiManager(this);
+        zombieEvent = new ZombieEventManager(this);
 
         setupEconomy();
 
@@ -94,6 +96,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         generators.start();
         traders.initialize();
         envoy.purgeOrphans();
+        zombieEvent.purgeOrphans();
         leaderboards.start();
         scoreboards.start();
         events.start();
@@ -119,6 +122,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new StatsGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new PartyQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new MissionsGuiListener(this), this);
+        getServer().getPluginManager().registerEvents(new ZombieEventListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -137,6 +141,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("party").setExecutor(new PartyCommand(this));
         getCommand("party").setTabCompleter(new PartyTabCompleter());
         getCommand("missions").setExecutor(new MissionsCommand(this));
+        getCommand("gamma").setExecutor(new GammaCommand());
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -357,5 +362,9 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public MissionsGuiManager getMissionsGui() {
         return missionsGui;
+    }
+
+    public ZombieEventManager getZombieEvent() {
+        return zombieEvent;
     }
 }

@@ -50,6 +50,9 @@ commands:
   missions:
     description: Otwiera GUI z dziennymi/tygodniowymi misjami i odbiorem nagrod
     usage: /missions
+  gamma:
+    description: Przelacza stale night vision (zamiennik gammy)
+    usage: /gamma
 
 softdepend: [WorldGuard, Vault, DecentHolograms]
 
