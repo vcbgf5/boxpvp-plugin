@@ -1,6 +1,7 @@
 package com.dziubek.boxpvp;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -118,6 +119,30 @@ public class BankManager {
             return null;
         }
         return banks.get(name);
+    }
+
+    /**
+     * Encje Kantoru są nietrwałe (setPersistent(false)), więc gdy ich chunk się wyładuje, Bukkit
+     * je po prostu usuwa - bez tego Kantor nigdy by nie wrócił po powrocie gracza w to miejsce,
+     * dopóki ktoś nie zrestartuje pluginu. Wołane przez BankChunkListener przy każdym załadowaniu
+     * chunku - odtwarza tylko te Kantory, których encje faktycznie zniknęły.
+     */
+    public void ensureSpawnedInChunk(Chunk chunk) {
+        for (Map.Entry<String, BankData> entry : new HashMap<>(banks).entrySet()) {
+            BankData bd = entry.getValue();
+            if (bd.icon != null && bd.icon.isValid()) {
+                continue;
+            }
+            String name = entry.getKey();
+            Location loc = readLocation(name);
+            if (loc == null || loc.getWorld() == null || !loc.getWorld().equals(chunk.getWorld())) {
+                continue;
+            }
+            if ((loc.getBlockX() >> 4) != chunk.getX() || (loc.getBlockZ() >> 4) != chunk.getZ()) {
+                continue;
+            }
+            banks.put(name, spawnEntities(name, loc));
+        }
     }
 
     private BankData spawnEntities(String name, Location loc) {

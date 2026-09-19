@@ -144,6 +144,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ZombieEventListener(this), this);
         getServer().getPluginManager().registerEvents(new BankListener(this), this);
         getServer().getPluginManager().registerEvents(new BankChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new BankChunkListener(this), this);
         getServer().getPluginManager().registerEvents(new MarketListener(this), this);
         getServer().getPluginManager().registerEvents(new CraftBlockListener(this), this);
         getServer().getPluginManager().registerEvents(new GiantEventListener(this), this);
