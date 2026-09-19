@@ -96,6 +96,8 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp event zombieitem add|clear|list §7- pula nagród za zabicie zombie-eventu");
         sender.sendMessage("§c/bpvp event megazombie §7- zrzuca wielką skrzynkę, z której po 10s wyjdzie Giant (mega-zombie)");
         sender.sendMessage("§c/bpvp event megazombieitem add|clear|list §7- pula nagród za zabicie mega-zombie");
+        sender.sendMessage("§c/bpvp event hillzone1 §7/ §c hillzone2 §7- wyznacza strefę Króla Wzgórza (dwa przeciwległe rogi)");
+        sender.sendMessage("§c/bpvp event hill <minuty> §7- startuje Króla Wzgórza (najwięcej sekund w strefie wygrywa)");
         sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak|envoy> §7- stawia tablicę tu gdzie stoisz");
         sender.sendMessage("§c/bpvp movehologram <nazwa> §7- przestawia hologram generatora w to miejsce gdzie stoisz");
         sender.sendMessage("§c/bpvp craftblock add|remove <materiał> §7- blokuje/odblokowuje crafting materiału (np. NETHERITE_BLOCK)");
@@ -383,6 +385,28 @@ public class GeneratorCommand implements CommandExecutor {
             }
             case "megazombieitem":
                 return handleMegaZombieItem(sender, args);
+            case "hillzone1":
+            case "hillzone2": {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("Tej komendy może użyć tylko gracz.");
+                    return true;
+                }
+                int corner = action.equals("hillzone1") ? 1 : 2;
+                plugin.getHillEvent().setCorner(corner, ((Player) sender).getLocation());
+                sender.sendMessage("§aUstawiono róg " + corner + " strefy Króla Wzgórza w tym miejscu.");
+                return true;
+            }
+            case "hill": {
+                if (plugin.getHillEvent().isActive()) {
+                    sender.sendMessage("§cKról Wzgórza już trwa.");
+                    return true;
+                }
+                int minutes = args.length >= 3 ? parseIntOr(args[2], 3) : 3;
+                boolean started = plugin.getHillEvent().start(minutes);
+                sender.sendMessage(started ? "§aWystartował Król Wzgórza na " + minutes + " min!"
+                        : "§cNajpierw wyznacz strefę: /bpvp event hillzone1 i /bpvp event hillzone2 (dwa przeciwległe rogi).");
+                return true;
+            }
             default:
                 sendEventUsage(sender);
                 return true;
@@ -391,7 +415,8 @@ public class GeneratorCommand implements CommandExecutor {
 
     private void sendEventUsage(CommandSender sender) {
         sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | mega | zombie | megazombie | setzone1 | setzone2 "
-                + "| envoyitem add|clear|list | megaitem add|clear|list | zombieitem add|clear|list | megazombieitem add|clear|list");
+                + "| envoyitem add|clear|list | megaitem add|clear|list | zombieitem add|clear|list | megazombieitem add|clear|list "
+                + "| hill <minuty> | hillzone1 | hillzone2");
     }
 
     private boolean handleEnvoyItem(CommandSender sender, String[] args) {

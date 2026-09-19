@@ -62,6 +62,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private DuelManager duels;
     private PlaytimeManager playtime;
     private TradeManager trades;
+    private HillEventManager hillEvent;
 
     @Override
     public void onEnable() {
@@ -109,6 +110,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         duels = new DuelManager(this);
         playtime = new PlaytimeManager(this);
         trades = new TradeManager(this);
+        hillEvent = new HillEventManager(this);
 
         setupEconomy();
 
@@ -467,5 +469,9 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public TradeManager getTrades() {
         return trades;
+    }
+
+    public HillEventManager getHillEvent() {
+        return hillEvent;
     }
 }
