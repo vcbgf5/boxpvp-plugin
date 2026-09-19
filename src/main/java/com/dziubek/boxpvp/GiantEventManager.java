@@ -324,16 +324,26 @@ public class GiantEventManager {
                     cancel();
                     return;
                 }
-                enforceSpawnBoundary(giant, tg);
-                ticksSinceRetarget += TICK_INTERVAL;
-                if (ticksSinceRetarget >= RETARGET_INTERVAL_TICKS) {
-                    ticksSinceRetarget = 0;
-                    retarget(giant);
+                try {
+                    enforceSpawnBoundary(giant, tg);
+                    ticksSinceRetarget += TICK_INTERVAL;
+                    if (ticksSinceRetarget >= RETARGET_INTERVAL_TICKS) {
+                        ticksSinceRetarget = 0;
+                        retarget(giant);
+                    }
+                    tryThrowAttack(giant, tg);
+                    tryWaveAttack(giant, tg);
+                    tg.healthBar.setTitle(bossBarTitle(giant));
+                    tg.healthBar.setProgress(Math.max(0.0, Math.min(1.0, giant.getHealth() / giant.getMaxHealth())));
+                } catch (Exception e) {
+                    // Wyjątek tutaj (w powtarzalnym BukkitRunnable) zostałby po cichu i na stałe
+                    // ubity przez scheduler bez sprzątania - eventActive zostałoby zablokowane
+                    // na "true" na zawsze, blokując wszystkie przyszłe spawny mega-zombie. Łapiemy
+                    // więc wszystko tutaj i sprzątamy normalnie zamiast pozwolić na softlock.
+                    plugin.getLogger().warning("Błąd w tickowaniu mega-zombie, sprzątam encję: " + e);
+                    cleanupTracked(giant.getUniqueId());
+                    cancel();
                 }
-                tryThrowAttack(giant, tg);
-                tryWaveAttack(giant, tg);
-                tg.healthBar.setTitle(bossBarTitle(giant));
-                tg.healthBar.setProgress(Math.max(0.0, Math.min(1.0, giant.getHealth() / giant.getMaxHealth())));
             }
         }.runTaskTimer(plugin, TICK_INTERVAL, TICK_INTERVAL);
     }
@@ -413,11 +423,13 @@ public class GiantEventManager {
         if (nearest == null) {
             return;
         }
-        tg.lastAttackAt = now;
-
         World world = giant.getWorld();
         Location handAt = giant.getEyeLocation().subtract(0, 1.5, 0);
         Vector direction = nearest.getEyeLocation().toVector().subtract(handAt.toVector());
+        if (direction.lengthSquared() == 0) {
+            return;
+        }
+        tg.lastAttackAt = now;
         double distance = Math.max(1.0, direction.length());
         Vector velocity = direction.normalize().multiply(THROW_SPEED).setY(Math.min(0.6, distance / 20.0));
 
@@ -475,12 +487,14 @@ public class GiantEventManager {
             }
         }
 
-        RayTraceResult hit = world.rayTraceBlocks(at, velocity.clone().normalize(), 0.5, FluidCollisionMode.NEVER, true);
-        if (hit != null && hit.getHitBlock() != null) {
-            world.spawnParticle(Particle.BLOCK, at, 15, 0.2, 0.2, 0.2, Material.COBBLESTONE.createBlockData());
-            world.playSound(at, Sound.BLOCK_STONE_BREAK, 0.8f, 0.9f);
-            block.remove();
-            return;
+        if (velocity.lengthSquared() > 0) {
+            RayTraceResult hit = world.rayTraceBlocks(at, velocity.clone().normalize(), 0.5, FluidCollisionMode.NEVER, true);
+            if (hit != null && hit.getHitBlock() != null) {
+                world.spawnParticle(Particle.BLOCK, at, 15, 0.2, 0.2, 0.2, Material.COBBLESTONE.createBlockData());
+                world.playSound(at, Sound.BLOCK_STONE_BREAK, 0.8f, 0.9f);
+                block.remove();
+                return;
+            }
         }
 
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateThrow(giant, block, position, velocity, start), 1L);
