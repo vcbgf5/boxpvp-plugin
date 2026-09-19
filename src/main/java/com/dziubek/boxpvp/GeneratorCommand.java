@@ -61,6 +61,8 @@ public class GeneratorCommand implements CommandExecutor {
                 return handleMoveHologram(sender, args);
             case "craftblock":
                 return handleCraftBlock(sender, args);
+            case "giveset":
+                return handleGiveSet(sender, args);
             default:
                 sendHelp(sender);
                 return true;
@@ -92,6 +94,7 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp movehologram <nazwa> §7- przestawia hologram generatora w to miejsce gdzie stoisz");
         sender.sendMessage("§c/bpvp craftblock add|remove <materiał> §7- blokuje/odblokowuje crafting materiału (np. NETHERITE_BLOCK)");
         sender.sendMessage("§c/bpvp craftblock list §7- lista zablokowanych materiałów");
+        sender.sendMessage("§c/bpvp giveset <poziom 1-10> §7- daje pełny zestaw PvP (zbroja + miecz/kilof/siekiera/łopata)");
     }
 
     private boolean handleWand(CommandSender sender) {
@@ -569,6 +572,31 @@ public class GeneratorCommand implements CommandExecutor {
         }
         plugin.getLeaderboards().setLocation(type, ((Player) sender).getLocation());
         sender.sendMessage("§aUstawiono tablicę '" + type + "' w tym miejscu.");
+        return true;
+    }
+
+    private boolean handleGiveSet(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Tej komendy może użyć tylko gracz.");
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("§cUżycie: /bpvp giveset <poziom 1-10>");
+            return true;
+        }
+        int level;
+        try {
+            level = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            sender.sendMessage("§cPoziom musi być liczbą (1-10).");
+            return true;
+        }
+        if (!GearSetManager.isValidLevel(level)) {
+            sender.sendMessage("§cPoziom musi być w zakresie 1-10.");
+            return true;
+        }
+        GearSetManager.giveSet((Player) sender, level);
+        sender.sendMessage("§aOtrzymujesz zestaw PvP - Poziom " + level + " (zbroja + miecz, kilof, siekiera, łopata).");
         return true;
     }
 
