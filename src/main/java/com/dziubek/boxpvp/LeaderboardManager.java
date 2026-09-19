@@ -123,11 +123,22 @@ public class LeaderboardManager {
     private List<String> buildTimerLines() {
         List<String> lines = new ArrayList<>();
         lines.add(Branding.accent("Zbliżające się eventy"));
-        lines.add("§fSkrzynka: §d" + formatCountdown(plugin.getEvents().getMillisUntilNextNormalEnvoy()));
-        lines.add("§5MEGA skrzynka: §d" + formatCountdown(plugin.getEvents().getMillisUntilNextMegaEnvoy()));
-        lines.add("§aZombie: §d" + formatCountdown(plugin.getEvents().getMillisUntilNextZombie()));
-        lines.add("§4MEGA-zombie: §d" + formatCountdown(plugin.getEvents().getMillisUntilNextMegaZombie()));
+        double multiplier = plugin.getEvents().getActiveMultiplier();
+        if (multiplier > 1.0) {
+            lines.add("§6§l★ TRWA: §fMonety x" + (long) multiplier
+                    + " §7(" + formatCountdown(plugin.getEvents().getMultiplierMillisRemaining()) + ")");
+        }
+        lines.add("§fSkrzynka: " + pulse(plugin.getEvents().getMillisUntilNextNormalEnvoy()));
+        lines.add("§5MEGA skrzynka: " + pulse(plugin.getEvents().getMillisUntilNextMegaEnvoy()));
+        lines.add("§aZombie: " + pulse(plugin.getEvents().getMillisUntilNextZombie()));
+        lines.add("§4MEGA-zombie: " + pulse(plugin.getEvents().getMillisUntilNextMegaZombie()));
         return lines;
+    }
+
+    /** Ostatnie 10s do koloru odliczania - miga między czerwonym a białym, żeby rzucało się w oczy. */
+    private static String pulse(long millis) {
+        String color = millis <= 10_000 ? ((System.currentTimeMillis() / 500) % 2 == 0 ? "§c§l" : "§f§l") : "§d";
+        return color + formatCountdown(millis);
     }
 
     private static String formatCountdown(long millis) {

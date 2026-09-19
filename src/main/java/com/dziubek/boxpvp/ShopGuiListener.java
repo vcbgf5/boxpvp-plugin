@@ -1,5 +1,7 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -91,6 +93,7 @@ public class ShopGuiListener implements Listener {
 
         plugin.getEconomy().withdrawPlayer(player, item.price);
         plugin.getStats().recordMoneySpent(player.getUniqueId(), player.getName(), item.price);
+        playPurchaseEffect(player);
 
         if (item.type == ShopItemType.KIT) {
             List<ItemStack> kitItems = plugin.getKits().getItems(item.kitName);
@@ -113,5 +116,11 @@ public class ShopGuiListener implements Listener {
         }
 
         player.closeInventory();
+    }
+
+    /** "Fontanna" monet nad graczem przy każdym udanym zakupie w /sklep. */
+    private void playPurchaseEffect(Player player) {
+        player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation().add(0, 1.5, 0), 20, 0.4, 0.5, 0.4, 0);
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.4f);
     }
 }

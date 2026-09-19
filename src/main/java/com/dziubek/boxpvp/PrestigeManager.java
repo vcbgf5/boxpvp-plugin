@@ -86,13 +86,34 @@ public class PrestigeManager {
         TitleUtil.show(player, Branding.accent("✦ PRESTIŻ " + newLevel),
                 "§7Mnożnik zarobków: §fx" + format(getMultiplier(player.getUniqueId())));
 
-        Location burst = player.getLocation().add(0, 1, 0);
-        player.getWorld().spawnParticle(Particle.DUST, burst, 70, 0.5, 0.8, 0.5, 0.0,
-                new Particle.DustOptions(Color.fromRGB(Branding.DARK_PURPLE), 1.3f));
-        player.getWorld().spawnParticle(Particle.DUST, burst, 70, 0.5, 0.8, 0.5, 0.0,
-                new Particle.DustOptions(Color.fromRGB(Branding.LIGHT_LAVENDER), 1.3f));
         player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.2f);
+        animatePrestigeRing(player, player.getLocation().clone(), 0);
         return true;
+    }
+
+    /** Rozszerzający się, pulsujący fioletowy pierścień + kolumna cząsteczek, kończy się fajerwerkiem. */
+    private void animatePrestigeRing(Player player, Location center, int tick) {
+        if (!player.isOnline()) {
+            return;
+        }
+        double radius = 0.5 + tick * 0.35;
+        int points = 24;
+        Color color = Color.fromRGB(tick % 2 == 0 ? Branding.DARK_PURPLE : Branding.LIGHT_LAVENDER);
+        for (int i = 0; i < points; i++) {
+            double angle = 2 * Math.PI * i / points;
+            double x = center.getX() + radius * Math.cos(angle);
+            double z = center.getZ() + radius * Math.sin(angle);
+            player.getWorld().spawnParticle(Particle.DUST, x, center.getY() + 0.1, z, 1, 0, 0, 0, 0,
+                    new Particle.DustOptions(color, 1.3f));
+        }
+        player.getWorld().spawnParticle(Particle.END_ROD, center.clone().add(0, tick * 0.3, 0), 3, 0.2, 0.1, 0.2, 0.01);
+
+        if (tick >= 12) {
+            player.getWorld().spawnParticle(Particle.FIREWORK, center.clone().add(0, 1.2, 0), 80, 0.6, 1.0, 0.6, 0.1);
+            player.playSound(center, Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 1.0f, 1.0f);
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animatePrestigeRing(player, center, tick + 1), 2L);
     }
 
     private static String format(double value) {

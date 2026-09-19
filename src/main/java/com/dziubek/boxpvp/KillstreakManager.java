@@ -3,6 +3,7 @@ package com.dziubek.boxpvp;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -39,10 +40,23 @@ public class KillstreakManager {
                     new TextComponent("§a+" + String.format("%.2f", reward) + "$ §7(zabójstwo, seria: §c" + streak + "§7)"));
         }
 
+        playAura(killer, streak);
+
         int milestoneInterval = plugin.getConfig().getInt("killstreak.milestone-interval", 5);
         if (milestoneInterval > 0 && streak % milestoneInterval == 0) {
             announceMilestone(killer, streak);
         }
+    }
+
+    /** Poświata wokół zabójcy przy KAŻDYM zabójstwie - kolor/intensywność rośnie z serią. */
+    private void playAura(Player killer, int streak) {
+        Color color = streak >= 20 ? Color.fromRGB(0xFF0000)
+                : streak >= 10 ? Color.fromRGB(0xFF8C00)
+                : streak >= 5 ? Color.fromRGB(0xFFD700)
+                : Color.fromRGB(0xFFFFFF);
+        int count = Math.min(60, 15 + streak * 2);
+        killer.getWorld().spawnParticle(Particle.DUST, killer.getLocation().add(0, 1, 0), count, 0.5, 0.9, 0.5, 0.0,
+                new Particle.DustOptions(color, 1.2f));
     }
 
     public void onDeath(Player victim) {

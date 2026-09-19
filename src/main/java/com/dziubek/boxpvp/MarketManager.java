@@ -2,6 +2,8 @@ package com.dziubek.boxpvp;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -101,6 +103,8 @@ public class MarketManager {
             buyer.getWorld().dropItemNaturally(buyer.getLocation(), extra);
         }
         buyer.sendMessage("§aKupiono §f" + describeItem(listing.item) + " §aza §f" + BankGuiManager.formatMoney(listing.price) + " §amonet.");
+        buyer.getWorld().spawnParticle(Particle.END_ROD, buyer.getLocation().add(0, 1.2, 0), 18, 0.3, 0.4, 0.3, 0.02);
+        buyer.playSound(buyer.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.3f);
 
         Player sellerOnline = Bukkit.getPlayer(listing.sellerUuid);
         if (sellerOnline != null) {

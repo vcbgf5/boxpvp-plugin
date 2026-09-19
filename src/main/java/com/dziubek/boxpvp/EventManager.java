@@ -86,6 +86,14 @@ public class EventManager {
             nextMegaZombieAt = System.currentTimeMillis() + megaZombieTicks * 50L;
             spawnMegaZombieEvent();
         }, megaZombieTicks, megaZombieTicks);
+
+        long coin2xTicks = minutesToTicks("envoy.coin2x-interval-minutes", 30);
+        long coin3xTicks = minutesToTicks("envoy.coin3x-interval-minutes", 45);
+        int coinEventMinutes = plugin.getConfig().getInt("envoy.coin-event-minutes", 10);
+        plugin.getServer().getScheduler().runTaskTimer(plugin,
+                () -> startCoinEvent(2.0, coinEventMinutes), coin2xTicks, coin2xTicks);
+        plugin.getServer().getScheduler().runTaskTimer(plugin,
+                () -> startCoinEvent(3.0, coinEventMinutes), coin3xTicks, coin3xTicks);
     }
 
     private long minutesToTicks(String configKey, long defaultMinutes) {
@@ -138,6 +146,11 @@ public class EventManager {
             return 1.0;
         }
         return activeMultiplier;
+    }
+
+    /** Ile ms zostało do końca aktywnego eventu monet - do wyświetlenia na tablicy. */
+    public long getMultiplierMillisRemaining() {
+        return Math.max(0, multiplierExpiresAt - System.currentTimeMillis());
     }
 
     public void startCoinEvent(double multiplier, int minutes) {

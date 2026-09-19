@@ -1,5 +1,6 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -9,6 +10,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
 public class CombatDamageListener implements Listener {
+
+    private static final double CRIT_DAMAGE_THRESHOLD = 8.0;
 
     private final BoxPvpPlugin plugin;
 
@@ -38,6 +41,15 @@ public class CombatDamageListener implements Listener {
         long duration = plugin.getCombatDurationSeconds();
         alertIfFreshTag(victim, duration);
         alertIfFreshTag(attacker, duration);
+
+        if (event.getFinalDamage() >= CRIT_DAMAGE_THRESHOLD) {
+            playCritMarker(victim);
+        }
+    }
+
+    private void playCritMarker(Player victim) {
+        victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1.6, 0), 20, 0.3, 0.3, 0.3, 0.1);
+        FloatingTextEffect.show(plugin, victim.getLocation().add(0, 2.4, 0), "§4§lKRYTYK!");
     }
 
     /**
