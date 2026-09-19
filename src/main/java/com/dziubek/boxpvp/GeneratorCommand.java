@@ -86,6 +86,8 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp event megaitem add|clear|list §7- pula nagród MEGA skrzynki-eventu");
         sender.sendMessage("§c/bpvp event zombie §7- ręcznie zrzuca zombie-event w losowe miejsce obszaru");
         sender.sendMessage("§c/bpvp event zombieitem add|clear|list §7- pula nagród za zabicie zombie-eventu");
+        sender.sendMessage("§c/bpvp event megazombie §7- zrzuca wielką skrzynkę, z której po 10s wyjdzie Giant (mega-zombie)");
+        sender.sendMessage("§c/bpvp event megazombieitem add|clear|list §7- pula nagród za zabicie mega-zombie");
         sender.sendMessage("§c/bpvp leaderboard setlocation <kills|coins|killstreak|envoy> §7- stawia tablicę tu gdzie stoisz");
         sender.sendMessage("§c/bpvp movehologram <nazwa> §7- przestawia hologram generatora w to miejsce gdzie stoisz");
         sender.sendMessage("§c/bpvp craftblock add|remove <materiał> §7- blokuje/odblokowuje crafting materiału (np. NETHERITE_BLOCK)");
@@ -357,6 +359,14 @@ public class GeneratorCommand implements CommandExecutor {
             }
             case "zombieitem":
                 return handleZombieItem(sender, args);
+            case "megazombie": {
+                boolean started = plugin.getEvents().spawnMegaZombieEvent();
+                sender.sendMessage(started ? "§4WIELKA SKRZYNKA spada z nieba w losowe miejsce wyznaczonego obszaru - wyjdzie z niej Giant!"
+                        : "§cNajpierw wyznacz obszar: /bpvp event setzone1 i /bpvp event setzone2 (dwa przeciwległe rogi).");
+                return true;
+            }
+            case "megazombieitem":
+                return handleMegaZombieItem(sender, args);
             default:
                 sendEventUsage(sender);
                 return true;
@@ -364,8 +374,8 @@ public class GeneratorCommand implements CommandExecutor {
     }
 
     private void sendEventUsage(CommandSender sender) {
-        sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | mega | zombie | setzone1 | setzone2 "
-                + "| envoyitem add|clear|list | megaitem add|clear|list | zombieitem add|clear|list");
+        sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | mega | zombie | megazombie | setzone1 | setzone2 "
+                + "| envoyitem add|clear|list | megaitem add|clear|list | zombieitem add|clear|list | megazombieitem add|clear|list");
     }
 
     private boolean handleEnvoyItem(CommandSender sender, String[] args) {
@@ -482,6 +492,45 @@ public class GeneratorCommand implements CommandExecutor {
             return true;
         }
         sender.sendMessage("§cUżycie: /bpvp event zombieitem add|clear|list");
+        return true;
+    }
+
+    private boolean handleMegaZombieItem(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage("§cUżycie: /bpvp event megazombieitem add|clear|list");
+            return true;
+        }
+        String action = args[2].toLowerCase();
+
+        if (action.equals("add")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Tej komendy może użyć tylko gracz.");
+                return true;
+            }
+            Player player = (Player) sender;
+            ItemStack hand = player.getInventory().getItemInMainHand();
+            if (hand.getType().isAir()) {
+                sender.sendMessage("§cTrzymaj w ręce przedmiot, który chcesz dodać do puli nagród za mega-zombie.");
+                return true;
+            }
+            plugin.getGiantEvent().addReward(hand);
+            sender.sendMessage("§aDodano do puli nagród za mega-zombie: " + hand.getType() + " x" + hand.getAmount());
+            return true;
+        }
+        if (action.equals("clear")) {
+            plugin.getGiantEvent().clearRewards();
+            sender.sendMessage("§aWyczyszczono pulę nagród za mega-zombie.");
+            return true;
+        }
+        if (action.equals("list")) {
+            List<ItemStack> rewards = plugin.getGiantEvent().rewards();
+            sender.sendMessage("§ePula nagród za mega-zombie (" + rewards.size() + "):");
+            for (ItemStack item : rewards) {
+                sender.sendMessage("§7- §f" + item.getType() + " x" + item.getAmount());
+            }
+            return true;
+        }
+        sender.sendMessage("§cUżycie: /bpvp event megazombieitem add|clear|list");
         return true;
     }
 

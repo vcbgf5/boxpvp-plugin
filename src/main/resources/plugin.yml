@@ -63,7 +63,7 @@ commands:
     description: Otwiera GUI Rynku graczy - kupuj przedmioty wystawione przez innych graczy za monety
     usage: /rynek
 
-softdepend: [WorldGuard, Vault, DecentHolograms]
+softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 
 permissions:
   boxpvp.setspawn:

@@ -1,0 +1,473 @@
+package com.dziubek.boxpvp;
+
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import org.bukkit.Bukkit;
+import org.bukkit.FluidCollisionMode;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Giant;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Transformation;
+import org.bukkit.util.Vector;
+import org.joml.AxisAngle4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+
+/**
+ * Mega-zombie: wielka skrzynka spada z nieba, po wylądowaniu "otwiera się" przez 10 sekund
+ * (bossbar-odliczanie jak przy skrzynce-event), a potem wychodzi z niej Giant - własny mini-boss
+ * z boss barem HP. Giant w wanilii nie ma ŻADNEGO zachowania (Mojang zostawił go bez celów AI),
+ * więc cały ruch (chodzenie w stronę najbliższego gracza) idzie przez Pathfinder sterowany
+ * ręcznie co kilka klatek - to jest ta "własna AI" pluginu. Atak, granica Spawn01, obrażenia od
+ * upadku/słońca - identyczny wzorzec co ZombieEventManager.
+ */
+public class GiantEventManager {
+
+    private static final String TAG = "bpvp_giant_event";
+    private static final double MAX_HEALTH = 500.0;
+    private static final double ATTACK_DAMAGE = 25.0;
+    private static final long ATTACK_COOLDOWN_MS = 3_000L;
+    private static final double ATTACK_RANGE = 3.5;
+    private static final double MOVE_SPEED = 1.0;
+    private static final double DETECT_RANGE = 64.0;
+    private static final long RETARGET_INTERVAL_TICKS = 20L;
+    private static final long LIFETIME_TICKS = 20L * 60 * 8;
+    private static final long TICK_INTERVAL = 5L;
+
+    private static final double CRATE_FALL_START_OFFSET = 60.0;
+    private static final long CRATE_FALL_DURATION_MS = 5_000L;
+    private static final double CRATE_LABEL_HEIGHT_OFFSET = 2.4;
+    private static final double CRATE_GROUND_CHECK_DISTANCE = 2.0;
+    private static final long OPENING_TICKS = 20L * 10;
+    private static final float CRATE_SCALE = 3.0f;
+
+    private final BoxPvpPlugin plugin;
+    private final File file;
+    private final FileConfiguration data;
+    private final NamespacedKey ownerTag;
+    private final List<ItemStack> rewardPool = new ArrayList<>();
+    private final Random random = new Random();
+    private final Map<UUID, TrackedGiant> tracked = new HashMap<>();
+
+    public GiantEventManager(BoxPvpPlugin plugin) {
+        this.plugin = plugin;
+        if (!plugin.getDataFolder().exists()) {
+            plugin.getDataFolder().mkdirs();
+        }
+        this.file = new File(plugin.getDataFolder(), "giantevent.yml");
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                plugin.getLogger().warning("Nie udało się utworzyć giantevent.yml: " + e.getMessage());
+            }
+        }
+        this.data = YamlConfiguration.loadConfiguration(file);
+        this.ownerTag = new NamespacedKey(plugin, "bpvp_giant_event_owner");
+        loadRewards();
+    }
+
+    public void addReward(ItemStack item) {
+        rewardPool.add(item.clone());
+        saveRewards();
+    }
+
+    public void clearRewards() {
+        rewardPool.clear();
+        saveRewards();
+    }
+
+    public List<ItemStack> rewards() {
+        return rewardPool;
+    }
+
+    public boolean isTracked(Entity entity) {
+        return tracked.containsKey(entity.getUniqueId());
+    }
+
+    /** Usuwa osierocone Giganty sprzed restartu (nie ma ich w świeżej mapie tracked). */
+    public void purgeOrphans() {
+        for (World world : plugin.getServer().getWorlds()) {
+            for (Entity entity : world.getEntitiesByClass(Giant.class)) {
+                if (entity.getScoreboardTags().contains(TAG) && !tracked.containsKey(entity.getUniqueId())) {
+                    entity.remove();
+                }
+            }
+        }
+    }
+
+    // ================= Wielka skrzynka =================
+
+    /** Zrzuca wielką skrzynkę w danym miejscu - po wylądowaniu i 10s otwierania wyjdzie z niej Giant. */
+    public void dropCrate(Location landAt) {
+        World world = landAt.getWorld();
+        if (world == null) {
+            return;
+        }
+        Location groundAnchor = landAt.clone().add(0.5, 0, 0.5);
+        Location spawnAt = groundAnchor.clone().add(0, CRATE_FALL_START_OFFSET, 0);
+
+        ItemDisplay crate = world.spawn(spawnAt, ItemDisplay.class, e -> {
+            e.setBillboard(Display.Billboard.FIXED);
+            e.setGravity(false);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.setItemStack(new ItemStack(Material.CHISELED_DEEPSLATE));
+            e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "crate");
+            e.addScoreboardTag(TAG);
+        });
+        TextDisplay label = world.spawn(spawnAt.clone().add(0, CRATE_LABEL_HEIGHT_OFFSET, 0), TextDisplay.class, e -> {
+            e.setBillboard(Display.Billboard.CENTER);
+            e.setGravity(false);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.setText("§4§l☠ WIELKA SKRZYNKA");
+            e.setSeeThrough(false);
+            e.setShadowed(false);
+            e.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, "label");
+            e.addScoreboardTag(TAG);
+        });
+
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§4§l☠ WIELKA SKRZYNKA §7spada z nieba! Coś ogromnego z niej wyjdzie...");
+        world.playSound(groundAnchor, Sound.ENTITY_WITHER_AMBIENT, 1.0f, 0.4f);
+
+        animateCrateFall(crate, label, groundAnchor, System.currentTimeMillis());
+    }
+
+    private void animateCrateFall(ItemDisplay crate, TextDisplay label, Location groundAnchor, long start) {
+        if (!crate.isValid()) {
+            if (label.isValid()) {
+                label.remove();
+            }
+            return;
+        }
+        long elapsed = System.currentTimeMillis() - start;
+        double t = Math.min(1.0, elapsed / (double) CRATE_FALL_DURATION_MS);
+        double eased = CameraUtil.easeOutCubic(t);
+        double heightOffset = (1.0 - eased) * CRATE_FALL_START_OFFSET;
+
+        Location crateAt = groundAnchor.clone().add(0, heightOffset, 0);
+        World world = groundAnchor.getWorld();
+        RayTraceResult hit = world.rayTraceBlocks(crateAt, new Vector(0, -1, 0), CRATE_GROUND_CHECK_DISTANCE,
+                FluidCollisionMode.NEVER, true);
+        boolean touchedGround = hit != null && hit.getHitBlock() != null;
+        if (touchedGround) {
+            crateAt.setY(hit.getHitPosition().getY());
+        }
+
+        float spin = (float) ((System.currentTimeMillis() % 2000L) / 2000.0 * Math.PI * 2);
+        applyCrateTransform(crate, spin);
+        crate.teleport(crateAt);
+        label.teleport(crateAt.clone().add(0, CRATE_LABEL_HEIGHT_OFFSET, 0));
+
+        if (touchedGround || t >= 1.0) {
+            onCrateLanded(crate, label, crateAt);
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateCrateFall(crate, label, groundAnchor, start), 1L);
+    }
+
+    private void applyCrateTransform(ItemDisplay crate, float angle) {
+        Transformation transform = new Transformation(
+                new Vector3f(0f, 0f, 0f),
+                new Quaternionf(new AxisAngle4f(angle, 0f, 1f, 0f)),
+                new Vector3f(CRATE_SCALE, CRATE_SCALE, CRATE_SCALE),
+                new Quaternionf()
+        );
+        crate.setInterpolationDelay(0);
+        crate.setInterpolationDuration(2);
+        crate.setTransformation(transform);
+    }
+
+    private void onCrateLanded(ItemDisplay crate, TextDisplay label, Location landedAt) {
+        applyCrateTransform(crate, 0f);
+        crate.teleport(landedAt);
+        label.setText("§4§l☠ Skrzynka się otwiera...");
+
+        World world = landedAt.getWorld();
+        world.spawnParticle(Particle.EXPLOSION, landedAt, 1);
+        world.playSound(landedAt, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 0.6f);
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§4§l☠ Wielka skrzynka §7wylądowała - otworzy się za 10 sekund!");
+        BossBarUtil.showTimed(plugin, "§4§l☠ Skrzynka się otwiera...", BarColor.RED, OPENING_TICKS);
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> openCrateAndSpawnGiant(crate, label, landedAt), OPENING_TICKS);
+    }
+
+    private void openCrateAndSpawnGiant(ItemDisplay crate, TextDisplay label, Location landedAt) {
+        if (crate.isValid()) {
+            crate.remove();
+        }
+        if (label.isValid()) {
+            label.remove();
+        }
+        World world = landedAt.getWorld();
+        world.spawnParticle(Particle.EXPLOSION_EMITTER, landedAt, 1);
+        world.playSound(landedAt, Sound.ENTITY_WITHER_SPAWN, 1.0f, 0.7f);
+        spawnGiant(landedAt);
+    }
+
+    // ================= Giant =================
+
+    private void spawnGiant(Location landAt) {
+        World world = landAt.getWorld();
+        Location groundAnchor = landAt.clone().add(0.5, 0, 0.5);
+
+        Giant giant = world.spawn(groundAnchor, Giant.class, g -> {
+            g.setPersistent(false);
+            g.setRemoveWhenFarAway(false);
+            g.setCustomName(Branding.accent("☠ Mega-Zombie"));
+            g.setCustomNameVisible(true);
+            AttributeInstance maxHealthAttr = g.getAttribute(Attribute.MAX_HEALTH);
+            if (maxHealthAttr != null) {
+                maxHealthAttr.setBaseValue(MAX_HEALTH);
+            }
+            g.setHealth(MAX_HEALTH);
+            g.getPersistentDataContainer().set(ownerTag, PersistentDataType.BYTE, (byte) 1);
+            g.addScoreboardTag(TAG);
+        });
+
+        BossBar healthBar = Bukkit.createBossBar(bossBarTitle(giant), BarColor.RED, BarStyle.SEGMENTED_10);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            healthBar.addPlayer(player);
+        }
+
+        TrackedGiant tg = new TrackedGiant(giant, groundAnchor, healthBar);
+        tg.lifetimeTask = plugin.getServer().getScheduler()
+                .runTaskLater(plugin, () -> despawnByTimeout(giant.getUniqueId()), LIFETIME_TICKS);
+        tracked.put(giant.getUniqueId(), tg);
+        startTicking(tg);
+
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§4§l☠ MEGA-ZOMBIE §7wyszedł ze skrzynki!");
+        world.playSound(groundAnchor, Sound.ENTITY_RAVAGER_ROAR, 1.0f, 0.5f);
+    }
+
+    private String bossBarTitle(Giant giant) {
+        return "§4§l☠ Mega-Zombie §7- §c" + Math.round(giant.getHealth()) + "§7/§c" + Math.round(giant.getMaxHealth()) + " ❤";
+    }
+
+    private void startTicking(TrackedGiant tg) {
+        new BukkitRunnable() {
+            long ticksSinceRetarget = RETARGET_INTERVAL_TICKS;
+
+            @Override
+            public void run() {
+                Giant giant = tg.giant;
+                if (giant == null || !giant.isValid() || giant.isDead()) {
+                    cleanupTracked(giant != null ? giant.getUniqueId() : null);
+                    cancel();
+                    return;
+                }
+                enforceSpawnBoundary(giant, tg);
+                ticksSinceRetarget += TICK_INTERVAL;
+                if (ticksSinceRetarget >= RETARGET_INTERVAL_TICKS) {
+                    ticksSinceRetarget = 0;
+                    retarget(giant);
+                }
+                tryMeleeAttack(giant, tg);
+                tg.healthBar.setTitle(bossBarTitle(giant));
+                tg.healthBar.setProgress(Math.max(0.0, Math.min(1.0, giant.getHealth() / giant.getMaxHealth())));
+            }
+        }.runTaskTimer(plugin, TICK_INTERVAL, TICK_INTERVAL);
+    }
+
+    /**
+     * Giant w wanilii nie ma żadnych celów AI (Mojang go zostawił bez zachowań), więc ruch w
+     * stronę najbliższego gracza jest w całości sterowany przez plugin - Pathfinder wciąż
+     * korzysta z wanilijnej nawigacji (omija przeszkody), ale to MY każemy mu iść, a nie jego
+     * własna AI.
+     */
+    private void retarget(Giant giant) {
+        Player nearest = nearestPlayer(giant, DETECT_RANGE);
+        if (nearest != null) {
+            giant.getPathfinder().moveTo(nearest.getLocation(), MOVE_SPEED);
+        }
+    }
+
+    private Player nearestPlayer(Giant giant, double maxDistance) {
+        Player nearest = null;
+        double nearestDist = maxDistance;
+        for (Entity entity : giant.getNearbyEntities(maxDistance, maxDistance, maxDistance)) {
+            if (!(entity instanceof Player)) {
+                continue;
+            }
+            Player candidate = (Player) entity;
+            if (candidate.getGameMode() == GameMode.CREATIVE || candidate.getGameMode() == GameMode.SPECTATOR) {
+                continue;
+            }
+            double dist = candidate.getLocation().distance(giant.getLocation());
+            if (dist <= nearestDist) {
+                nearest = candidate;
+                nearestDist = dist;
+            }
+        }
+        return nearest;
+    }
+
+    /**
+     * Nie pozwala Giantowi wejść na region Spawn01 - dokładnie tak jak zombie-event
+     * (ZombieEventManager.enforceSpawnBoundary). Bez WorldGuard po prostu nic nie robi.
+     */
+    private void enforceSpawnBoundary(Giant giant, TrackedGiant tg) {
+        if (plugin.getServer().getPluginManager().getPlugin("WorldGuard") == null) {
+            return;
+        }
+        Location loc = giant.getLocation();
+        RegionManager regions = WorldGuard.getInstance().getPlatform()
+                .getRegionContainer().get(BukkitAdapter.adapt(loc.getWorld()));
+        if (regions == null) {
+            return;
+        }
+        ProtectedRegion region = regions.getRegion(plugin.getProtectedRegionName());
+        if (region == null) {
+            return;
+        }
+        BlockVector3 pos = BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
+        if (region.contains(pos)) {
+            giant.teleport(tg.safeAnchor);
+        }
+    }
+
+    private void tryMeleeAttack(Giant giant, TrackedGiant tg) {
+        long now = System.currentTimeMillis();
+        if (now - tg.lastAttackAt < ATTACK_COOLDOWN_MS) {
+            return;
+        }
+        Player nearest = nearestPlayer(giant, ATTACK_RANGE);
+        if (nearest == null) {
+            return;
+        }
+        tg.lastAttackAt = now;
+        nearest.setHealth(Math.max(0.0, nearest.getHealth() - ATTACK_DAMAGE));
+        nearest.playSound(nearest.getLocation(), Sound.ENTITY_RAVAGER_ATTACK, 1.0f, 0.6f);
+
+        Vector knockback = nearest.getLocation().toVector().subtract(giant.getLocation().toVector());
+        if (knockback.lengthSquared() > 0) {
+            knockback.normalize().multiply(0.6).setY(0.3);
+            nearest.setVelocity(nearest.getVelocity().add(knockback));
+        }
+    }
+
+    public void onKilled(Giant giant) {
+        TrackedGiant tg = tracked.remove(giant.getUniqueId());
+        if (tg == null) {
+            return;
+        }
+        if (tg.lifetimeTask != null) {
+            tg.lifetimeTask.cancel();
+        }
+        tg.healthBar.removeAll();
+
+        Player killer = giant.getKiller();
+        if (killer != null) {
+            plugin.getStats().recordKill(killer.getUniqueId(), killer.getName());
+            plugin.getKillstreaks().onKill(killer);
+            giveReward(killer);
+            Bukkit.broadcastMessage(Branding.chatPrefix() + "§a" + killer.getName() + " §7zabił(a) "
+                    + Branding.accent("☠ Mega-Zombie") + "§7!");
+        }
+    }
+
+    private void cleanupTracked(UUID uuid) {
+        TrackedGiant tg = tracked.remove(uuid);
+        if (tg == null) {
+            return;
+        }
+        if (tg.lifetimeTask != null) {
+            tg.lifetimeTask.cancel();
+        }
+        tg.healthBar.removeAll();
+    }
+
+    private void despawnByTimeout(UUID uuid) {
+        TrackedGiant tg = tracked.remove(uuid);
+        if (tg == null) {
+            return;
+        }
+        if (tg.giant != null && tg.giant.isValid()) {
+            tg.giant.remove();
+        }
+        tg.healthBar.removeAll();
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§7☠ Mega-Zombie zniknął (czas minął).");
+    }
+
+    private void giveReward(Player player) {
+        if (rewardPool.isEmpty()) {
+            return;
+        }
+        ItemStack reward = rewardPool.get(random.nextInt(rewardPool.size())).clone();
+        Map<Integer, ItemStack> leftover = player.getInventory().addItem(reward);
+        for (ItemStack item : leftover.values()) {
+            player.getWorld().dropItem(player.getLocation(), item);
+        }
+        player.sendMessage("§aOtrzymujesz nagrodę za zabicie mega-zombie!");
+    }
+
+    private void loadRewards() {
+        List<?> raw = data.getList("rewards");
+        if (raw == null) {
+            return;
+        }
+        for (Object obj : raw) {
+            if (obj instanceof ItemStack) {
+                rewardPool.add((ItemStack) obj);
+            }
+        }
+    }
+
+    private void saveRewards() {
+        data.set("rewards", rewardPool);
+        try {
+            data.save(file);
+        } catch (IOException e) {
+            plugin.getLogger().warning("Nie udało się zapisać giantevent.yml: " + e.getMessage());
+        }
+    }
+
+    private static final class TrackedGiant {
+        final Giant giant;
+        final Location safeAnchor;
+        final BossBar healthBar;
+        long lastAttackAt;
+        BukkitTask lifetimeTask;
+
+        TrackedGiant(Giant giant, Location safeAnchor, BossBar healthBar) {
+            this.giant = giant;
+            this.safeAnchor = safeAnchor;
+            this.healthBar = healthBar;
+        }
+    }
+}

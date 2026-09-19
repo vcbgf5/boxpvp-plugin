@@ -13,8 +13,9 @@ import org.bukkit.scoreboard.Scoreboard;
 import java.util.ArrayList;
 
 /**
- * Boczna tablica wyników (sidebar) pokazująca saldo (Vault = ecoBalance), aktualną serię
- * zabójstw i poziom prestiżu - odświeżana co sekundę dla wszystkich online.
+ * Boczna tablica wyników (sidebar) pokazująca saldo (Vault = ecoBalance), liczbę zabójstw,
+ * aktualną serię zabójstw, poziom prestiżu i (jeśli LuckPerms jest zainstalowany) rangę gracza -
+ * odświeżana co sekundę dla wszystkich online.
  */
 public class ScoreboardManager {
 
@@ -71,9 +72,15 @@ public class ScoreboardManager {
         double balance = plugin.getEconomy() != null ? plugin.getEconomy().getBalance(player) : 0;
         int streak = plugin.getKillstreaks().getCurrent(player.getUniqueId());
         int prestige = plugin.getPrestige().getLevel(player.getUniqueId());
+        int kills = plugin.getStats().getKills(player.getUniqueId());
+        String rank = plugin.getLuckPerms().getPrefix(player);
 
-        int line = 4;
+        int line = (rank != null && !rank.isEmpty()) ? 6 : 5;
+        if (rank != null && !rank.isEmpty()) {
+            objective.getScore(rank).setScore(line--);
+        }
         objective.getScore("§aSaldo: §f" + String.format("%.2f", balance) + "$").setScore(line--);
+        objective.getScore("§bKille: §f" + kills).setScore(line--);
         objective.getScore("§cSeria: §f" + streak).setScore(line--);
         objective.getScore("§dPrestiż: §f" + prestige).setScore(line--);
         objective.getScore("§7").setScore(line);

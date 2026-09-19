@@ -16,8 +16,8 @@ public class GeneratorTabCompleter implements TabCompleter {
             "sellprice", "event", "leaderboard", "movehologram", "craftblock");
     private static final List<String> VILLAGER_ACTIONS = List.of("create", "remove");
     private static final List<String> SELLPRICE_ACTIONS = List.of("set", "remove", "list");
-    private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "mega", "zombie", "setzone1", "setzone2",
-            "envoyitem", "megaitem", "zombieitem");
+    private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "mega", "zombie", "megazombie", "setzone1", "setzone2",
+            "envoyitem", "megaitem", "zombieitem", "megazombieitem");
     private static final List<String> ENVOYITEM_ACTIONS = List.of("add", "clear", "list");
     private static final List<String> LEADERBOARD_ACTIONS = List.of("setlocation");
     private static final List<String> LEADERBOARD_TYPES = List.of("kills", "coins", "killstreak", "envoy");
@@ -59,7 +59,7 @@ public class GeneratorTabCompleter implements TabCompleter {
                 return filter(EVENT_ACTIONS, args[1]);
             }
             if (args.length == 3 && (args[1].equalsIgnoreCase("envoyitem") || args[1].equalsIgnoreCase("megaitem")
-                    || args[1].equalsIgnoreCase("zombieitem"))) {
+                    || args[1].equalsIgnoreCase("zombieitem") || args[1].equalsIgnoreCase("megazombieitem"))) {
                 return filter(ENVOYITEM_ACTIONS, args[2]);
             }
         }

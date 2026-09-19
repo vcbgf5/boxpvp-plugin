@@ -57,6 +57,8 @@ public class BoxPvpPlugin extends JavaPlugin {
     private MarketManager market;
     private MarketGuiManager marketGui;
     private CraftBlockManager craftBlocks;
+    private LuckPermsHook luckPerms;
+    private GiantEventManager giantEvent;
 
     @Override
     public void onEnable() {
@@ -99,6 +101,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         market = new MarketManager(this);
         marketGui = new MarketGuiManager(this);
         craftBlocks = new CraftBlockManager(this);
+        luckPerms = new LuckPermsHook(this);
+        giantEvent = new GiantEventManager(this);
 
         setupEconomy();
 
@@ -110,6 +114,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         banks.initialize();
         envoy.purgeOrphans();
         zombieEvent.purgeOrphans();
+        giantEvent.purgeOrphans();
         leaderboards.start();
         scoreboards.start();
         events.start();
@@ -141,6 +146,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BankChatListener(this), this);
         getServer().getPluginManager().registerEvents(new MarketListener(this), this);
         getServer().getPluginManager().registerEvents(new CraftBlockListener(this), this);
+        getServer().getPluginManager().registerEvents(new GiantEventListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -412,5 +418,13 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public CraftBlockManager getCraftBlocks() {
         return craftBlocks;
+    }
+
+    public LuckPermsHook getLuckPerms() {
+        return luckPerms;
+    }
+
+    public GiantEventManager getGiantEvent() {
+        return giantEvent;
     }
 }

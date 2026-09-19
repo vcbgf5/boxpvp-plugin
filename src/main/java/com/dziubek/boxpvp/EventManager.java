@@ -90,6 +90,14 @@ public class EventManager {
         return true;
     }
 
+    public boolean spawnMegaZombieEvent() {
+        if (!hasEnvoyZone()) {
+            return false;
+        }
+        plugin.getGiantEvent().dropCrate(randomPointInZone());
+        return true;
+    }
+
     /** Ile milisekund zostało do kolejnego automatycznego zrzutu - do wyświetlenia na tablicy. */
     public long getMillisUntilNextEnvoy() {
         return Math.max(0, nextAutoEnvoyAt - System.currentTimeMillis());

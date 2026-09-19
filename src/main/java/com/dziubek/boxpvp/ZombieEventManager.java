@@ -267,6 +267,8 @@ public class ZombieEventManager {
         }
         Player killer = zombie.getKiller();
         if (killer != null) {
+            plugin.getStats().recordKill(killer.getUniqueId(), killer.getName());
+            plugin.getKillstreaks().onKill(killer);
             giveReward(killer);
             Bukkit.broadcastMessage(Branding.chatPrefix() + "§a" + killer.getName() + " §7zabił(a) "
                     + Branding.accent("☠ Zombie-Event") + "§7!");
