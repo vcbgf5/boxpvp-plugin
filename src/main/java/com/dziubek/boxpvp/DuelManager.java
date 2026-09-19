@@ -1,13 +1,18 @@
 package com.dziubek.boxpvp;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
@@ -17,16 +22,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
- * Pojedynki 1v1 na zakład. Admin ustawia JEDEN "szablonowy" świat areny + pozycję startową
- * (/bpvp duel setworld|setpos) - każdy pojedynek dostaje świeżą, fizyczną KOPIĘ tego świata na
- * dysku, więc kilka pojedynków może iść naraz bez wchodzenia sobie w drogę i bez trwałych
- * zniszczeń w szablonie. Ekwipunek/HP/głód obu graczy jest migawkowany PRZED wejściem do areny
- * i przywracany PO wyjściu, więc śmierć w pojedynku nigdy nie kosztuje realnych przedmiotów -
- * jedyne co się przenosi, to zakład, który przegrany płaci zwycięzcy.
+ * Pojedynki 1v1 na zakład. Admin ustawia JEDEN "szablonowy" świat areny + dwie OSOBNE pozycje
+ * startowe (/bpvp duel setworld|setpos1|setpos2) - każdy pojedynek dostaje świeżą, fizyczną
+ * KOPIĘ tego świata na dysku, więc kilka pojedynków może iść naraz bez wchodzenia sobie w
+ * drogę i bez trwałych zniszczeń w szablonie. Na starcie obaj gracze "zlatują z nieba" (2s
+ * animacja) na swoje pozycje, po czym stoją zamrożeni i nietykalni przez 5s odliczania, zanim
+ * walka się faktycznie zaczyna. Ekwipunek/HP/głód obu graczy jest migawkowany PRZED wejściem do
+ * areny i przywracany PO wyjściu, więc śmierć w pojedynku nigdy nie kosztuje realnych
+ * przedmiotów - jedyne co się przenosi, to zakład, który przegrany płaci zwycięzcy.
  * Świat-szablon powinien być mały/prosty (np. superflat) - kopiowanie całego folderu świata
  * na dysku przy starcie KAŻDEGO pojedynku jest tym tańsze, im mniejszy jest ten folder.
  */
@@ -35,17 +44,23 @@ public class DuelManager {
     private static final long INVITE_TIMEOUT_SECONDS = 60L;
     private static final long WORLD_DELETE_DELAY_TICKS = 20L * 5;
 
+    private static final double ENTRANCE_FALL_HEIGHT = 20.0;
+    private static final long ENTRANCE_FALL_TICKS = 40L;
+    private static final int COUNTDOWN_SECONDS = 5;
+
     private final BoxPvpPlugin plugin;
     private final File file;
     private final FileConfiguration data;
 
     private String templateWorldName;
-    private Location arenaPosition;
+    private Location arenaPositionA;
+    private Location arenaPositionB;
     private int duelCounter = 0;
 
     private final Map<UUID, Invite> pendingInvites = new HashMap<>();
     private final Map<UUID, ActiveDuel> activeDuels = new HashMap<>();
     private final Map<UUID, PendingRestore> pendingRestores = new HashMap<>();
+    private final Set<UUID> frozenPlayers = new HashSet<>();
 
     public DuelManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -67,15 +82,20 @@ public class DuelManager {
     // ================= Konfiguracja (admin) =================
 
     public boolean isConfigured() {
-        return templateWorldName != null && arenaPosition != null;
+        return templateWorldName != null && arenaPositionA != null && arenaPositionB != null;
     }
 
     public String getTemplateWorldName() {
         return templateWorldName;
     }
 
+    /** Zwraca pozycję 1 (do np. /bpvp duel gototemplateworld) albo null, jeśli nieustawiona. */
     public Location getArenaPosition() {
-        return arenaPosition == null ? null : arenaPosition.clone();
+        return arenaPositionA == null ? null : arenaPositionA.clone();
+    }
+
+    public boolean isFrozen(UUID uuid) {
+        return frozenPlayers.contains(uuid);
     }
 
     /** Ustawia świat-szablon areny - jeśli nie jest jeszcze wczytany, próbuje go załadować. */
@@ -93,14 +113,20 @@ public class DuelManager {
         return world;
     }
 
-    public void setArenaPosition(Location location) {
-        this.arenaPosition = location.clone();
-        data.set("arena.world", location.getWorld().getName());
-        data.set("arena.x", location.getX());
-        data.set("arena.y", location.getY());
-        data.set("arena.z", location.getZ());
-        data.set("arena.yaw", location.getYaw());
-        data.set("arena.pitch", location.getPitch());
+    /** slot 1 albo 2 - dwie OSOBNE pozycje startowe, po jednej dla każdego z pojedynkujących się. */
+    public void setArenaPosition(int slot, Location location) {
+        if (slot == 1) {
+            this.arenaPositionA = location.clone();
+        } else {
+            this.arenaPositionB = location.clone();
+        }
+        String base = "arena" + slot;
+        data.set(base + ".world", location.getWorld().getName());
+        data.set(base + ".x", location.getX());
+        data.set(base + ".y", location.getY());
+        data.set(base + ".z", location.getZ());
+        data.set(base + ".yaw", location.getYaw());
+        data.set(base + ".pitch", location.getPitch());
         save();
     }
 
@@ -173,18 +199,118 @@ public class DuelManager {
         activeDuels.put(a.getUniqueId(), duel);
         activeDuels.put(b.getUniqueId(), duel);
 
-        Location spawnA = arenaPosition.clone();
+        Location spawnA = arenaPositionA.clone();
         spawnA.setWorld(duelWorld);
-        Location spawnB = spawnA.clone().add(2, 0, 0);
+        Location spawnB = arenaPositionB.clone();
+        spawnB.setWorld(duelWorld);
 
         fullyHeal(a);
         fullyHeal(b);
-        a.teleport(spawnA);
-        b.teleport(spawnB);
-
         Bukkit.broadcastMessage(Branding.chatPrefix() + "§c§l⚔ POJEDYNEK! §f" + a.getName() + " §7vs §f" + b.getName()
                 + " §7- stawka: §a" + BankGuiManager.formatMoney(bet) + "$");
+        beginEntrance(duel, a, b, spawnA, spawnB);
         return true;
+    }
+
+    /**
+     * Obaj gracze "zlatują z nieba" (2s, kontrolowana animacja teleportami, nie fizyka) na swoje
+     * OSOBNE pozycje startowe, po czym stoją zamrożeni (zero ruchu, nietykalni) przez 5s
+     * odliczania - dopiero po nim mogą się ruszać i bić.
+     */
+    private void beginEntrance(ActiveDuel duel, Player a, Player b, Location targetA, Location targetB) {
+        frozenPlayers.add(a.getUniqueId());
+        frozenPlayers.add(b.getUniqueId());
+        a.setInvulnerable(true);
+        b.setInvulnerable(true);
+
+        Location startA = targetA.clone().add(0, ENTRANCE_FALL_HEIGHT, 0);
+        Location startB = targetB.clone().add(0, ENTRANCE_FALL_HEIGHT, 0);
+        a.teleport(startA);
+        b.teleport(startB);
+        a.getWorld().playSound(startA, Sound.ENTITY_ENDER_DRAGON_FLAP, 1.0f, 1.5f);
+
+        animateFall(duel, a, startA, targetA, 0L);
+        animateFall(duel, b, startB, targetB, 0L);
+    }
+
+    private void animateFall(ActiveDuel duel, Player player, Location start, Location target, long tick) {
+        if (duel.completed || !player.isOnline()) {
+            return;
+        }
+        double t = Math.min(1.0, tick / (double) ENTRANCE_FALL_TICKS);
+        double eased = CameraUtil.easeOutCubic(t);
+        Location at = target.clone();
+        at.setY(start.getY() + (target.getY() - start.getY()) * eased);
+        player.teleport(at);
+        player.getWorld().spawnParticle(Particle.CLOUD, at, 2, 0.2, 0.1, 0.2, 0.01);
+        player.getWorld().spawnParticle(Particle.END_ROD, at, 1, 0.1, 0.3, 0.1, 0.005);
+
+        if (t >= 1.0) {
+            onLanded(duel, player);
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateFall(duel, player, start, target, tick + 1), 1L);
+    }
+
+    private void onLanded(ActiveDuel duel, Player player) {
+        player.getWorld().spawnParticle(Particle.EXPLOSION, player.getLocation(), 1);
+        player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 0.7f, 1.3f);
+        duel.landedCount++;
+        if (duel.landedCount >= 2) {
+            startCountdown(duel, COUNTDOWN_SECONDS);
+        }
+    }
+
+    private void startCountdown(ActiveDuel duel, int secondsLeft) {
+        if (duel.completed) {
+            return;
+        }
+        Player a = Bukkit.getPlayer(duel.playerA);
+        Player b = Bukkit.getPlayer(duel.playerB);
+        if (secondsLeft <= 0) {
+            endCountdown(duel, a, b);
+            return;
+        }
+        for (Player p : new Player[]{a, b}) {
+            if (p == null || !p.isOnline()) {
+                continue;
+            }
+            showCountdownNumber(p, secondsLeft);
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1.0f, 1.0f);
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> startCountdown(duel, secondsLeft - 1), 20L);
+    }
+
+    private void showCountdownNumber(Player player, int number) {
+        World world = player.getWorld();
+        TextDisplay display = world.spawn(player.getEyeLocation().add(0, 1.0, 0), TextDisplay.class, e -> {
+            e.setBillboard(Display.Billboard.CENTER);
+            e.setGravity(false);
+            e.setPersistent(false);
+            e.setInvulnerable(true);
+            e.setText("§e§l" + number);
+            e.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+        });
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            if (display.isValid()) {
+                display.remove();
+            }
+        }, 20L);
+    }
+
+    private void endCountdown(ActiveDuel duel, Player a, Player b) {
+        for (Player p : new Player[]{a, b}) {
+            if (p == null) {
+                continue;
+            }
+            frozenPlayers.remove(p.getUniqueId());
+            if (!p.isOnline()) {
+                continue;
+            }
+            p.setInvulnerable(false);
+            TitleUtil.show(p, "§c§lWALKA!", "");
+            p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.5f);
+        }
     }
 
     private void fullyHeal(Player player) {
@@ -229,6 +355,9 @@ public class DuelManager {
         if (duel == null) {
             return;
         }
+        duel.completed = true;
+        frozenPlayers.remove(winnerUuid);
+        frozenPlayers.remove(loserUuid);
 
         if (payout && plugin.getEconomy() != null && duel.bet > 0) {
             plugin.getEconomy().withdrawPlayer(Bukkit.getOfflinePlayer(loserUuid), duel.bet);
@@ -281,6 +410,7 @@ public class DuelManager {
     }
 
     private void restoreNow(Player player, Snapshot snapshot, Location returnLoc) {
+        player.setInvulnerable(false);
         applySnapshot(player, snapshot);
         if (returnLoc != null && returnLoc.getWorld() != null) {
             player.teleport(returnLoc);
@@ -367,16 +497,22 @@ public class DuelManager {
 
     private void load() {
         templateWorldName = data.getString("template-world");
-        String worldName = data.getString("arena.world");
+        arenaPositionA = loadArenaPosition(1);
+        arenaPositionB = loadArenaPosition(2);
+    }
+
+    private Location loadArenaPosition(int slot) {
+        String base = "arena" + slot;
+        String worldName = data.getString(base + ".world");
         if (worldName == null) {
-            return;
+            return null;
         }
         World world = Bukkit.getWorld(worldName);
         if (world == null) {
-            return;
+            return null;
         }
-        arenaPosition = new Location(world, data.getDouble("arena.x"), data.getDouble("arena.y"), data.getDouble("arena.z"),
-                (float) data.getDouble("arena.yaw"), (float) data.getDouble("arena.pitch"));
+        return new Location(world, data.getDouble(base + ".x"), data.getDouble(base + ".y"), data.getDouble(base + ".z"),
+                (float) data.getDouble(base + ".yaw"), (float) data.getDouble(base + ".pitch"));
     }
 
     private void save() {
@@ -442,6 +578,8 @@ public class DuelManager {
         Snapshot snapshotB;
         Location returnA;
         Location returnB;
+        int landedCount;
+        boolean completed;
 
         ActiveDuel(UUID playerA, UUID playerB, double bet, World world) {
             this.playerA = playerA;

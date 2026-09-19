@@ -108,7 +108,8 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp giveset <poziom 1-10> §7- daje pełny zestaw PvP (zbroja + miecz/kilof/siekiera/łopata)");
         sender.sendMessage("§c/bpvp teleportto normal|mega|megazombie §7- teleportuje Cię tam, gdzie ostatnio spadła dana skrzynka");
         sender.sendMessage("§c/bpvp duel setworld <świat> §7- ustawia świat-szablon areny pojedynków i przenosi Cię tam");
-        sender.sendMessage("§c/bpvp duel setpos §7- ustawia pozycję startową areny w miejscu gdzie stoisz (musisz być w świecie-szablonie)");
+        sender.sendMessage("§c/bpvp duel setpos1 §7/ §c setpos2 §7- ustawia OSOBNE pozycje startowe dla gracza 1 i 2 (musisz być w świecie-szablonie)");
+        sender.sendMessage("§c/bpvp duel gototemplateworld §7- wraca do świata-szablonu areny (np. żeby coś dobudować)");
     }
 
     private boolean handleWand(CommandSender sender) {
@@ -664,7 +665,7 @@ public class GeneratorCommand implements CommandExecutor {
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>|setpos|gototemplateworld");
+            sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>|setpos1|setpos2|gototemplateworld");
             return true;
         }
         Player player = (Player) sender;
@@ -700,10 +701,10 @@ public class GeneratorCommand implements CommandExecutor {
             }
             player.teleport(world.getSpawnLocation());
             sender.sendMessage("§aUstawiono świat-szablon areny na '" + args[2] + "' i przeniesiono Cię tam. "
-                    + "Stań w miejscu startowym areny i wpisz §f/bpvp duel setpos§a.");
+                    + "Stań w miejscu startowym 1. gracza i wpisz §f/bpvp duel setpos1§a, potem 2. gracza i §f/bpvp duel setpos2§a.");
             return true;
         }
-        if (action.equals("setpos")) {
+        if (action.equals("setpos1") || action.equals("setpos2")) {
             String templateWorld = plugin.getDuels().getTemplateWorldName();
             if (templateWorld == null) {
                 sender.sendMessage("§cNajpierw ustaw świat-szablon: /bpvp duel setworld <świat>.");
@@ -713,11 +714,12 @@ public class GeneratorCommand implements CommandExecutor {
                 sender.sendMessage("§cMusisz stać w świecie-szablonie areny ('" + templateWorld + "'), żeby ustawić pozycję.");
                 return true;
             }
-            plugin.getDuels().setArenaPosition(player.getLocation());
-            sender.sendMessage("§aUstawiono pozycję startową areny pojedynków w tym miejscu.");
+            int slot = action.equals("setpos1") ? 1 : 2;
+            plugin.getDuels().setArenaPosition(slot, player.getLocation());
+            sender.sendMessage("§aUstawiono pozycję startową " + slot + ". gracza w tym miejscu.");
             return true;
         }
-        sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>|setpos");
+        sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>|setpos1|setpos2|gototemplateworld");
         return true;
     }
 

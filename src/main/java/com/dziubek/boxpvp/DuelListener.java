@@ -1,9 +1,11 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
@@ -44,6 +46,24 @@ public class DuelListener implements Listener {
             event.setRespawnLocation(pending.getReturnLocation());
         }
         plugin.getServer().getScheduler().runTask(plugin, () -> plugin.getDuels().applySnapshot(player, pending.getSnapshot()));
+    }
+
+    /**
+     * Podczas wejścia (spadanie z góry) i odliczania przed startem gracz jest "zamrożony" -
+     * nie może się ruszyć, ale może się rozglądać (yaw/pitch przechodzą, pozycja nie).
+     */
+    @EventHandler
+    public void onMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (!plugin.getDuels().isFrozen(player.getUniqueId())) {
+            return;
+        }
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        if (to == null || (from.getX() == to.getX() && from.getY() == to.getY() && from.getZ() == to.getZ())) {
+            return;
+        }
+        event.setTo(new Location(to.getWorld(), from.getX(), from.getY(), from.getZ(), to.getYaw(), to.getPitch()));
     }
 
     @EventHandler
