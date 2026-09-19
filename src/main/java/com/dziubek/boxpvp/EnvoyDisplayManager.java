@@ -2,6 +2,7 @@ package com.dziubek.boxpvp;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -19,7 +20,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Transformation;
+import org.bukkit.util.Vector;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -49,6 +52,7 @@ public class EnvoyDisplayManager {
     private static final double WARNING_HEIGHT = 2.0;
     private static final double BEACON_BEAM_HEIGHT = 14.0;
     private static final double LABEL_HEIGHT_OFFSET = 1.9;
+    private static final double GROUND_CHECK_DISTANCE = 2.0;
     private static final float NORMAL_SCALE = 1.0f;
     private static final float MEGA_SCALE = 1.6f;
 
@@ -256,6 +260,15 @@ public class EnvoyDisplayManager {
         animateFall(drop, groundAnchor, System.currentTimeMillis());
     }
 
+    /**
+     * Czysto czasowa animacja (ease-out do z góry wyliczonej "podłogi" strefy), jak zawsze -
+     * ale co klatkę dorzuca krótki raycast prosto pod skrzynkę (max GROUND_CHECK_DISTANCE
+     * bloków), żeby wylądować od razu, gdy naprawdę jest blisko bloku pod sobą, zamiast czekać
+     * na koniec animacji i ewentualnie wjechać w nierówny teren. W przeciwieństwie do
+     * wcześniejszego podejścia (porównanie z World#getHighestBlockYAt w danej kolumnie X/Z)
+     * raycast patrzy tylko na to, co jest TERAZ dosłownie pod skrzynką, więc nie może wylądować
+     * przedwcześnie na 1. klatce spadania z wysoka.
+     */
     private void animateFall(ActiveDrop drop, Location groundAnchor, long start) {
         if (drop.crate == null || !drop.crate.isValid()) {
             activeDrops.remove(drop);
@@ -267,6 +280,14 @@ public class EnvoyDisplayManager {
         double heightOffset = (1.0 - eased) * FALL_START_OFFSET;
 
         Location crateAt = groundAnchor.clone().add(0, heightOffset, 0);
+        World world = groundAnchor.getWorld();
+        RayTraceResult hit = world.rayTraceBlocks(crateAt, new Vector(0, -1, 0), GROUND_CHECK_DISTANCE,
+                FluidCollisionMode.NEVER, true);
+        boolean touchedGround = hit != null && hit.getHitBlock() != null;
+        if (touchedGround) {
+            crateAt.setY(hit.getHitPosition().getY());
+        }
+
         float spin = (float) ((System.currentTimeMillis() % 2000L) / 2000.0 * Math.PI * 2);
         applyTransform(drop.crate, spin, drop.mega ? MEGA_SCALE : NORMAL_SCALE);
         drop.crate.teleport(crateAt);
@@ -274,8 +295,8 @@ public class EnvoyDisplayManager {
             drop.label.teleport(crateAt.clone().add(0, LABEL_HEIGHT_OFFSET, 0));
         }
 
-        if (t >= 1.0) {
-            onLanded(drop, groundAnchor);
+        if (touchedGround || t >= 1.0) {
+            onLanded(drop, crateAt);
             return;
         }
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> animateFall(drop, groundAnchor, start), 1L);
