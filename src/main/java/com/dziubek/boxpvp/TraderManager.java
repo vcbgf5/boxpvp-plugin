@@ -219,6 +219,7 @@ public class TraderManager {
         loc.getChunk().load();
         Villager villager = world.spawn(loc, Villager.class, v -> {
             v.setAI(false);
+            v.setGravity(false);
             v.setInvulnerable(true);
             v.setSilent(false);
             v.setPersistent(true);
