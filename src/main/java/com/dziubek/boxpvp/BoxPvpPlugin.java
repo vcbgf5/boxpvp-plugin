@@ -51,6 +51,9 @@ public class BoxPvpPlugin extends JavaPlugin {
     private MissionManager missions;
     private MissionsGuiManager missionsGui;
     private ZombieEventManager zombieEvent;
+    private CurrencyManager currency;
+    private BankManager banks;
+    private BankGuiManager bankGui;
 
     @Override
     public void onEnable() {
@@ -87,6 +90,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         missions = new MissionManager(this);
         missionsGui = new MissionsGuiManager(this);
         zombieEvent = new ZombieEventManager(this);
+        currency = new CurrencyManager(this);
+        banks = new BankManager(this);
+        bankGui = new BankGuiManager(this);
 
         setupEconomy();
 
@@ -95,6 +101,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         crateItemDisplays.start();
         generators.start();
         traders.initialize();
+        banks.initialize();
         envoy.purgeOrphans();
         zombieEvent.purgeOrphans();
         leaderboards.start();
@@ -123,6 +130,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PartyQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new MissionsGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new ZombieEventListener(this), this);
+        getServer().getPluginManager().registerEvents(new BankListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -142,6 +150,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("party").setTabCompleter(new PartyTabCompleter());
         getCommand("missions").setExecutor(new MissionsCommand(this));
         getCommand("gamma").setExecutor(new GammaCommand());
+        getCommand("bank").setExecutor(new BankCommand(this));
+        getCommand("bank").setTabCompleter(new BankTabCompleter(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -366,5 +376,17 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public ZombieEventManager getZombieEvent() {
         return zombieEvent;
+    }
+
+    public CurrencyManager getCurrency() {
+        return currency;
+    }
+
+    public BankManager getBanks() {
+        return banks;
+    }
+
+    public BankGuiManager getBankGui() {
+        return bankGui;
     }
 }
