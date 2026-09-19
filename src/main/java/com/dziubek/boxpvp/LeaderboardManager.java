@@ -122,9 +122,11 @@ public class LeaderboardManager {
 
     private List<String> buildTimerLines() {
         List<String> lines = new ArrayList<>();
-        lines.add(Branding.accent("Następny Envoy"));
-        long millis = plugin.getEvents().getMillisUntilNextEnvoy();
-        lines.add("§d" + formatCountdown(millis));
+        lines.add(Branding.accent("Zbliżające się eventy"));
+        lines.add("§fSkrzynka: §d" + formatCountdown(plugin.getEvents().getMillisUntilNextNormalEnvoy()));
+        lines.add("§5MEGA skrzynka: §d" + formatCountdown(plugin.getEvents().getMillisUntilNextMegaEnvoy()));
+        lines.add("§aZombie: §d" + formatCountdown(plugin.getEvents().getMillisUntilNextZombie()));
+        lines.add("§4MEGA-zombie: §d" + formatCountdown(plugin.getEvents().getMillisUntilNextMegaZombie()));
         return lines;
     }
 

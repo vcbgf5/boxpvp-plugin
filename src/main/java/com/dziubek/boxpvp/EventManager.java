@@ -29,8 +29,10 @@ public class EventManager {
     private long multiplierExpiresAt = 0L;
     private Location envoyZoneCorner1;
     private Location envoyZoneCorner2;
-    private final long autoIntervalMillis;
-    private long nextAutoEnvoyAt;
+    private long nextNormalEnvoyAt;
+    private long nextMegaEnvoyAt;
+    private long nextZombieAt;
+    private long nextMegaZombieAt;
 
     public EventManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -47,65 +49,47 @@ public class EventManager {
         }
         this.data = YamlConfiguration.loadConfiguration(file);
         loadEnvoyZone();
-
-        this.autoIntervalMillis = plugin.getConfig().getLong("envoy.auto-interval-minutes", 10) * 60_000L;
-        this.nextAutoEnvoyAt = System.currentTimeMillis() + autoIntervalMillis;
     }
 
     /**
-     * Uruchamia automatyczne zrzuty skrzynek-event - domyślnie co 10 minut spadają 2 sztuki
-     * (każda z osobnym, 10-sekundowym ostrzeżeniem w miejscu lądowania). Osobno: zwykły
-     * zombie-event co minutę (zawsze), szansa na mega-zombie co 5 minut, i gwarancja mega-
-     * zombie co 10 minut, jeśli akurat żaden nie trwa.
+     * Uruchamia automatyczne zrzuty - każdy typ ma własny, stały interwał (niezależny od
+     * pozostałych): zwykła skrzynka co 5 min, MEGA skrzynka co 10 min, zombie-event co 1 min,
+     * mega-zombie (wielka skrzynka + Giant) co 30 min.
      */
     public void start() {
-        long intervalTicks = autoIntervalMillis / 50L;
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::triggerAutoEnvoys, intervalTicks, intervalTicks);
+        long normalEnvoyTicks = minutesToTicks("envoy.normal-interval-minutes", 5);
+        long megaEnvoyTicks = minutesToTicks("envoy.mega-interval-minutes", 10);
+        long zombieTicks = minutesToTicks("envoy.zombie-interval-minutes", 1);
+        long megaZombieTicks = minutesToTicks("envoy.megazombie-interval-minutes", 30);
 
-        long oneMinuteTicks = 20L * 60;
-        long fiveMinuteTicks = 20L * 60 * 5;
-        long tenMinuteTicks = 20L * 60 * 10;
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::triggerAutoZombie, oneMinuteTicks, oneMinuteTicks);
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::triggerMegaZombieChance, fiveMinuteTicks, fiveMinuteTicks);
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::guaranteeMegaZombie, tenMinuteTicks, tenMinuteTicks);
-    }
+        nextNormalEnvoyAt = System.currentTimeMillis() + normalEnvoyTicks * 50L;
+        nextMegaEnvoyAt = System.currentTimeMillis() + megaEnvoyTicks * 50L;
+        nextZombieAt = System.currentTimeMillis() + zombieTicks * 50L;
+        nextMegaZombieAt = System.currentTimeMillis() + megaZombieTicks * 50L;
 
-    private void triggerAutoZombie() {
-        spawnZombieEvent();
-    }
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            nextNormalEnvoyAt = System.currentTimeMillis() + normalEnvoyTicks * 50L;
+            spawnEnvoy(false);
+        }, normalEnvoyTicks, normalEnvoyTicks);
 
-    private void triggerMegaZombieChance() {
-        double chance = plugin.getConfig().getDouble("envoy.megazombie-chance", 0.5);
-        if (random.nextDouble() < chance) {
-            spawnMegaZombieEvent();
-        }
-    }
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            nextMegaEnvoyAt = System.currentTimeMillis() + megaEnvoyTicks * 50L;
+            spawnEnvoy(true);
+        }, megaEnvoyTicks, megaEnvoyTicks);
 
-    private void guaranteeMegaZombie() {
-        if (!plugin.getGiantEvent().isEventActive()) {
-            spawnMegaZombieEvent();
-        }
-    }
-
-    private void triggerAutoEnvoys() {
-        nextAutoEnvoyAt = System.currentTimeMillis() + autoIntervalMillis;
-        int count = plugin.getConfig().getInt("envoy.auto-drop-count", 2);
-        for (int i = 0; i < count; i++) {
-            spawnEnvoy(rollMega());
-        }
-        if (rollZombie()) {
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            nextZombieAt = System.currentTimeMillis() + zombieTicks * 50L;
             spawnZombieEvent();
-        }
+        }, zombieTicks, zombieTicks);
+
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            nextMegaZombieAt = System.currentTimeMillis() + megaZombieTicks * 50L;
+            spawnMegaZombieEvent();
+        }, megaZombieTicks, megaZombieTicks);
     }
 
-    private boolean rollMega() {
-        double chance = plugin.getConfig().getDouble("envoy.mega-chance", 0.15);
-        return random.nextDouble() < chance;
-    }
-
-    private boolean rollZombie() {
-        double chance = plugin.getConfig().getDouble("envoy.zombie-chance", 0.2);
-        return random.nextDouble() < chance;
+    private long minutesToTicks(String configKey, long defaultMinutes) {
+        return plugin.getConfig().getLong(configKey, defaultMinutes) * 60L * 20L;
     }
 
     public boolean spawnZombieEvent() {
@@ -124,9 +108,21 @@ public class EventManager {
         return true;
     }
 
-    /** Ile milisekund zostało do kolejnego automatycznego zrzutu - do wyświetlenia na tablicy. */
-    public long getMillisUntilNextEnvoy() {
-        return Math.max(0, nextAutoEnvoyAt - System.currentTimeMillis());
+    /** Ile milisekund zostało do kolejnych automatycznych zrzutów - do wyświetlenia na tablicy. */
+    public long getMillisUntilNextNormalEnvoy() {
+        return Math.max(0, nextNormalEnvoyAt - System.currentTimeMillis());
+    }
+
+    public long getMillisUntilNextMegaEnvoy() {
+        return Math.max(0, nextMegaEnvoyAt - System.currentTimeMillis());
+    }
+
+    public long getMillisUntilNextZombie() {
+        return Math.max(0, nextZombieAt - System.currentTimeMillis());
+    }
+
+    public long getMillisUntilNextMegaZombie() {
+        return Math.max(0, nextMegaZombieAt - System.currentTimeMillis());
     }
 
     /**
