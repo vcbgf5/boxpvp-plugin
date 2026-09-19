@@ -1,7 +1,10 @@
 package com.dziubek.boxpvp;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -42,11 +45,12 @@ import java.util.UUID;
 public class DuelManager {
 
     private static final long INVITE_TIMEOUT_SECONDS = 60L;
-    private static final long WORLD_DELETE_DELAY_TICKS = 20L * 5;
+    private static final long WORLD_DELETE_DELAY_TICKS = 20L * 13;
 
     private static final double ENTRANCE_FALL_HEIGHT = 20.0;
     private static final long ENTRANCE_FALL_TICKS = 40L;
     private static final int COUNTDOWN_SECONDS = 5;
+    private static final int GHOST_SECONDS = 10;
 
     private final BoxPvpPlugin plugin;
     private final File file;
@@ -60,6 +64,7 @@ public class DuelManager {
     private final Map<UUID, Invite> pendingInvites = new HashMap<>();
     private final Map<UUID, ActiveDuel> activeDuels = new HashMap<>();
     private final Map<UUID, PendingRestore> pendingRestores = new HashMap<>();
+    private final Map<UUID, PendingRestore> ghosts = new HashMap<>();
     private final Set<UUID> frozenPlayers = new HashSet<>();
 
     public DuelManager(BoxPvpPlugin plugin) {
@@ -380,7 +385,7 @@ public class DuelManager {
         Player loser = Bukkit.getPlayer(loserUuid);
         if (loser != null && loser.isOnline()) {
             if (loser.isDead()) {
-                pendingRestores.put(loserUuid, new PendingRestore(loserSnapshot, loserReturn));
+                pendingRestores.put(loserUuid, new PendingRestore(loserSnapshot, loserReturn, loser.getLocation().clone()));
             } else {
                 restoreNow(loser, loserSnapshot, loserReturn);
             }
@@ -394,6 +399,61 @@ public class DuelManager {
 
     public PendingRestore consumePendingRestore(UUID uuid) {
         return pendingRestores.remove(uuid);
+    }
+
+    /**
+     * Zamiast zwykłego ekranu "Zginąłeś" z przyciskiem, przegrany od razu widzi tytuł
+     * "PRZEGRAŁEŚ" i staje się duchem (spectator) na GHOST_SECONDS - odliczanie na action-barze,
+     * z możliwością wcześniejszego powrotu przez /duel wroc.
+     */
+    public void startGhostPhase(Player player, PendingRestore pending) {
+        player.setGameMode(GameMode.SPECTATOR);
+        TitleUtil.show(player, "§c§lPRZEGRAŁEŚ!", "§7Jesteś duchem...");
+        ghosts.put(player.getUniqueId(), pending);
+        tickGhost(player.getUniqueId(), GHOST_SECONDS);
+    }
+
+    private void tickGhost(UUID uuid, int secondsLeft) {
+        if (!ghosts.containsKey(uuid)) {
+            return;
+        }
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null || !player.isOnline()) {
+            ghosts.remove(uuid);
+            return;
+        }
+        if (secondsLeft <= 0) {
+            finishGhost(player);
+            return;
+        }
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§5§lDUCH §7- powrót za §f"
+                + secondsLeft + "s §7- wpisz §a/duel wroc §7by wrócić od razu"));
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> tickGhost(uuid, secondsLeft - 1), 20L);
+    }
+
+    /** /duel wroc - kończy fazę ducha wcześniej. Zwraca false, jeśli gracz nie jest teraz duchem. */
+    public boolean returnFromGhost(Player player) {
+        if (!ghosts.containsKey(player.getUniqueId())) {
+            return false;
+        }
+        finishGhost(player);
+        return true;
+    }
+
+    private void finishGhost(Player player) {
+        PendingRestore pending = ghosts.remove(player.getUniqueId());
+        if (pending == null) {
+            return;
+        }
+        GameMode gameMode = pending.getSnapshot() != null && pending.getSnapshot().gameMode != null
+                ? pending.getSnapshot().gameMode : GameMode.SURVIVAL;
+        player.setGameMode(gameMode);
+        applySnapshot(player, pending.getSnapshot());
+        Location returnLoc = pending.getReturnLocation();
+        if (returnLoc != null && returnLoc.getWorld() != null) {
+            player.teleport(returnLoc);
+        }
+        player.sendMessage("§aWróciłeś z pojedynku.");
     }
 
     public void applySnapshot(Player player, Snapshot snapshot) {
@@ -411,6 +471,9 @@ public class DuelManager {
 
     private void restoreNow(Player player, Snapshot snapshot, Location returnLoc) {
         player.setInvulnerable(false);
+        if (snapshot != null && snapshot.gameMode != null) {
+            player.setGameMode(snapshot.gameMode);
+        }
         applySnapshot(player, snapshot);
         if (returnLoc != null && returnLoc.getWorld() != null) {
             player.teleport(returnLoc);
@@ -424,6 +487,7 @@ public class DuelManager {
         s.offhand = player.getInventory().getItemInOffHand().clone();
         s.health = player.getHealth();
         s.food = player.getFoodLevel();
+        s.gameMode = player.getGameMode();
         return s;
     }
 
@@ -549,15 +613,18 @@ public class DuelManager {
         ItemStack offhand;
         double health;
         int food;
+        GameMode gameMode;
     }
 
     static final class PendingRestore {
         private final Snapshot snapshot;
         private final Location returnLocation;
+        private final Location ghostLocation;
 
-        PendingRestore(Snapshot snapshot, Location returnLocation) {
+        PendingRestore(Snapshot snapshot, Location returnLocation, Location ghostLocation) {
             this.snapshot = snapshot;
             this.returnLocation = returnLocation;
+            this.ghostLocation = ghostLocation;
         }
 
         public Snapshot getSnapshot() {
@@ -566,6 +633,10 @@ public class DuelManager {
 
         public Location getReturnLocation() {
             return returnLocation;
+        }
+
+        public Location getGhostLocation() {
+            return ghostLocation;
         }
     }
 

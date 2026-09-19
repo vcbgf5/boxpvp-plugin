@@ -29,11 +29,20 @@ public class DuelListener implements Listener {
         event.getDrops().clear();
         event.setDroppedExp(0);
         plugin.getDuels().finish(opponent, victim.getUniqueId(), true);
+
+        // Pomijamy zwykły ekran "Zginąłeś" z przyciskiem - przegrany od razu (bez czekania na
+        // klik) staje się duchem widzem, patrz onRespawn.
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (victim.isOnline() && victim.isDead()) {
+                victim.spigot().respawn();
+            }
+        });
     }
 
     /**
      * Ekwipunek/HP/lokację przegranego przywracamy dopiero TU (nie w PlayerDeathEvent) - nie da
-     * się bezpiecznie teleportować/nadpisywać ekwipunku jeszcze martwej postaci.
+     * się bezpiecznie teleportować/nadpisywać ekwipunku jeszcze martwej postaci. Zamiast od razu
+     * przywracać, gracz najpierw staje się duchem (spectator) na 10s - patrz startGhostPhase.
      */
     @EventHandler
     public void onRespawn(PlayerRespawnEvent event) {
@@ -42,10 +51,10 @@ public class DuelListener implements Listener {
         if (pending == null) {
             return;
         }
-        if (pending.getReturnLocation() != null) {
-            event.setRespawnLocation(pending.getReturnLocation());
+        if (pending.getGhostLocation() != null) {
+            event.setRespawnLocation(pending.getGhostLocation());
         }
-        plugin.getServer().getScheduler().runTask(plugin, () -> plugin.getDuels().applySnapshot(player, pending.getSnapshot()));
+        plugin.getServer().getScheduler().runTask(plugin, () -> plugin.getDuels().startGhostPhase(player, pending));
     }
 
     /**
@@ -69,9 +78,12 @@ public class DuelListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        if (!plugin.getDuels().hasActiveDuel(player.getUniqueId())) {
+        if (plugin.getDuels().hasActiveDuel(player.getUniqueId())) {
+            plugin.getDuels().forfeit(player);
             return;
         }
-        plugin.getDuels().forfeit(player);
+        // Jeśli akurat jest duchem po przegranej (jeszcze nie minęło 10s) - przywróć od razu,
+        // żeby jego dane zapisały się z prawdziwym ekwipunkiem, a nie pustym stanem widza.
+        plugin.getDuels().returnFromGhost(player);
     }
 }

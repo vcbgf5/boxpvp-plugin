@@ -41,6 +41,8 @@ public class DuelCommand implements CommandExecutor {
                 return handleStop(player, args);
             case "admincheck":
                 return handleAdminCheck(player, args);
+            case "wroc":
+                return handleReturn(player);
             default:
                 sendHelp(player);
                 return true;
@@ -52,6 +54,7 @@ public class DuelCommand implements CommandExecutor {
         player.sendMessage("§c/duel invite <gracz> <stawka> §7- wyzwij gracza na pojedynek o pieniądze");
         player.sendMessage("§c/duel accept §7- przyjmij ostatnie zaproszenie");
         player.sendMessage("§c/duel leave §7- poddaj się w trakcie pojedynku (przegrywasz stawkę) albo anuluj wysłane zaproszenie");
+        player.sendMessage("§c/duel wroc §7- jeśli jesteś duchem po przegranej, wraca Cię od razu (bez czekania 10s)");
         if (player.hasPermission(ADMIN_PERMISSION)) {
             player.sendMessage("§c/duel stop <gracz> §7- (admin) przerywa czyjś pojedynek, bez przepływu pieniędzy");
             player.sendMessage("§c/duel admincheck <gracz> §7- (admin) dołącza Cię jako widza (spectator) do czyjegoś pojedynku");
@@ -195,6 +198,14 @@ public class DuelCommand implements CommandExecutor {
         player.teleport(target.getLocation());
         player.sendMessage("§aDołączono jako widz do pojedynku " + target.getName()
                 + ". Zmień tryb gry (np. /gamemode survival), żeby wrócić.");
+        return true;
+    }
+
+    private boolean handleReturn(Player player) {
+        boolean returned = plugin.getDuels().returnFromGhost(player);
+        if (!returned) {
+            player.sendMessage("§cNie jesteś teraz duchem po przegranym pojedynku.");
+        }
         return true;
     }
 }
