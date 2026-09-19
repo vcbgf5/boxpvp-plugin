@@ -74,6 +74,10 @@ public class DuelManager {
         return templateWorldName;
     }
 
+    public Location getArenaPosition() {
+        return arenaPosition == null ? null : arenaPosition.clone();
+    }
+
     /** Ustawia świat-szablon areny - jeśli nie jest jeszcze wczytany, próbuje go załadować. */
     public World setTemplateWorld(String worldName) {
         World world = Bukkit.getWorld(worldName);

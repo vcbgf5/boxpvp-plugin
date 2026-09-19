@@ -1,5 +1,6 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -663,11 +664,29 @@ public class GeneratorCommand implements CommandExecutor {
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>|setpos");
+            sender.sendMessage("§cUżycie: /bpvp duel setworld <świat>|setpos|gototemplateworld");
             return true;
         }
         Player player = (Player) sender;
         String action = args[1].toLowerCase();
+
+        if (action.equals("gototemplateworld")) {
+            String templateWorldName = plugin.getDuels().getTemplateWorldName();
+            if (templateWorldName == null) {
+                sender.sendMessage("§cNajpierw ustaw świat-szablon: /bpvp duel setworld <świat>.");
+                return true;
+            }
+            World world = Bukkit.getWorld(templateWorldName);
+            if (world == null) {
+                sender.sendMessage("§cŚwiat-szablon '" + templateWorldName + "' nie jest wczytany.");
+                return true;
+            }
+            Location arenaPos = plugin.getDuels().getArenaPosition();
+            player.teleport(arenaPos != null ? arenaPos : world.getSpawnLocation());
+            sender.sendMessage("§aPrzeniesiono Cię do świata-szablonu areny ('" + templateWorldName + "'). "
+                    + "Możesz tu budować/edytować - zmiany będą kopiowane do każdego nowego pojedynku.");
+            return true;
+        }
 
         if (action.equals("setworld")) {
             if (args.length < 3) {

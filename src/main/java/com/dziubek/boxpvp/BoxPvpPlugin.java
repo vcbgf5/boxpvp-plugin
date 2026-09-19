@@ -196,6 +196,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("playtime").setExecutor(new PlaytimeCommand(this));
         getCommand("trade").setExecutor(new TradeCommand(this));
         getCommand("lms").setExecutor(new LmsCommand(this));
+        getCommand("reportduel").setExecutor(new ReportDuelCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);

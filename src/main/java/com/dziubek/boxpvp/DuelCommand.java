@@ -1,6 +1,7 @@
 package com.dziubek.boxpvp;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -38,6 +39,8 @@ public class DuelCommand implements CommandExecutor {
                 return handleLeave(player);
             case "stop":
                 return handleStop(player, args);
+            case "admincheck":
+                return handleAdminCheck(player, args);
             default:
                 sendHelp(player);
                 return true;
@@ -51,6 +54,7 @@ public class DuelCommand implements CommandExecutor {
         player.sendMessage("§c/duel leave §7- poddaj się w trakcie pojedynku (przegrywasz stawkę) albo anuluj wysłane zaproszenie");
         if (player.hasPermission(ADMIN_PERMISSION)) {
             player.sendMessage("§c/duel stop <gracz> §7- (admin) przerywa czyjś pojedynek, bez przepływu pieniędzy");
+            player.sendMessage("§c/duel admincheck <gracz> §7- (admin) dołącza Cię jako widza (spectator) do czyjegoś pojedynku");
         }
     }
 
@@ -170,6 +174,27 @@ public class DuelCommand implements CommandExecutor {
         }
         plugin.getDuels().adminStop(target);
         player.sendMessage("§aPrzerwano pojedynek.");
+        return true;
+    }
+
+    private boolean handleAdminCheck(Player player, String[] args) {
+        if (!player.hasPermission(ADMIN_PERMISSION)) {
+            player.sendMessage("§cNie masz uprawnień.");
+            return true;
+        }
+        if (args.length < 2) {
+            player.sendMessage("§cUżycie: /duel admincheck <gracz>");
+            return true;
+        }
+        Player target = Bukkit.getPlayer(args[1]);
+        if (target == null || !plugin.getDuels().hasActiveDuel(target.getUniqueId())) {
+            player.sendMessage("§cTen gracz nie jest w trakcie pojedynku.");
+            return true;
+        }
+        player.setGameMode(GameMode.SPECTATOR);
+        player.teleport(target.getLocation());
+        player.sendMessage("§aDołączono jako widz do pojedynku " + target.getName()
+                + ". Zmień tryb gry (np. /gamemode survival), żeby wrócić.");
         return true;
     }
 }
