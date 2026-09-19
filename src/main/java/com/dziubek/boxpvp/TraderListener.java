@@ -1,8 +1,11 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -20,6 +23,20 @@ public class TraderListener implements Listener {
 
     public TraderListener(BoxPvpPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * Handlarz to prawdziwy Villager, więc jego spawn podlega fladze WorldGuard
+     * "mob-spawning" - jeśli admin stawia go w chronionym regionie (np. Spawn01), event
+     * zostaje po cichu anulowany i handlarz nigdy się nie pojawia. Cofamy to WYŁĄCZNIE gdy
+     * spawn pochodzi z naszego TraderManager.spawnVillager (flaga spawningTrader), więc region
+     * nie otwiera się na żadne inne moby.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        if (event.isCancelled() && event.getEntityType() == EntityType.VILLAGER && plugin.getTraders().isSpawningTrader()) {
+            event.setCancelled(false);
+        }
     }
 
     @EventHandler

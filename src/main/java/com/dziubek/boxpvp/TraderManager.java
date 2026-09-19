@@ -40,6 +40,7 @@ public class TraderManager {
 
     private final Map<String, TraderData> traders = new HashMap<>();
     private final Map<UUID, String> awaitingRename = new HashMap<>();
+    private volatile boolean spawningTrader = false;
 
     public TraderManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -130,6 +131,10 @@ public class TraderManager {
         return traders.get(name);
     }
 
+    public boolean isSpawningTrader() {
+        return spawningTrader;
+    }
+
     // ================= Edycja =================
 
     public void cycleProfession(String name) {
@@ -214,18 +219,31 @@ public class TraderManager {
 
     // ================= Encja/wygląd =================
 
+    /**
+     * Spawn przez World#spawn woła CreatureSpawnEvent tak samo jak wanilijny spawn - jeśli
+     * handlarz stoi w regionie chronionym flagą WorldGuard "mob-spawning: deny" (np. Spawn01),
+     * event zostanie po cichu anulowany i handlarz nigdy się nie pojawi. `spawningTrader` na czas
+     * tego jednego, synchronicznego wywołania pozwala TraderListener.onCreatureSpawn cofnąć
+     * anulowanie WYŁĄCZNIE dla tego naszego spawnu (nie otwiera regionu na żadne inne moby).
+     */
     private Villager spawnVillager(String name, Location loc) {
         World world = loc.getWorld();
         loc.getChunk().load();
-        Villager villager = world.spawn(loc, Villager.class, v -> {
-            v.setAI(false);
-            v.setGravity(false);
-            v.setInvulnerable(true);
-            v.setSilent(false);
-            v.setPersistent(true);
-            v.getPersistentDataContainer().set(nameTag, PersistentDataType.STRING, name);
-            v.addScoreboardTag(TAG);
-        });
+        spawningTrader = true;
+        Villager villager;
+        try {
+            villager = world.spawn(loc, Villager.class, v -> {
+                v.setAI(false);
+                v.setGravity(false);
+                v.setInvulnerable(true);
+                v.setSilent(false);
+                v.setPersistent(true);
+                v.getPersistentDataContainer().set(nameTag, PersistentDataType.STRING, name);
+                v.addScoreboardTag(TAG);
+            });
+        } finally {
+            spawningTrader = false;
+        }
         return villager;
     }
 
