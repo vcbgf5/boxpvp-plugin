@@ -82,8 +82,12 @@ public class DuelListener implements Listener {
             plugin.getDuels().forfeit(player);
             return;
         }
-        // Jeśli akurat jest duchem po przegranej (jeszcze nie minęło 10s) - przywróć od razu,
-        // żeby jego dane zapisały się z prawdziwym ekwipunkiem, a nie pustym stanem widza.
+        // Jeśli akurat czeka na powrót (duch po przegranej ALBO świętowanie po wygranej,
+        // jeszcze nie minęło 10s) - przywróć od razu, żeby jego dane zapisały się z prawdziwym
+        // ekwipunkiem, a nie stanem sprzed przywrócenia.
+        if (plugin.getDuels().returnFromCelebration(player)) {
+            return;
+        }
         plugin.getDuels().returnFromGhost(player);
     }
 }

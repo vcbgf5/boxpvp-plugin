@@ -51,6 +51,7 @@ public class DuelManager {
     private static final long ENTRANCE_FALL_TICKS = 40L;
     private static final int COUNTDOWN_SECONDS = 5;
     private static final int GHOST_SECONDS = 10;
+    private static final int WIN_CELEBRATION_SECONDS = 10;
 
     private final BoxPvpPlugin plugin;
     private final File file;
@@ -65,6 +66,7 @@ public class DuelManager {
     private final Map<UUID, ActiveDuel> activeDuels = new HashMap<>();
     private final Map<UUID, PendingRestore> pendingRestores = new HashMap<>();
     private final Map<UUID, PendingRestore> ghosts = new HashMap<>();
+    private final Map<UUID, PendingRestore> celebrating = new HashMap<>();
     private final Set<UUID> frozenPlayers = new HashSet<>();
 
     public DuelManager(BoxPvpPlugin plugin) {
@@ -203,6 +205,11 @@ public class DuelManager {
 
         activeDuels.put(a.getUniqueId(), duel);
         activeDuels.put(b.getUniqueId(), duel);
+
+        // Niezależnie od trybu gry sprzed pojedynku (np. admin w creative) - w arenie obaj walczą
+        // na survivalu. Oryginalny tryb jest już zapisany w snapshocie i wraca po zakończeniu.
+        a.setGameMode(GameMode.SURVIVAL);
+        b.setGameMode(GameMode.SURVIVAL);
 
         Location spawnA = arenaPositionA.clone();
         spawnA.setWorld(duelWorld);
@@ -384,11 +391,11 @@ public class DuelManager {
 
         Player winner = Bukkit.getPlayer(winnerUuid);
         if (winner != null && winner.isOnline()) {
-            restoreNow(winner, winnerSnapshot, winnerReturn);
             winner.sendMessage(payout
                     ? "§a§lWygrałeś pojedynek! §f+" + BankGuiManager.formatMoney(duel.bet) + "$"
                     + " §7(ELO: " + formatEloChange(eloChange[0]) + ")"
                     : "§ePojedynek przerwany przez administrację.");
+            startWinnerCelebration(winner, winnerSnapshot, winnerReturn);
         }
 
         Player loser = Bukkit.getPlayer(loserUuid);
@@ -463,6 +470,56 @@ public class DuelManager {
         if (returnLoc != null && returnLoc.getWorld() != null) {
             player.teleport(returnLoc);
         }
+        player.sendMessage("§aWróciłeś z pojedynku.");
+    }
+
+    /**
+     * Zwycięzca nie wraca od razu - stoi (zamrożony, jak w odliczaniu przed startem) w arenie
+     * jeszcze WIN_CELEBRATION_SECONDS z widocznym licznikiem na action-barze, symetrycznie do
+     * fazy ducha przegranego - dopiero potem wraca do swojego ekwipunku/lokacji sprzed pojedynku.
+     */
+    private void startWinnerCelebration(Player player, Snapshot snapshot, Location returnLocation) {
+        frozenPlayers.add(player.getUniqueId());
+        TitleUtil.show(player, "§a§lWYGRAŁEŚ!", "§7Wracasz za " + WIN_CELEBRATION_SECONDS + "s...");
+        celebrating.put(player.getUniqueId(), new PendingRestore(snapshot, returnLocation, null));
+        tickCelebration(player.getUniqueId(), WIN_CELEBRATION_SECONDS);
+    }
+
+    private void tickCelebration(UUID uuid, int secondsLeft) {
+        if (!celebrating.containsKey(uuid)) {
+            return;
+        }
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null || !player.isOnline()) {
+            celebrating.remove(uuid);
+            frozenPlayers.remove(uuid);
+            return;
+        }
+        if (secondsLeft <= 0) {
+            finishCelebration(player);
+            return;
+        }
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§a§lWYGRANA §7- powrót za §f"
+                + secondsLeft + "s §7- wpisz §a/duel wroc §7by wrócić od razu"));
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> tickCelebration(uuid, secondsLeft - 1), 20L);
+    }
+
+    /** /duel wroc dla zwycięzcy - kończy odliczanie wcześniej. Zwraca false, jeśli gracz nie czeka teraz na powrót. */
+    public boolean returnFromCelebration(Player player) {
+        if (!celebrating.containsKey(player.getUniqueId())) {
+            return false;
+        }
+        finishCelebration(player);
+        return true;
+    }
+
+    private void finishCelebration(Player player) {
+        PendingRestore pending = celebrating.remove(player.getUniqueId());
+        frozenPlayers.remove(player.getUniqueId());
+        if (pending == null) {
+            return;
+        }
+        restoreNow(player, pending.getSnapshot(), pending.getReturnLocation());
         player.sendMessage("§aWróciłeś z pojedynku.");
     }
 

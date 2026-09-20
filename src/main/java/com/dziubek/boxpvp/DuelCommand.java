@@ -75,7 +75,7 @@ public class DuelCommand implements CommandExecutor {
         player.sendMessage("§c/duel invite <gracz> <stawka> §7- wyzwij gracza na pojedynek o pieniądze");
         player.sendMessage("§c/duel accept §7- przyjmij ostatnie zaproszenie");
         player.sendMessage("§c/duel leave §7- opuść kolejkę matchmakingu, poddaj się w pojedynku (przegrywasz stawkę) albo anuluj wysłane zaproszenie");
-        player.sendMessage("§c/duel wroc §7- jeśli jesteś duchem po przegranej, wraca Cię od razu (bez czekania 10s)");
+        player.sendMessage("§c/duel wroc §7- kończy 10s odliczanie po pojedynku (wygranej lub przegranej) i wraca Cię od razu");
         if (player.hasPermission(ADMIN_PERMISSION)) {
             player.sendMessage("§c/duel stop <gracz> §7- (admin) przerywa czyjś pojedynek, bez przepływu pieniędzy");
             player.sendMessage("§c/duel admincheck <gracz> §7- (admin) dołącza Cię jako widza (spectator) do czyjegoś pojedynku");
@@ -227,9 +227,9 @@ public class DuelCommand implements CommandExecutor {
     }
 
     private boolean handleReturn(Player player) {
-        boolean returned = plugin.getDuels().returnFromGhost(player);
+        boolean returned = plugin.getDuels().returnFromGhost(player) || plugin.getDuels().returnFromCelebration(player);
         if (!returned) {
-            player.sendMessage("§cNie jesteś teraz duchem po przegranym pojedynku.");
+            player.sendMessage("§cNie czekasz teraz na powrót z pojedynku.");
         }
         return true;
     }
