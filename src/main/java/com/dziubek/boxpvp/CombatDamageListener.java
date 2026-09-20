@@ -1,5 +1,11 @@
 package com.dziubek.boxpvp;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -46,9 +52,15 @@ public class CombatDamageListener implements Listener {
 
         plugin.getCheatWatch().onPlayerHit(attacker, attacker.getEyeLocation().distance(victim.getEyeLocation()));
 
+        // Kto stoi w chronionym regionie spawnu (np. Spawn01), nie dostaje combat-tagu - to ma być
+        // bezpieczna strefa bez kary za wylogowanie, nawet jeśli ktoś zdąży tam kogoś uderzyć.
         long duration = plugin.getCombatDurationSeconds();
-        alertIfFreshTag(victim, duration);
-        alertIfFreshTag(attacker, duration);
+        if (!isInProtectedSpawnRegion(victim.getLocation())) {
+            alertIfFreshTag(victim, duration);
+        }
+        if (!isInProtectedSpawnRegion(attacker.getLocation())) {
+            alertIfFreshTag(attacker, duration);
+        }
 
         if (event.getFinalDamage() >= CRIT_DAMAGE_THRESHOLD) {
             playCritMarker(victim);
@@ -72,6 +84,23 @@ public class CombatDamageListener implements Listener {
             TitleUtil.show(player, "§c§l⚔ WALKA!", "§7Nie wychodź z gry przez " + duration + "s!");
             player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.3f, 1.8f);
         }
+    }
+
+    /** Bez WorldGuard albo bez skonfigurowanego regionu po prostu nic nie robi (zawsze false). */
+    private boolean isInProtectedSpawnRegion(Location location) {
+        if (plugin.getServer().getPluginManager().getPlugin("WorldGuard") == null) {
+            return false;
+        }
+        RegionManager regions = WorldGuard.getInstance().getPlatform()
+                .getRegionContainer().get(BukkitAdapter.adapt(location.getWorld()));
+        if (regions == null) {
+            return false;
+        }
+        ProtectedRegion region = regions.getRegion(plugin.getProtectedRegionName());
+        if (region == null) {
+            return false;
+        }
+        return region.contains(BlockVector3.at(location.getX(), location.getY(), location.getZ()));
     }
 
     private Player resolvePlayerAttacker(EntityDamageByEntityEvent event) {

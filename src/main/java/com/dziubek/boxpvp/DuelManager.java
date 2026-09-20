@@ -713,8 +713,21 @@ public class DuelManager {
 
     // ================= Zapis/odczyt konfiguracji areny =================
 
+    /**
+     * Świat-szablon pojedynków to zwykle osobny, dodatkowy świat (nie jest w domyślnej trójce
+     * world/world_nether/world_the_end), więc Bukkit NIE ładuje go sam przy starcie serwera -
+     * bez jawnego Bukkit.createWorld() tutaj (dokładnie jak w setTemplateWorld()) świat zostaje
+     * niewczytany, Bukkit.getWorld() w loadArenaPosition() zwraca null, a cała konfiguracja
+     * areny wygląda jakby "zresetowała się" po każdym restarcie serwera.
+     */
     private void load() {
         templateWorldName = data.getString("template-world");
+        if (templateWorldName != null && Bukkit.getWorld(templateWorldName) == null) {
+            World world = Bukkit.createWorld(new WorldCreator(templateWorldName));
+            if (world == null) {
+                plugin.getLogger().warning("Nie udało się wczytać świata-szablonu pojedynków '" + templateWorldName + "'.");
+            }
+        }
         arenaPositionA = loadArenaPosition(1);
         arenaPositionB = loadArenaPosition(2);
     }
