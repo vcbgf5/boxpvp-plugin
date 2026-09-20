@@ -25,15 +25,25 @@ public class MatchmakingListener implements Listener {
             return;
         }
         MatchmakingGuiHolder holder = (MatchmakingGuiHolder) event.getInventory().getHolder();
-        if (holder.getKind() != MatchmakingGuiHolder.Kind.JOIN_PROMPT) {
-            return;
-        }
-        if (event.getRawSlot() != 13) {
-            return;
-        }
         Player player = (Player) event.getWhoClicked();
-        player.closeInventory();
-        plugin.getMatchmaking().awaitBet(player);
+
+        if (holder.getKind() == MatchmakingGuiHolder.Kind.JOIN_PROMPT) {
+            if (event.getRawSlot() != 13) {
+                return;
+            }
+            player.closeInventory();
+            plugin.getMatchmaking().awaitBet(player);
+            return;
+        }
+
+        if (holder.getKind() == MatchmakingGuiHolder.Kind.PREVIEW) {
+            int slot = event.getRawSlot();
+            if (slot == 2) {
+                plugin.getMatchmaking().accept(player);
+            } else if (slot == 6) {
+                plugin.getMatchmaking().decline(player);
+            }
+        }
     }
 
     @EventHandler

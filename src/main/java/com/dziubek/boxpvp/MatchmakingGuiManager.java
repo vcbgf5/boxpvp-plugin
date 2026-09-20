@@ -62,15 +62,28 @@ public class MatchmakingGuiManager {
         lore.add("");
         lore.add("§7Ekwipunek:");
         lore.addAll(describeInventory(opponent));
-        lore.add("");
-        lore.add("§eMapa przygotowywana...");
         meta.setLore(lore);
         head.setItemMeta(meta);
         inv.setItem(4, head);
 
+        inv.setItem(0, build(new ItemStack(Material.CLOCK), "§eMasz 5s",
+                List.of("§7Zaakceptuj, odrzuć, albo nic nie rób -", "§7pojedynek wystartuje sam po czasie")));
+        inv.setItem(2, build(new ItemStack(Material.LIME_DYE), "§a§l✔ Akceptuj",
+                List.of("§7Kliknij, żeby zacząć od razu", "§7(gdy obaj klikną, pomija resztę czekania)")));
+        inv.setItem(6, build(new ItemStack(Material.RED_DYE), "§c§l✖ Odrzuć",
+                List.of("§7Anuluje ten pojedynek", "§7Przeciwnik wraca do kolejki")));
+
         GuiDecor.fillEmpty(inv);
         viewer.openInventory(inv);
         GuiDecor.playOpenSound(viewer);
+    }
+
+    private ItemStack build(ItemStack base, String name, List<String> lore) {
+        ItemMeta meta = base.getItemMeta();
+        meta.setDisplayName(name);
+        meta.setLore(lore);
+        base.setItemMeta(meta);
+        return base;
     }
 
     private List<String> describeInventory(Player player) {

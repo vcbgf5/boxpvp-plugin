@@ -2,6 +2,7 @@ package com.dziubek.boxpvp;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,9 +15,10 @@ import java.util.UUID;
  * Kolejka matchmakingu dla bare "/duel" (bez wyzywania konkretnego gracza) - kolejkuje się ze
  * stawką podaną na czacie, a menedżer paruje graczy o możliwie zbliżonym "poziomie umiejętności"
  * (kille + najlepsza seria + saldo), zamiast czysto losowo. Po dobraniu pary obaj widzą podgląd
- * przeciwnika (głowa + ekwipunek w lore) przez PREP_TICKS ("serwer przygotowuje mapę"), po czym
- * pojedynek faktycznie startuje przez istniejący DuelManager#start - ten sam klon areny, animacja
- * wejścia i odliczanie co przy zaproszeniach 1v1.
+ * przeciwnika (głowa + ekwipunek w lore) i mają PREP_TICKS (5s) na kliknięcie "Akceptuj" (gdy
+ * OBAJ zaakceptują, pojedynek startuje od razu) albo "Odrzuć" (anuluje mecz, drugi gracz wraca do
+ * kolejki) - jeśli nikt nic nie kliknie, po 5s startuje mimo to. Start idzie przez istniejący
+ * DuelManager#start - ten sam klon areny, animacja wejścia i odliczanie co przy zaproszeniach 1v1.
  */
 public class MatchmakingManager {
 
@@ -26,6 +28,7 @@ public class MatchmakingManager {
     private final Map<UUID, Double> queue = new LinkedHashMap<>();
     private final Set<UUID> pendingBet = new HashSet<>();
     private final Set<UUID> busy = new HashSet<>();
+    private final Map<UUID, PendingMatch> pendingMatches = new HashMap<>();
 
     public MatchmakingManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -111,6 +114,77 @@ public class MatchmakingManager {
         queue.remove(uuid);
         pendingBet.remove(uuid);
         busy.remove(uuid);
+
+        PendingMatch match = pendingMatches.remove(uuid);
+        if (match == null) {
+            return;
+        }
+        UUID opponentUuid = match.opponentOf(uuid);
+        pendingMatches.remove(opponentUuid);
+        busy.remove(opponentUuid);
+        if (match.task != null) {
+            match.task.cancel();
+        }
+        Player opponent = Bukkit.getPlayer(opponentUuid);
+        if (opponent != null && opponent.isOnline()) {
+            opponent.sendMessage("§cPrzeciwnik rozłączył się, pojedynek anulowany.");
+            opponent.closeInventory();
+        }
+    }
+
+    public boolean isPendingMatch(UUID uuid) {
+        return pendingMatches.containsKey(uuid);
+    }
+
+    /** Klik "Akceptuj" w podglądzie przeciwnika - gdy OBAJ zaakceptują, pojedynek startuje od razu. */
+    public void accept(Player player) {
+        PendingMatch match = pendingMatches.get(player.getUniqueId());
+        if (match == null) {
+            return;
+        }
+        if (!match.accepted.add(player.getUniqueId())) {
+            return;
+        }
+        UUID opponentUuid = match.opponentOf(player.getUniqueId());
+        if (match.accepted.contains(opponentUuid)) {
+            player.sendMessage("§aObaj zaakceptowaliście - zaczynamy!");
+            if (match.task != null) {
+                match.task.cancel();
+            }
+            finishPrep(match);
+        } else {
+            player.sendMessage("§aZaakceptowano! Czekam na przeciwnika (albo minie 5s)...");
+            Player opponent = Bukkit.getPlayer(opponentUuid);
+            if (opponent != null && opponent.isOnline()) {
+                opponent.sendMessage("§ePrzeciwnik zaakceptował - kliknij §aAkceptuj§e, żeby zacząć od razu!");
+            }
+        }
+    }
+
+    /** Klik "Odrzuć" - anuluje dobrany mecz, przeciwnik automatycznie wraca do kolejki. */
+    public void decline(Player player) {
+        PendingMatch match = pendingMatches.get(player.getUniqueId());
+        if (match == null) {
+            return;
+        }
+        if (match.task != null) {
+            match.task.cancel();
+        }
+        pendingMatches.remove(match.playerA);
+        pendingMatches.remove(match.playerB);
+        busy.remove(match.playerA);
+        busy.remove(match.playerB);
+
+        UUID opponentUuid = match.opponentOf(player.getUniqueId());
+        player.closeInventory();
+        player.sendMessage("§eZrezygnowałeś z dobranego pojedynku.");
+
+        Player opponent = Bukkit.getPlayer(opponentUuid);
+        if (opponent != null && opponent.isOnline()) {
+            opponent.closeInventory();
+            opponent.sendMessage("§cPrzeciwnik zrezygnował - wracasz do kolejki.");
+            join(opponent, match.bet);
+        }
     }
 
     private double skillScore(UUID uuid) {
@@ -167,32 +241,64 @@ public class MatchmakingManager {
     }
 
     private void startPrep(Player a, Player b, double bet) {
-        a.sendMessage(Branding.chatPrefix() + "§a§lZnaleziono przeciwnika! §f" + b.getName());
-        b.sendMessage(Branding.chatPrefix() + "§a§lZnaleziono przeciwnika! §f" + a.getName());
+        a.sendMessage(Branding.chatPrefix() + "§a§lZnaleziono przeciwnika! §f" + b.getName()
+                + " §7- masz 5s: kliknij §aAkceptuj §7(zacznie od razu, gdy obaj klikną), §cOdrzuć §7albo nic nie rób.");
+        b.sendMessage(Branding.chatPrefix() + "§a§lZnaleziono przeciwnika! §f" + a.getName()
+                + " §7- masz 5s: kliknij §aAkceptuj §7(zacznie od razu, gdy obaj klikną), §cOdrzuć §7albo nic nie rób.");
+
+        PendingMatch match = new PendingMatch(a.getUniqueId(), b.getUniqueId(), bet);
+        pendingMatches.put(a.getUniqueId(), match);
+        pendingMatches.put(b.getUniqueId(), match);
+
         plugin.getMatchmakingGui().showOpponentPreview(a, b, bet);
         plugin.getMatchmakingGui().showOpponentPreview(b, a, bet);
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            busy.remove(a.getUniqueId());
-            busy.remove(b.getUniqueId());
-            if (!a.isOnline() || !b.isOnline()) {
-                if (a.isOnline()) {
-                    a.sendMessage("§cPrzeciwnik rozłączył się, pojedynek anulowany.");
-                    a.closeInventory();
-                }
-                if (b.isOnline()) {
-                    b.sendMessage("§cPrzeciwnik rozłączył się, pojedynek anulowany.");
-                    b.closeInventory();
-                }
-                return;
+        match.task = plugin.getServer().getScheduler().runTaskLater(plugin, () -> finishPrep(match), PREP_TICKS);
+    }
+
+    private void finishPrep(PendingMatch match) {
+        pendingMatches.remove(match.playerA);
+        pendingMatches.remove(match.playerB);
+        busy.remove(match.playerA);
+        busy.remove(match.playerB);
+
+        Player a = Bukkit.getPlayer(match.playerA);
+        Player b = Bukkit.getPlayer(match.playerB);
+        if (a == null || !a.isOnline() || b == null || !b.isOnline()) {
+            if (a != null && a.isOnline()) {
+                a.sendMessage("§cPrzeciwnik rozłączył się, pojedynek anulowany.");
+                a.closeInventory();
             }
-            a.closeInventory();
-            b.closeInventory();
-            boolean started = plugin.getDuels().start(a, b, bet);
-            if (!started) {
-                a.sendMessage("§cNie udało się rozpocząć pojedynku (problem ze światem areny).");
-                b.sendMessage("§cNie udało się rozpocząć pojedynku (problem ze światem areny).");
+            if (b != null && b.isOnline()) {
+                b.sendMessage("§cPrzeciwnik rozłączył się, pojedynek anulowany.");
+                b.closeInventory();
             }
-        }, PREP_TICKS);
+            return;
+        }
+        a.closeInventory();
+        b.closeInventory();
+        boolean started = plugin.getDuels().start(a, b, match.bet);
+        if (!started) {
+            a.sendMessage("§cNie udało się rozpocząć pojedynku (problem ze światem areny).");
+            b.sendMessage("§cNie udało się rozpocząć pojedynku (problem ze światem areny).");
+        }
+    }
+
+    private static final class PendingMatch {
+        final UUID playerA;
+        final UUID playerB;
+        final double bet;
+        final Set<UUID> accepted = new HashSet<>();
+        BukkitTask task;
+
+        PendingMatch(UUID playerA, UUID playerB, double bet) {
+            this.playerA = playerA;
+            this.playerB = playerB;
+            this.bet = bet;
+        }
+
+        UUID opponentOf(UUID uuid) {
+            return playerA.equals(uuid) ? playerB : playerA;
+        }
     }
 }

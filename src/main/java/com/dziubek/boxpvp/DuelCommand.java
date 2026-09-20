@@ -174,6 +174,10 @@ public class DuelCommand implements CommandExecutor {
             plugin.getDuels().forfeit(player);
             return true;
         }
+        if (plugin.getMatchmaking().isPendingMatch(player.getUniqueId())) {
+            plugin.getMatchmaking().decline(player);
+            return true;
+        }
         if (plugin.getMatchmaking().isQueued(player.getUniqueId())) {
             plugin.getMatchmaking().leave(player);
             return true;
