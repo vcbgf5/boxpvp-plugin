@@ -98,6 +98,10 @@ commands:
   report:
     description: Ogolne zgloszenie gracza administracji (inne niz /reportduel)
     usage: /report <gracz> [powod]
+  sprawdz:
+    description: Zabiera podejrzanego gracza (i Ciebie) do wyznaczonego miejsca sprawdzania i trzyma go tam do /sprawdz z (admin)
+    usage: /sprawdz setpoint|<gracz>|z <gracz>
+    permission: boxpvp.admin
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 

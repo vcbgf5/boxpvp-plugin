@@ -72,6 +72,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private MatchmakingGuiManager matchmakingGui;
     private CheatWatchManager cheatWatch;
     private ModerationManager moderation;
+    private CheckpointManager checkpoint;
 
     @Override
     public void onEnable() {
@@ -129,6 +130,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         matchmakingGui = new MatchmakingGuiManager(this);
         cheatWatch = new CheatWatchManager(this);
         moderation = new ModerationManager(this);
+        checkpoint = new CheckpointManager(this);
 
         setupEconomy();
 
@@ -191,6 +193,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RotatingShopListener(this), this);
         getServer().getPluginManager().registerEvents(new MatchmakingListener(this), this);
         getServer().getPluginManager().registerEvents(new ModerationListener(this), this);
+        getServer().getPluginManager().registerEvents(new CheckpointListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -225,6 +228,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("vanish").setExecutor(new VanishCommand(this));
         getCommand("freeze").setExecutor(new FreezeCommand(this));
         getCommand("report").setExecutor(new ReportCommand(this));
+        getCommand("sprawdz").setExecutor(new SprawdzCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -545,5 +549,9 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public ModerationManager getModeration() {
         return moderation;
+    }
+
+    public CheckpointManager getCheckpoint() {
+        return checkpoint;
     }
 }
