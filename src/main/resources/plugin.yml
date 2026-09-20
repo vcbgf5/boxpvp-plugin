@@ -63,8 +63,8 @@ commands:
     description: Otwiera GUI Rynku graczy - kupuj przedmioty wystawione przez innych graczy za monety
     usage: /rynek
   duel:
-    description: Pojedynki 1v1 na zaklad - swiezy klon areny na kazdy pojedynek, ekwipunek wraca po zakonczeniu - /duel invite|accept|leave|stop|admincheck
-    usage: /duel invite <gracz> <stawka>|accept|leave|stop <gracz>|admincheck <gracz>
+    description: Pojedynki 1v1 na zaklad - samo /duel otwiera GUI matchmakingu (dobiera przeciwnika), albo wyzwij kogos wprost - /duel invite|accept|leave|stop|admincheck
+    usage: /duel - GUI matchmakingu, /duel invite <gracz> <stawka>|accept|leave|stop <gracz>|admincheck <gracz>
     aliases: [duels]
   reportduel:
     description: Zglasza Twoj trwajacy pojedynek adminom online

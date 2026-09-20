@@ -33,8 +33,8 @@ public class LeaderboardManager {
     private static final long TIMER_REFRESH_TICKS = 20L;
     private static final String BOARD_TAG = "bpvp_leaderboard";
     private static final String TIMER_TYPE = "envoy";
-    private static final List<String> STAT_TYPES = List.of("kills", "coins", "killstreak", "elo");
-    private static final List<String> ALL_TYPES = List.of("kills", "coins", "killstreak", "elo", "envoy");
+    private static final List<String> STAT_TYPES = List.of("kills", "coins", "killstreak", "elo", "duelwins");
+    private static final List<String> ALL_TYPES = List.of("kills", "coins", "killstreak", "elo", "duelwins", "envoy");
 
     private final BoxPvpPlugin plugin;
     private final File file;
@@ -225,6 +225,8 @@ public class LeaderboardManager {
                 return Branding.accent("TOP 10 - Seria zabójstw");
             case "elo":
                 return Branding.accent("TOP 10 - Ranking ELO");
+            case "duelwins":
+                return Branding.accent("TOP 10 - Wygrane pojedynki");
             default:
                 return Branding.accent("TOP 10 - Zabójstwa");
         }

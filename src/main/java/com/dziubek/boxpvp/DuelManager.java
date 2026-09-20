@@ -374,6 +374,7 @@ public class DuelManager {
         int[] eloChange = null;
         if (payout) {
             eloChange = plugin.getElo().recordDuelResult(winnerUuid, nameOf(winnerUuid), loserUuid, nameOf(loserUuid));
+            plugin.getStats().recordDuelWin(winnerUuid, nameOf(winnerUuid));
         }
 
         Snapshot winnerSnapshot = duel.playerA.equals(winnerUuid) ? duel.snapshotA : duel.snapshotB;

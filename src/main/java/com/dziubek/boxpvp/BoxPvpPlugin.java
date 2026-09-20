@@ -68,6 +68,8 @@ public class BoxPvpPlugin extends JavaPlugin {
     private BoosterManager boosters;
     private RotatingShopManager rotatingShop;
     private RotatingShopGuiManager rotatingShopGui;
+    private MatchmakingManager matchmaking;
+    private MatchmakingGuiManager matchmakingGui;
 
     @Override
     public void onEnable() {
@@ -121,6 +123,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         boosters = new BoosterManager();
         rotatingShop = new RotatingShopManager(this);
         rotatingShopGui = new RotatingShopGuiManager(this);
+        matchmaking = new MatchmakingManager(this);
+        matchmakingGui = new MatchmakingGuiManager(this);
 
         setupEconomy();
 
@@ -180,6 +184,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TradeListener(this), this);
         getServer().getPluginManager().registerEvents(new LmsListener(this), this);
         getServer().getPluginManager().registerEvents(new RotatingShopListener(this), this);
+        getServer().getPluginManager().registerEvents(new MatchmakingListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -515,5 +520,13 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public RotatingShopGuiManager getRotatingShopGui() {
         return rotatingShopGui;
+    }
+
+    public MatchmakingManager getMatchmaking() {
+        return matchmaking;
+    }
+
+    public MatchmakingGuiManager getMatchmakingGui() {
+        return matchmakingGui;
     }
 }

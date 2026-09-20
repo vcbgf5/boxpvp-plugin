@@ -26,8 +26,7 @@ public class DuelCommand implements CommandExecutor {
         Player player = (Player) sender;
 
         if (args.length == 0) {
-            sendHelp(player);
-            return true;
+            return handleBareDuel(player);
         }
 
         switch (args[0].toLowerCase()) {
@@ -43,17 +42,39 @@ public class DuelCommand implements CommandExecutor {
                 return handleAdminCheck(player, args);
             case "wroc":
                 return handleReturn(player);
+            case "help":
+                sendHelp(player);
+                return true;
             default:
                 sendHelp(player);
                 return true;
         }
     }
 
+    /** Bare "/duel" (bez podkomendy) - otwiera GUI matchmakingu zamiast pomocy. */
+    private boolean handleBareDuel(Player player) {
+        if (!plugin.getDuels().isConfigured()) {
+            sendHelp(player);
+            return true;
+        }
+        if (plugin.getDuels().hasActiveDuel(player.getUniqueId())) {
+            player.sendMessage("§cJesteś już w trakcie pojedynku.");
+            return true;
+        }
+        if (plugin.getMatchmaking().isQueued(player.getUniqueId()) || plugin.getMatchmaking().isBusy(player.getUniqueId())) {
+            player.sendMessage("§cJesteś już w trakcie matchmakingu.");
+            return true;
+        }
+        plugin.getMatchmakingGui().openJoinPrompt(player);
+        return true;
+    }
+
     private void sendHelp(Player player) {
         player.sendMessage(Branding.accent("--- /duel ---"));
+        player.sendMessage("§c/duel §7- otwiera GUI matchmakingu (szuka Ci przeciwnika)");
         player.sendMessage("§c/duel invite <gracz> <stawka> §7- wyzwij gracza na pojedynek o pieniądze");
         player.sendMessage("§c/duel accept §7- przyjmij ostatnie zaproszenie");
-        player.sendMessage("§c/duel leave §7- poddaj się w trakcie pojedynku (przegrywasz stawkę) albo anuluj wysłane zaproszenie");
+        player.sendMessage("§c/duel leave §7- opuść kolejkę matchmakingu, poddaj się w pojedynku (przegrywasz stawkę) albo anuluj wysłane zaproszenie");
         player.sendMessage("§c/duel wroc §7- jeśli jesteś duchem po przegranej, wraca Cię od razu (bez czekania 10s)");
         if (player.hasPermission(ADMIN_PERMISSION)) {
             player.sendMessage("§c/duel stop <gracz> §7- (admin) przerywa czyjś pojedynek, bez przepływu pieniędzy");
@@ -70,7 +91,7 @@ public class DuelCommand implements CommandExecutor {
             player.sendMessage("§cUżycie: /duel invite <gracz> <stawka>");
             return true;
         }
-        if (plugin.getDuels().hasActiveDuel(player.getUniqueId())) {
+        if (plugin.getDuels().hasActiveDuel(player.getUniqueId()) || plugin.getMatchmaking().isBusy(player.getUniqueId())) {
             player.sendMessage("§cJesteś już w trakcie pojedynku.");
             return true;
         }
@@ -83,7 +104,7 @@ public class DuelCommand implements CommandExecutor {
             player.sendMessage("§cNie możesz wyzwać samego siebie.");
             return true;
         }
-        if (plugin.getDuels().hasActiveDuel(target.getUniqueId())) {
+        if (plugin.getDuels().hasActiveDuel(target.getUniqueId()) || plugin.getMatchmaking().isBusy(target.getUniqueId())) {
             player.sendMessage("§cTen gracz jest już w trakcie innego pojedynku.");
             return true;
         }
@@ -151,6 +172,10 @@ public class DuelCommand implements CommandExecutor {
     private boolean handleLeave(Player player) {
         if (plugin.getDuels().hasActiveDuel(player.getUniqueId())) {
             plugin.getDuels().forfeit(player);
+            return true;
+        }
+        if (plugin.getMatchmaking().isQueued(player.getUniqueId())) {
+            plugin.getMatchmaking().leave(player);
             return true;
         }
         if (plugin.getDuels().cancelOutgoingInvite(player.getUniqueId())) {

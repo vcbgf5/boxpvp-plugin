@@ -94,6 +94,14 @@ public class StatsManager {
         return data.getInt("players." + uuid + ".blocks-mined", 0);
     }
 
+    public void recordDuelWin(UUID uuid, String name) {
+        increment(uuid, name, "duel-wins");
+    }
+
+    public int getDuelWins(UUID uuid) {
+        return data.getInt("players." + uuid + ".duel-wins", 0);
+    }
+
     public int getBestKillstreak(UUID uuid) {
         return data.getInt("players." + uuid + ".best-killstreak", 0);
     }
@@ -160,6 +168,9 @@ public class StatsManager {
                     break;
                 case "killstreak":
                     value = data.getInt(base + ".best-killstreak", 0);
+                    break;
+                case "duelwins":
+                    value = data.getInt(base + ".duel-wins", 0);
                     break;
                 default:
                     value = data.getInt(base + ".crates-opened", 0);
