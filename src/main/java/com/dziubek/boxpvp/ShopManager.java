@@ -75,7 +75,8 @@ public class ShopManager {
         return data.getString("categories." + id + ".display-name", id);
     }
 
-    public int addItem(String category, ItemStack icon, double price, List<String> commands, ShopItemType type, String kitName) {
+    public int addItem(String category, ItemStack icon, double price, List<String> commands, ShopItemType type, String kitName,
+                        double boosterMultiplier, int boosterMinutes) {
         int index = data.getInt("categories." + category + ".next-index", 0);
         String base = "categories." + category + ".items." + index;
         data.set(base + ".item", icon);
@@ -83,6 +84,8 @@ public class ShopManager {
         data.set(base + ".commands", commands);
         data.set(base + ".type", type.name());
         data.set(base + ".kit-name", kitName);
+        data.set(base + ".booster-multiplier", boosterMultiplier);
+        data.set(base + ".booster-minutes", boosterMinutes);
         data.set("categories." + category + ".next-index", index + 1);
         save();
         return index;
@@ -136,8 +139,10 @@ public class ShopManager {
                 type = ShopItemType.COMMAND;
             }
             String kitName = data.getString(base + ".kit-name");
+            double boosterMultiplier = data.getDouble(base + ".booster-multiplier", 0);
+            int boosterMinutes = data.getInt(base + ".booster-minutes", 0);
 
-            map.put(index, new ShopItemData(icon, price, commands, type, kitName));
+            map.put(index, new ShopItemData(icon, price, commands, type, kitName, boosterMultiplier, boosterMinutes));
         }
         return map;
     }
@@ -156,13 +161,18 @@ public class ShopManager {
         public final List<String> commands;
         public final ShopItemType type;
         public final String kitName;
+        public final double boosterMultiplier;
+        public final int boosterMinutes;
 
-        public ShopItemData(ItemStack icon, double price, List<String> commands, ShopItemType type, String kitName) {
+        public ShopItemData(ItemStack icon, double price, List<String> commands, ShopItemType type, String kitName,
+                             double boosterMultiplier, int boosterMinutes) {
             this.icon = icon;
             this.price = price;
             this.commands = commands;
             this.type = type;
             this.kitName = kitName;
+            this.boosterMultiplier = boosterMultiplier;
+            this.boosterMinutes = boosterMinutes;
         }
     }
 }

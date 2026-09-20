@@ -107,6 +107,8 @@ public class ShopGuiListener implements Listener {
                 RewardRevealEffect.playLight(plugin, player, kitItems.get(0));
             }
             player.sendMessage("§aKupiono! Otrzymujesz kit '" + item.kitName + "'.");
+        } else if (item.type == ShopItemType.BOOST) {
+            plugin.getBoosters().give(player, item.boosterMultiplier, item.boosterMinutes);
         } else {
             for (String cmd : item.commands) {
                 String parsed = cmd.replace("%player%", player.getName());

@@ -115,7 +115,8 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp duel setpos1 §7/ §c setpos2 §7- ustawia OSOBNE pozycje startowe dla gracza 1 i 2 (musisz być w świecie-szablonie)");
         sender.sendMessage("§c/bpvp duel gototemplateworld §7- wraca do świata-szablonu areny (np. żeby coś dobudować)");
         sender.sendMessage("§c/bpvp booster give <gracz> <mnożnik> <minuty> §7- daje osobisty czasowy booster zarobków "
-                + "(użyj jako komendy przedmiotu w /sklep, np. 'bpvp booster give %player% 2 30')");
+                + "(stakuje się z już aktywnym - mnożniki mnożą się, czas się dodaje)");
+        sender.sendMessage("§c/bpvp booster remove <gracz> §7- zdejmuje aktywny booster gracza");
         sender.sendMessage("§c/bpvp rotshop add <cena> §7- dodaje trzymany przedmiot do puli rotującego sklepu (/rotshop)");
         sender.sendMessage("§c/bpvp rotshop remove <numer> §7- usuwa przedmiot z puli (numer z /bpvp rotshop list)");
         sender.sendMessage("§c/bpvp rotshop list §7- lista puli rotującego sklepu");
@@ -734,13 +735,29 @@ public class GeneratorCommand implements CommandExecutor {
     }
 
     private boolean handleBooster(CommandSender sender, String[] args) {
-        if (args.length < 5 || !args[1].equalsIgnoreCase("give")) {
-            sender.sendMessage("§cUżycie: /bpvp booster give <gracz> <mnożnik> <minuty>");
+        if (args.length < 3 || !(args[1].equalsIgnoreCase("give") || args[1].equalsIgnoreCase("remove"))) {
+            sender.sendMessage("§cUżycie: /bpvp booster give <gracz> <mnożnik> <minuty> §7lub§c /bpvp booster remove <gracz>");
             return true;
         }
         Player target = Bukkit.getPlayer(args[2]);
         if (target == null || !target.isOnline()) {
             sender.sendMessage("§cGracz '" + args[2] + "' nie jest online.");
+            return true;
+        }
+
+        if (args[1].equalsIgnoreCase("remove")) {
+            boolean removed = plugin.getBoosters().remove(target.getUniqueId());
+            if (removed) {
+                sender.sendMessage("§aZdjęto booster gracza " + target.getName() + ".");
+                target.sendMessage(Branding.chatPrefix() + "§eTwój booster zarobków został zdjęty przez administrację.");
+            } else {
+                sender.sendMessage("§cTen gracz nie ma aktywnego boostera.");
+            }
+            return true;
+        }
+
+        if (args.length < 5) {
+            sender.sendMessage("§cUżycie: /bpvp booster give <gracz> <mnożnik> <minuty>");
             return true;
         }
         double multiplier;

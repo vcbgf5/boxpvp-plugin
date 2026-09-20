@@ -30,9 +30,14 @@ public class ShopConfigGuiManager {
 
         inv.setItem(0, build(session.icon.clone(), null, Collections.singletonList("&7To zobaczą gracze w sklepie")));
 
+        String nameLabel = session.customName == null ? "&7(domyślna nazwa przedmiotu)" : "&f" + session.customName;
+        inv.setItem(1, build(new ItemStack(Material.NAME_TAG),
+                "&eNazwa: " + nameLabel,
+                List.of("&7Kliknij i wpisz nazwę na czacie", "&7Możesz użyć kolorów (znak & + litera/cyfra)")));
+
         inv.setItem(2, build(new ItemStack(Material.PAPER),
                 "&eTyp: &f" + session.type.name(),
-                List.of("&7Kliknij, aby zmienić", "&7KOMENDA -> KIT -> WALUTA")));
+                List.of("&7Kliknij, aby zmienić", "&7KOMENDA -> KIT -> WALUTA -> BOOSTER")));
 
         inv.setItem(4, build(new ItemStack(Material.GOLD_INGOT),
                 "&eCena: &f" + session.price,
@@ -46,6 +51,12 @@ public class ShopConfigGuiManager {
                     kitNames.isEmpty()
                             ? List.of("&cNie masz jeszcze żadnego kitu!", "&7Stwórz: /kit create <nazwa>")
                             : List.of("&7Kliknij, aby przełączać między kitami")));
+        } else if (session.type == ShopItemType.BOOST) {
+            String boostLabel = session.boosterMultiplier <= 0 ? "&cnie ustawiono"
+                    : "&ax" + trim(session.boosterMultiplier) + " &7na &a" + session.boosterMinutes + "min";
+            inv.setItem(6, build(new ItemStack(Material.SUGAR),
+                    "&eBooster: " + boostLabel,
+                    List.of("&7Kliknij i wpisz na czacie: &f<mnożnik> <minuty>", "&7np. '2 30' = x2 na 30 minut")));
         } else {
             String cmdLabel = session.commands.isEmpty() ? "&cbrak" : "&a" + session.commands.size() + " komenda/y";
             inv.setItem(6, build(new ItemStack(Material.WRITABLE_BOOK),
@@ -58,6 +69,13 @@ public class ShopConfigGuiManager {
 
         GuiDecor.fillEmpty(inv);
         player.openInventory(inv);
+    }
+
+    private static String trim(double value) {
+        if (value == Math.floor(value)) {
+            return String.valueOf((long) value);
+        }
+        return String.format("%.2f", value);
     }
 
     private ItemStack build(ItemStack base, String name, List<String> loreRaw) {

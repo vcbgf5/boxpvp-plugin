@@ -77,6 +77,9 @@ public class ShopGuiManager {
             List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
             lore.add("");
             lore.add(typeBadge(itemData.type));
+            if (itemData.type == ShopItemType.BOOST) {
+                lore.add("§7Mnożnik zarobków: §fx" + trim(itemData.boosterMultiplier) + " §7na §f" + itemData.boosterMinutes + "min");
+            }
             lore.add("§7Cena: §a" + itemData.price);
             lore.add("§eKliknij, aby kupić");
             meta.setLore(lore);
@@ -97,9 +100,18 @@ public class ShopGuiManager {
                 return "§d[KIT]";
             case CURRENCY:
                 return "§6[WALUTA]";
+            case BOOST:
+                return "§b[BOOSTER]";
             case COMMAND:
             default:
                 return "§7[KOMENDA]";
         }
+    }
+
+    private static String trim(double value) {
+        if (value == Math.floor(value)) {
+            return String.valueOf((long) value);
+        }
+        return String.format("%.2f", value);
     }
 }

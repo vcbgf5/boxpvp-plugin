@@ -1,9 +1,12 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
@@ -33,6 +36,11 @@ public class ShopConfigGuiListener implements Listener {
         }
 
         switch (event.getRawSlot()) {
+            case 1:
+                session.awaitingChatFor = "name";
+                player.closeInventory();
+                player.sendMessage("§eWpisz nazwę przedmiotu na czacie (& = kolor, np. &a), albo 'anuluj':");
+                break;
             case 2:
                 session.type = nextType(session.type);
                 plugin.getShopConfigGui().open(player);
@@ -68,6 +76,10 @@ public class ShopConfigGuiListener implements Listener {
             int idx = session.kitName == null ? -1 : names.indexOf(session.kitName);
             session.kitName = names.get((idx + 1) % names.size());
             plugin.getShopConfigGui().open(player);
+        } else if (session.type == ShopItemType.BOOST) {
+            session.awaitingChatFor = "boost";
+            player.closeInventory();
+            player.sendMessage("§eWpisz na czacie: §f<mnożnik> <minuty> §e(np. '2 30' = x2 na 30 minut), albo 'anuluj':");
         } else {
             session.awaitingChatFor = "commands";
             player.closeInventory();
@@ -90,6 +102,11 @@ public class ShopConfigGuiListener implements Listener {
                 player.sendMessage("§cWybierz kit.");
                 return;
             }
+        } else if (session.type == ShopItemType.BOOST) {
+            if (session.boosterMultiplier <= 0 || session.boosterMinutes <= 0) {
+                player.sendMessage("§cUstaw mnożnik i czas boostera.");
+                return;
+            }
         } else {
             if (session.commands.isEmpty()) {
                 player.sendMessage("§cUstaw przynajmniej jedną komendę.");
@@ -97,7 +114,15 @@ public class ShopConfigGuiListener implements Listener {
             }
         }
 
-        int index = plugin.getShop().addItem(session.category, session.icon, session.price, session.commands, session.type, session.kitName);
+        ItemStack icon = session.icon.clone();
+        if (session.customName != null) {
+            ItemMeta meta = icon.getItemMeta();
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', session.customName));
+            icon.setItemMeta(meta);
+        }
+
+        int index = plugin.getShop().addItem(session.category, icon, session.price, session.commands, session.type, session.kitName,
+                session.boosterMultiplier, session.boosterMinutes);
         plugin.getShopConfig().clearSession(player.getUniqueId());
         player.closeInventory();
         player.sendMessage("§aDodano przedmiot #" + index + " do kategorii '" + session.category + "'.");

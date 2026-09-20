@@ -51,6 +51,29 @@ public class ShopChatListener implements Listener {
                 return;
             }
             session.price = price;
+        } else if ("name".equals(session.awaitingChatFor)) {
+            session.customName = message;
+        } else if ("boost".equals(session.awaitingChatFor)) {
+            String[] parts = message.split("\\s+");
+            if (parts.length != 2) {
+                player.sendMessage("§cUżycie: <mnożnik> <minuty> (np. '2 30'), spróbuj ponownie:");
+                return;
+            }
+            double boosterMultiplier;
+            int boosterMinutes;
+            try {
+                boosterMultiplier = Double.parseDouble(parts[0].replace(",", "."));
+                boosterMinutes = Integer.parseInt(parts[1]);
+            } catch (NumberFormatException e) {
+                player.sendMessage("§cMnożnik i minuty muszą być liczbami, spróbuj ponownie:");
+                return;
+            }
+            if (boosterMultiplier <= 0 || boosterMinutes <= 0) {
+                player.sendMessage("§cMnożnik i minuty muszą być większe od 0, spróbuj ponownie:");
+                return;
+            }
+            session.boosterMultiplier = boosterMultiplier;
+            session.boosterMinutes = boosterMinutes;
         } else if ("commands".equals(session.awaitingChatFor)) {
             List<String> commands = new ArrayList<>();
             for (String part : message.split(";")) {
