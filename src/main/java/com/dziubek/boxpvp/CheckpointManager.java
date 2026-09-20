@@ -69,12 +69,19 @@ public class CheckpointManager {
         save();
     }
 
-    /** Zabiera podejrzanego do skrzynki i teleportuje admina obok - false jeśli już trzymany. */
+    /**
+     * Zabiera podejrzanego do skrzynki i teleportuje admina obok - false jeśli już trzymany.
+     * Ustawia allowFlight na czas trzymania - bez tego wanilijny serwer po dłuższym staniu w
+     * miejscu bez spadania (blokada ruchu nadpisuje pozycję co tick) wyrzuca gracza komunikatem
+     * "Flying is not enabled on tym serwerze".
+     */
     public boolean check(Player admin, Player target) {
         if (!isConfigured() || held.containsKey(target.getUniqueId())) {
             return false;
         }
         held.put(target.getUniqueId(), target.getLocation().clone());
+        target.setAllowFlight(true);
+        target.setFlying(false);
         target.teleport(point);
         admin.teleport(point.clone().add(1, 0, 0));
         return true;
@@ -87,6 +94,8 @@ public class CheckpointManager {
             return false;
         }
         if (target.isOnline() && returnLoc.getWorld() != null) {
+            target.setAllowFlight(false);
+            target.setFlying(false);
             target.teleport(returnLoc);
         }
         return true;

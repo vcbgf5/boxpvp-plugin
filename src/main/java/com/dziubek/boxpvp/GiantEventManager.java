@@ -514,35 +514,46 @@ public class GiantEventManager {
         if (now - tg.lastAttackAt < cooldown(THROW_COOLDOWN_MS, tg)) {
             return false;
         }
-        if (nearestPlayer(giant, THROW_RANGE) == null) {
+        Player target = nearestPlayer(giant, THROW_RANGE);
+        if (target == null) {
             return false;
         }
         tg.lastAttackAt = now;
+        tg.throwTargetUuid = target.getUniqueId();
         tg.busyUntil = now + THROW_WINDUP_TICKS * 50L + THROW_LIFETIME_TICKS * 50L + ATTACK_REST_MS;
         World world = giant.getWorld();
+        giant.lookAt(target.getEyeLocation());
         world.playSound(giant.getEyeLocation(), Sound.ENTITY_RAVAGER_ROAR, 0.6f, 1.3f);
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> executeThrow(giant), THROW_WINDUP_TICKS);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> executeThrow(giant, tg), THROW_WINDUP_TICKS);
         return true;
     }
 
     /**
+     * Rzuca w gracza namierzonego na POCZĄTKU zamachu (tg.throwTargetUuid) - nie przełącza się na
+     * kogoś, kto akurat podszedł bliżej w trakcie WINDUP - "celuje w gracza najbliższego" liczy się
+     * raz, w momencie rozpoczęcia ataku. Jeśli namierzony gracz zniknął (wylogował/zmienił świat/
+     * tryb) - dopiero wtedy szuka nowego najbliższego jako zapasowy cel.
      * Celuje w miejsce, w którym gracz BĘDZIE za tyle ticków, ile pocisk potrzebuje na dolecenie
-     * (prosta ekstrapolacja z jego aktualnej prędkości) - stąd "lepiej rzuca", bo trafia też w
-     * gracza biegnącego w bok, a nie tylko stojącego w miejscu.
+     * (prosta ekstrapolacja z jego aktualnej prędkości) - trafia też w gracza biegnącego w bok,
+     * a nie tylko stojącego w miejscu.
      */
-    private void executeThrow(Giant giant) {
+    private void executeThrow(Giant giant, TrackedGiant tg) {
         if (!giant.isValid() || giant.isDead()) {
             return;
         }
-        Player nearest = nearestPlayer(giant, THROW_RANGE);
-        if (nearest == null) {
+        Player target = tg.throwTargetUuid != null ? Bukkit.getPlayer(tg.throwTargetUuid) : null;
+        if (target == null || !target.isOnline() || target.getWorld() != giant.getWorld()
+                || target.getGameMode() == GameMode.CREATIVE || target.getGameMode() == GameMode.SPECTATOR) {
+            target = nearestPlayer(giant, THROW_RANGE);
+        }
+        if (target == null) {
             return;
         }
         World world = giant.getWorld();
         Location handAt = giant.getEyeLocation().subtract(0, 1.5, 0);
-        double roughDistance = Math.max(1.0, handAt.distance(nearest.getEyeLocation()));
+        double roughDistance = Math.max(1.0, handAt.distance(target.getEyeLocation()));
         double travelTicks = roughDistance / THROW_SPEED;
-        Vector predictedTarget = nearest.getEyeLocation().toVector().add(nearest.getVelocity().multiply(travelTicks));
+        Vector predictedTarget = target.getEyeLocation().toVector().add(target.getVelocity().multiply(travelTicks));
         Vector direction = predictedTarget.subtract(handAt.toVector());
         if (direction.lengthSquared() == 0) {
             return;
@@ -1003,6 +1014,8 @@ public class GiantEventManager {
         long lastSummonAt;
         /** Do tego momentu Giant stoi w miejscu i nie zaczyna kolejnego ataku (atak + przerwa po nim). */
         long busyUntil;
+        /** Gracz namierzony na początku zamachu do rzutu - rzut leci w NIEGO, nie w kogoś, kto akurat podszedł bliżej w trakcie zamachu. */
+        UUID throwTargetUuid;
         boolean raging;
         BukkitTask lifetimeTask;
 

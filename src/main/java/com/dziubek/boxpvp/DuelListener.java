@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -82,6 +83,25 @@ public class DuelListener implements Listener {
         if (plugin.getDuels().isDuelWorld(event.getBlock().getWorld())) {
             event.setCancelled(true);
         }
+    }
+
+    /**
+     * Siatka bezpieczeństwa - jeśli gracz dołącza do gry, a jego zapisana lokacja wskazuje na
+     * arenę pojedynku (np. rozłączył się w trakcie duela, a świat zdążył się już skasować),
+     * ląduje na normalnym spawnie zamiast w nieistniejącym/martwym świecie.
+     */
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (!plugin.getDuels().isDuelWorld(player.getWorld()) || !plugin.hasSurvivalSpawn()) {
+            return;
+        }
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) {
+                player.teleport(plugin.getSurvivalSpawn());
+                player.sendMessage("§eWróciłeś do gry w trakcie pojedynku - przeniesiono Cię na spawn.");
+            }
+        });
     }
 
     @EventHandler

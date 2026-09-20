@@ -74,14 +74,22 @@ public class ModerationManager {
         }
     }
 
-    /** Przełącza freeze na danym graczu. Zwraca nowy stan. */
+    /**
+     * Przełącza freeze na danym graczu. Zwraca nowy stan. Ustawia też allowFlight - bez tego
+     * wanilijny serwer po dłuższym staniu w miejscu bez spadania (blokada ruchu nadpisuje pozycję
+     * co tick) wyrzuca gracza komunikatem "Flying is not enabled on tym serwerze".
+     */
     public boolean toggleFreeze(Player target) {
         UUID uuid = target.getUniqueId();
         if (frozen.remove(uuid)) {
+            target.setAllowFlight(false);
+            target.setFlying(false);
             target.sendMessage("§aZostałeś odmrożony.");
             return false;
         }
         frozen.add(uuid);
+        target.setAllowFlight(true);
+        target.setFlying(false);
         target.sendMessage("§c§lZOSTAŁEŚ ZAMROŻONY §7przez administrację. Nie ruszaj się.");
         return true;
     }

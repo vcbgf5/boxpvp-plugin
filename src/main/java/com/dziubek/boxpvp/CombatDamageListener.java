@@ -26,6 +26,12 @@ public class CombatDamageListener implements Listener {
         }
         Player victim = (Player) event.getEntity();
 
+        // Pojedynki mają własny system "wyjścia z walki" (DuelManager#forfeit) - zwykły combat-tag
+        // (a z nim kara za wylogowanie w CombatQuitListener) nie powinien się do nich dokładać.
+        if (plugin.getDuels().isDuelWorld(victim.getWorld())) {
+            return;
+        }
+
         Player attacker = resolvePlayerAttacker(event);
         if (attacker == null) {
             return;

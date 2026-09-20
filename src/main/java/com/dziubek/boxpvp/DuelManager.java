@@ -15,10 +15,14 @@ import org.bukkit.WorldCreator;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Transformation;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +40,7 @@ import java.util.UUID;
  * Pojedynki 1v1 na zakład. Admin ustawia JEDEN "szablonowy" świat areny + dwie OSOBNE pozycje
  * startowe (/bpvp duel setworld|setpos1|setpos2) - każdy pojedynek dostaje świeżą, fizyczną
  * KOPIĘ tego świata na dysku, więc kilka pojedynków może iść naraz bez wchodzenia sobie w
- * drogę i bez trwałych zniszczeń w szablonie. Na starcie obaj gracze "zlatują z nieba" (2s
+ * drogę i bez trwałych zniszczeń w szablonie. Na starcie obaj gracze "zlatują z nieba" (5s
  * animacja) na swoje pozycje, po czym stoją zamrożeni i nietykalni przez 5s odliczania, zanim
  * walka się faktycznie zaczyna. Ekwipunek/HP/głód obu graczy jest migawkowany PRZED wejściem do
  * areny i przywracany PO wyjściu, więc śmierć w pojedynku nigdy nie kosztuje realnych
@@ -50,7 +54,7 @@ public class DuelManager {
     private static final long WORLD_DELETE_DELAY_TICKS = 20L * 13;
 
     private static final double ENTRANCE_FALL_HEIGHT = 20.0;
-    private static final long ENTRANCE_FALL_TICKS = 40L;
+    private static final long ENTRANCE_FALL_TICKS = 20L * 5;
     private static final int COUNTDOWN_SECONDS = 5;
     private static final int GHOST_SECONDS = 10;
     private static final int WIN_CELEBRATION_SECONDS = 10;
@@ -233,13 +237,34 @@ public class DuelManager {
     }
 
     /**
-     * Obaj gracze "zlatują z nieba" (2s, kontrolowana animacja teleportami, nie fizyka) na swoje
+     * "Zamraża" gracza (blokada ruchu - patrz DuelListener#onMove) - USTAWIA TEŻ allowFlight,
+     * bo bez tego wanilijny serwer po ~4s stania w miejscu bez spadania (my sami nadpisujemy
+     * pozycję co tick) uznaje go za latającego i wyrzuca komunikatem "Flying is not enabled on
+     * tym serwerze". Dotyczy to zarówno zamrożenia przed startem, jak i świętowania zwycięzcy.
+     */
+    private void freeze(Player player) {
+        frozenPlayers.add(player.getUniqueId());
+        player.setAllowFlight(true);
+        player.setFlying(false);
+    }
+
+    private void unfreeze(UUID uuid) {
+        frozenPlayers.remove(uuid);
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null && player.isOnline()) {
+            player.setAllowFlight(false);
+            player.setFlying(false);
+        }
+    }
+
+    /**
+     * Obaj gracze "zlatują z nieba" (5s, kontrolowana animacja teleportami, nie fizyka) na swoje
      * OSOBNE pozycje startowe, po czym stoją zamrożeni (zero ruchu, nietykalni) przez 5s
      * odliczania - dopiero po nim mogą się ruszać i bić.
      */
     private void beginEntrance(ActiveDuel duel, Player a, Player b, Location targetA, Location targetB) {
-        frozenPlayers.add(a.getUniqueId());
-        frozenPlayers.add(b.getUniqueId());
+        freeze(a);
+        freeze(b);
         a.setInvulnerable(true);
         b.setInvulnerable(true);
 
@@ -262,8 +287,15 @@ public class DuelManager {
         Location at = target.clone();
         at.setY(start.getY() + (target.getY() - start.getY()) * eased);
         player.teleport(at);
-        player.getWorld().spawnParticle(Particle.CLOUD, at, 2, 0.2, 0.1, 0.2, 0.01);
-        player.getWorld().spawnParticle(Particle.END_ROD, at, 1, 0.1, 0.3, 0.1, 0.005);
+
+        World world = player.getWorld();
+        world.spawnParticle(Particle.CLOUD, at, 3, 0.25, 0.15, 0.25, 0.01);
+        world.spawnParticle(Particle.END_ROD, at, 2, 0.15, 0.35, 0.15, 0.006);
+        world.spawnParticle(Particle.SMOKE, at, 2, 0.2, 0.1, 0.2, 0.01);
+        if (tick % 5 == 0) {
+            world.spawnParticle(Particle.FIREWORK, at, 6, 0.3, 0.3, 0.3, 0.02);
+            player.playSound(at, Sound.ITEM_ELYTRA_FLYING, 0.4f, 1.8f);
+        }
 
         if (t >= 1.0) {
             onLanded(duel, player);
@@ -273,8 +305,14 @@ public class DuelManager {
     }
 
     private void onLanded(ActiveDuel duel, Player player) {
-        player.getWorld().spawnParticle(Particle.EXPLOSION, player.getLocation(), 1);
-        player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 0.7f, 1.3f);
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        world.spawnParticle(Particle.EXPLOSION, at, 1);
+        world.spawnParticle(Particle.CLOUD, at, 40, 0.6, 0.1, 0.6, 0.05);
+        world.spawnParticle(Particle.BLOCK, at, 25, 0.5, 0.2, 0.5, 0.1,
+                at.getBlock().getRelative(BlockFace.DOWN).getBlockData());
+        player.playSound(at, Sound.ITEM_TOTEM_USE, 0.7f, 1.3f);
+        player.playSound(at, Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.6f);
         duel.landedCount++;
         if (duel.landedCount >= 2) {
             startCountdown(duel, COUNTDOWN_SECONDS);
@@ -296,21 +334,28 @@ public class DuelManager {
                 continue;
             }
             showCountdownNumber(p, secondsLeft);
-            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1.0f, 1.0f);
         }
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> startCountdown(duel, secondsLeft - 1), 20L);
     }
 
+    /** Licznik przyspiesza wizualnie im bliżej startu - większy, jaśniejszy i z wyższym dźwiękiem na "1". */
     private void showCountdownNumber(Player player, int number) {
         World world = player.getWorld();
-        TextDisplay display = world.spawn(player.getEyeLocation().add(0, 1.0, 0), TextDisplay.class, e -> {
+        String color = number <= 1 ? "§a§l" : number == 2 ? "§e§l" : "§c§l";
+        Location loc = player.getEyeLocation().add(0, 1.0, 0);
+        float scale = 1.0f + (COUNTDOWN_SECONDS - number) * 0.15f;
+        TextDisplay display = world.spawn(loc, TextDisplay.class, e -> {
             e.setBillboard(Display.Billboard.CENTER);
             e.setGravity(false);
             e.setPersistent(false);
             e.setInvulnerable(true);
-            e.setText("§e§l" + number);
+            e.setText(color + number);
             e.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+            e.setTransformation(new Transformation(new Vector3f(0f, 0f, 0f), new Quaternionf(),
+                    new Vector3f(scale, scale, scale), new Quaternionf()));
         });
+        world.spawnParticle(Particle.END_ROD, loc, 12, 0.3, 0.3, 0.3, 0.02);
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1.0f, 1.0f + (COUNTDOWN_SECONDS - number) * 0.15f);
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (display.isValid()) {
                 display.remove();
@@ -323,13 +368,16 @@ public class DuelManager {
             if (p == null) {
                 continue;
             }
-            frozenPlayers.remove(p.getUniqueId());
+            unfreeze(p.getUniqueId());
             if (!p.isOnline()) {
                 continue;
             }
             p.setInvulnerable(false);
             TitleUtil.show(p, "§c§lWALKA!", "");
             p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.5f);
+            p.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 1.0f);
+            p.getWorld().spawnParticle(Particle.FIREWORK, p.getLocation().add(0, 1, 0), 40, 0.5, 0.5, 0.5, 0.08);
+            p.getWorld().spawnParticle(Particle.SWEEP_ATTACK, p.getLocation().add(0, 1, 0), 6, 0.4, 0.2, 0.4, 0);
         }
     }
 
@@ -376,8 +424,8 @@ public class DuelManager {
             return;
         }
         duel.completed = true;
-        frozenPlayers.remove(winnerUuid);
-        frozenPlayers.remove(loserUuid);
+        unfreeze(winnerUuid);
+        unfreeze(loserUuid);
 
         if (payout && plugin.getEconomy() != null && duel.bet > 0) {
             plugin.getEconomy().withdrawPlayer(Bukkit.getOfflinePlayer(loserUuid), duel.bet);
@@ -487,7 +535,7 @@ public class DuelManager {
      * fazy ducha przegranego - dopiero potem wraca do swojego ekwipunku/lokacji sprzed pojedynku.
      */
     private void startWinnerCelebration(Player player, Snapshot snapshot, Location returnLocation) {
-        frozenPlayers.add(player.getUniqueId());
+        freeze(player);
         TitleUtil.show(player, "§a§lWYGRAŁEŚ!", "§7Wracasz za " + WIN_CELEBRATION_SECONDS + "s...");
         celebrating.put(player.getUniqueId(), new PendingRestore(snapshot, returnLocation, null));
         tickCelebration(player.getUniqueId(), WIN_CELEBRATION_SECONDS);
@@ -500,7 +548,7 @@ public class DuelManager {
         Player player = Bukkit.getPlayer(uuid);
         if (player == null || !player.isOnline()) {
             celebrating.remove(uuid);
-            frozenPlayers.remove(uuid);
+            unfreeze(uuid);
             return;
         }
         if (secondsLeft <= 0) {
@@ -523,7 +571,7 @@ public class DuelManager {
 
     private void finishCelebration(Player player) {
         PendingRestore pending = celebrating.remove(player.getUniqueId());
-        frozenPlayers.remove(player.getUniqueId());
+        unfreeze(player.getUniqueId());
         if (pending == null) {
             return;
         }
