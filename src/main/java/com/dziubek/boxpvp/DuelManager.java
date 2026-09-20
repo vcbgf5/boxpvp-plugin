@@ -4,7 +4,9 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.Difficulty;
 import org.bukkit.GameMode;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -52,6 +54,7 @@ public class DuelManager {
     private static final int COUNTDOWN_SECONDS = 5;
     private static final int GHOST_SECONDS = 10;
     private static final int WIN_CELEBRATION_SECONDS = 10;
+    private static final String DUEL_WORLD_PREFIX = "duel_";
 
     private final BoxPvpPlugin plugin;
     private final File file;
@@ -103,6 +106,11 @@ public class DuelManager {
 
     public boolean isFrozen(UUID uuid) {
         return frozenPlayers.contains(uuid);
+    }
+
+    /** Czy dany świat to świeżo sklonowana, "żywa" arena pojedynku (a nie szablon czy zwykły świat). */
+    public boolean isDuelWorld(World world) {
+        return world != null && world.getName().startsWith(DUEL_WORLD_PREFIX);
     }
 
     /** Ustawia świat-szablon areny - jeśli nie jest jeszcze wczytany, próbuje go załadować. */
@@ -582,7 +590,7 @@ public class DuelManager {
     // ================= Klonowanie/kasowanie świata areny =================
 
     private World cloneTemplateWorld(World template) {
-        String newName = "duel_" + (duelCounter++) + "_" + System.currentTimeMillis();
+        String newName = DUEL_WORLD_PREFIX + (duelCounter++) + "_" + System.currentTimeMillis();
         File target = new File(Bukkit.getWorldContainer(), newName);
         try {
             copyDirectory(template.getWorldFolder().toPath(), target.toPath());
@@ -592,7 +600,25 @@ public class DuelManager {
         }
         WorldCreator creator = new WorldCreator(newName);
         creator.environment(template.getEnvironment());
-        return Bukkit.createWorld(creator);
+        World world = Bukkit.createWorld(creator);
+        if (world != null) {
+            applyArenaRules(world);
+        }
+        return world;
+    }
+
+    /**
+     * Świeżo sklonowana arena zawsze dostaje te same "zasady walki" niezależnie od tego, co jest
+     * ustawione w szablonie - zero moby, zawsze dzień, spokojny poziom trudności jako dodatkowa
+     * siatka bezpieczeństwa - żeby nic nie rozpraszało ani nie niszczyło areny w trakcie walki.
+     * Niszczenie bloków blokuje osobno DuelListener#onBlockBreak (na podstawie isDuelWorld()).
+     */
+    private void applyArenaRules(World world) {
+        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+        world.setTime(6000L);
+        world.setSpawnFlags(false, false);
+        world.setDifficulty(Difficulty.PEACEFUL);
     }
 
     private static void copyDirectory(Path source, Path target) throws IOException {

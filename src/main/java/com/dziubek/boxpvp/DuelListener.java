@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -73,6 +74,14 @@ public class DuelListener implements Listener {
             return;
         }
         event.setTo(new Location(to.getWorld(), from.getX(), from.getY(), from.getZ(), to.getYaw(), to.getPitch()));
+    }
+
+    /** Areny pojedynków są jednorazowymi kopiami - nikt nie powinien móc trwale ich zniszczyć. */
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        if (plugin.getDuels().isDuelWorld(event.getBlock().getWorld())) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
