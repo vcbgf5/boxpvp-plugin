@@ -31,6 +31,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private ShopConfigManager shopConfig;
     private ShopConfigGuiManager shopConfigGui;
     private DecentHologramsHook decentHolograms;
+    private InfoHologramManager infoHolograms;
     private CrateRewardSessionManager crateRewardSessions;
     private StatsManager stats;
     private CratePreviewGuiManager cratePreviewGui;
@@ -89,6 +90,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         shopConfig = new ShopConfigManager();
         shopConfigGui = new ShopConfigGuiManager(this);
         decentHolograms = new DecentHologramsHook(this);
+        infoHolograms = new InfoHologramManager(this);
         crateRewardSessions = new CrateRewardSessionManager();
         stats = new StatsManager(this);
         cratePreviewGui = new CratePreviewGuiManager(this);
@@ -159,6 +161,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         elo.start();
         rotatingShop.start();
         cheatWatch.start();
+        infoHolograms.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
@@ -553,5 +556,9 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public CheckpointManager getCheckpoint() {
         return checkpoint;
+    }
+
+    public InfoHologramManager getInfoHolograms() {
+        return infoHolograms;
     }
 }

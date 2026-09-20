@@ -16,7 +16,7 @@ public class GeneratorTabCompleter implements TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of("wand", "create", "remove", "list", "villager",
             "sellprice", "event", "leaderboard", "movehologram", "craftblock", "giveset", "teleportto",
-            "duel", "booster", "rotshop");
+            "duel", "booster", "rotshop", "infohologram");
     private static final List<String> VILLAGER_ACTIONS = List.of("create", "remove");
     private static final List<String> SELLPRICE_ACTIONS = List.of("set", "remove", "list");
     private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "mega", "zombie", "megazombie", "setzone1", "setzone2",
@@ -114,6 +114,13 @@ public class GeneratorTabCompleter implements TabCompleter {
 
         if (sub.equals("rotshop") && args.length == 2) {
             return filter(ROTSHOP_ACTIONS, args[1]);
+        }
+
+        if (sub.equals("infohologram") && args.length == 2) {
+            List<String> options = new ArrayList<>(InfoHologramManager.topics());
+            options.add("remove");
+            options.add("list");
+            return filter(options, args[1]);
         }
 
         return new ArrayList<>();

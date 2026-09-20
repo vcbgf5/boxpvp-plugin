@@ -74,6 +74,8 @@ public class GeneratorCommand implements CommandExecutor {
                 return handleBooster(sender, args);
             case "rotshop":
                 return handleRotShop(sender, args);
+            case "infohologram":
+                return handleInfoHologram(sender, args);
             default:
                 sendHelp(sender);
                 return true;
@@ -120,6 +122,10 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp rotshop add <cena> §7- dodaje trzymany przedmiot do puli rotującego sklepu (/rotshop)");
         sender.sendMessage("§c/bpvp rotshop remove <numer> §7- usuwa przedmiot z puli (numer z /bpvp rotshop list)");
         sender.sendMessage("§c/bpvp rotshop list §7- lista puli rotującego sklepu");
+        sender.sendMessage("§c/bpvp infohologram <temat> §7- stawia hologram-info dla graczy tu, gdzie stoisz "
+                + "(tematy: " + String.join(", ", InfoHologramManager.topics()) + ")");
+        sender.sendMessage("§c/bpvp infohologram remove <id> §7- usuwa postawiony hologram-info");
+        sender.sendMessage("§c/bpvp infohologram list §7- lista dostępnych tematów");
     }
 
     private boolean handleWand(CommandSender sender) {
@@ -839,6 +845,49 @@ public class GeneratorCommand implements CommandExecutor {
                 sender.sendMessage("§cUżycie: /bpvp rotshop add <cena>|remove <numer>|list");
                 return true;
         }
+    }
+
+    private boolean handleInfoHologram(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Tej komendy może użyć tylko gracz.");
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("§cUżycie: /bpvp infohologram <temat>|remove <id>|list");
+            sender.sendMessage("§7Tematy: §f" + String.join(", ", InfoHologramManager.topics()));
+            return true;
+        }
+        Player player = (Player) sender;
+        String action = args[1].toLowerCase();
+
+        if (action.equals("list")) {
+            sender.sendMessage("§7Dostępne tematy: §f" + String.join(", ", InfoHologramManager.topics()));
+            return true;
+        }
+        if (action.equals("remove")) {
+            if (args.length < 3) {
+                sender.sendMessage("§cUżycie: /bpvp infohologram remove <id>");
+                return true;
+            }
+            int id;
+            try {
+                id = Integer.parseInt(args[2]);
+            } catch (NumberFormatException e) {
+                sender.sendMessage("§cID musi być liczbą.");
+                return true;
+            }
+            boolean removed = plugin.getInfoHolograms().remove(id);
+            sender.sendMessage(removed ? "§aUsunięto hologram #" + id + "." : "§cNie znaleziono hologramu o takim ID.");
+            return true;
+        }
+
+        Integer id = plugin.getInfoHolograms().place(action, player.getLocation());
+        if (id == null) {
+            sender.sendMessage("§cNieznany temat. Dostępne: §f" + String.join(", ", InfoHologramManager.topics()));
+            return true;
+        }
+        sender.sendMessage("§aPostawiono hologram '" + action + "' (#" + id + ") tu, gdzie stoisz.");
+        return true;
     }
 
     private boolean handleTeleportTo(CommandSender sender, String[] args) {
