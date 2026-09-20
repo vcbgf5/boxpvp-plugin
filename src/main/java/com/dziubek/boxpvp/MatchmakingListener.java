@@ -28,11 +28,14 @@ public class MatchmakingListener implements Listener {
         Player player = (Player) event.getWhoClicked();
 
         if (holder.getKind() == MatchmakingGuiHolder.Kind.JOIN_PROMPT) {
-            if (event.getRawSlot() != 13) {
-                return;
+            int slot = event.getRawSlot();
+            if (slot == 11) {
+                player.closeInventory();
+                plugin.getMatchmaking().awaitBet(player, false);
+            } else if (slot == 15) {
+                player.closeInventory();
+                plugin.getMatchmaking().awaitBet(player, true);
             }
-            player.closeInventory();
-            plugin.getMatchmaking().awaitBet(player);
             return;
         }
 

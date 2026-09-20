@@ -28,33 +28,29 @@ public class MatchmakingGuiManager {
         Inventory inv = Bukkit.createInventory(new MatchmakingGuiHolder(MatchmakingGuiHolder.Kind.JOIN_PROMPT),
                 27, Branding.accent("Matchmaking - /duel"));
 
-        ItemStack join = new ItemStack(Material.LIME_WOOL);
-        ItemMeta meta = join.getItemMeta();
-        meta.setDisplayName("§a§lDołącz do kolejki!");
-        List<String> lore = new ArrayList<>();
-        lore.add("§7Zostaniesz sparowany z przeciwnikiem");
-        lore.add("§7o podobnym poziomie (kille, seria, kasa).");
-        lore.add("");
-        lore.add("§eKliknij, a potem napisz na czacie");
-        lore.add("§eile monet chcesz obstawić.");
-        meta.setLore(lore);
-        join.setItemMeta(meta);
-        inv.setItem(13, join);
+        inv.setItem(11, build(new ItemStack(Material.LIME_WOOL), "§a§lZwykły matchmaking",
+                List.of("§7Dobiera przeciwnika wg killi,", "§7serii zabójstw i kasy.", "",
+                        "§eKliknij, a potem napisz na czacie", "§eile monet chcesz obstawić.")));
+
+        inv.setItem(15, build(new ItemStack(Material.DIAMOND), "§b§lRanked (wg ELO)",
+                List.of("§7Dobiera przeciwnika o zbliżonym", "§7ratingu ELO §f(Twój: " + plugin.getElo().getRating(player.getUniqueId()) + ")", "",
+                        "§eKliknij, a potem napisz na czacie", "§eile monet chcesz obstawić.")));
 
         GuiDecor.fillEmpty(inv);
         player.openInventory(inv);
         GuiDecor.playOpenSound(player);
     }
 
-    public void showOpponentPreview(Player viewer, Player opponent, double bet) {
-        Inventory inv = Bukkit.createInventory(new MatchmakingGuiHolder(MatchmakingGuiHolder.Kind.PREVIEW),
-                9, Branding.accent("Przeciwnik znaleziony!"));
+    public void showOpponentPreview(Player viewer, Player opponent, double bet, boolean ranked) {
+        String title = ranked ? "§bRanked §7- przeciwnik znaleziony!" : Branding.accent("Przeciwnik znaleziony!");
+        Inventory inv = Bukkit.createInventory(new MatchmakingGuiHolder(MatchmakingGuiHolder.Kind.PREVIEW), 9, title);
 
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) head.getItemMeta();
         meta.setOwningPlayer(opponent);
         meta.setDisplayName("§e" + opponent.getName());
         List<String> lore = new ArrayList<>();
+        lore.add("§7ELO: §f" + plugin.getElo().getRating(opponent.getUniqueId()));
         lore.add("§7Kille: §f" + plugin.getStats().getKills(opponent.getUniqueId()));
         lore.add("§7Najlepsza seria: §f" + plugin.getStats().getBestKillstreak(opponent.getUniqueId()));
         lore.add("§7Wygrane pojedynki: §f" + plugin.getStats().getDuelWins(opponent.getUniqueId()));

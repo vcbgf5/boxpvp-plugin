@@ -10,6 +10,7 @@ import java.util.List;
 public class EloCommand implements CommandExecutor {
 
     public static final int TOP_LIMIT = 10;
+    private static final String ADMIN_PERMISSION = "boxpvp.admin";
 
     private final BoxPvpPlugin plugin;
 
@@ -23,14 +24,35 @@ public class EloCommand implements CommandExecutor {
             sendTop(sender);
             return true;
         }
+        if (args.length > 0 && args[0].equalsIgnoreCase("season")) {
+            sendSeason(sender);
+            return true;
+        }
+        if (args.length > 0 && args[0].equalsIgnoreCase("endseason")) {
+            if (!sender.hasPermission(ADMIN_PERMISSION)) {
+                sender.sendMessage("§cNie masz uprawnień.");
+                return true;
+            }
+            plugin.getElo().endSeason();
+            sender.sendMessage("§aZakończono sezon ELO ręcznie.");
+            return true;
+        }
         if (!(sender instanceof Player)) {
-            sender.sendMessage("Tej komendy może użyć tylko gracz (albo /elo top).");
+            sender.sendMessage("Tej komendy może użyć tylko gracz (albo /elo top|season).");
             return true;
         }
         Player player = (Player) sender;
         int rating = plugin.getElo().getRating(player.getUniqueId());
         player.sendMessage(Branding.chatPrefix() + "§7Twój ranking ELO (z pojedynków): §f" + rating);
         return true;
+    }
+
+    private void sendSeason(CommandSender sender) {
+        long millis = plugin.getElo().getSeasonMillisRemaining();
+        long days = millis / (24L * 60 * 60 * 1000);
+        long hours = (millis / (60L * 60 * 1000)) % 24;
+        sender.sendMessage(Branding.chatPrefix() + "§7Sezon ELO kończy się za: §f" + days + "d " + hours + "h");
+        sender.sendMessage("§7Nagrody za TOP 3 na koniec sezonu: §a500$ / 300$ / 150$");
     }
 
     private void sendTop(CommandSender sender) {

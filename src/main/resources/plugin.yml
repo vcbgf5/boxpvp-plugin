@@ -79,8 +79,8 @@ commands:
     description: Zapisy na event Ostatni Ocalaly (admin startuje przez /bpvp event lms) - /lms join|leave
     usage: /lms join|leave
   elo:
-    description: Pokazuje Twoj ranking ELO z pojedynkow (/duel) albo /elo top 10 najlepszych
-    usage: /elo|top
+    description: Pokazuje Twoj ranking ELO z pojedynkow (/duel) albo /elo top 10 najlepszych - sezon resetuje sie co 14 dni z nagroda dla TOP 3
+    usage: /elo|top|season
   booster:
     description: Pokazuje Twoj aktywny booster zarobkow kupiony w /sklep
     usage: /booster
@@ -102,6 +102,12 @@ commands:
     description: Zabiera podejrzanego gracza (i Ciebie) do wyznaczonego miejsca sprawdzania i trzyma go tam do /sprawdz z (admin)
     usage: /sprawdz setpoint|<gracz>|z <gracz>
     permission: boxpvp.admin
+  clan:
+    description: Trwale klany z tagiem na czacie i wspolnym bankiem - /clan create|invite|accept|leave|kick|disband|info|list|bank
+    usage: /clan create <tag>|invite <gracz>|accept|leave|kick <gracz>|disband|info [tag]|list|bank deposit|withdraw <kwota>
+  friend:
+    description: Lista znajomych z powiadomieniem o dolaczeniu - /friend add|remove|list
+    usage: /friend add <gracz>|remove <gracz>|list
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 

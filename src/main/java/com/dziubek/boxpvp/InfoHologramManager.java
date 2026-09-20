@@ -207,6 +207,24 @@ public class InfoHologramManager {
                 "§7/missions - dzienne i tygodniowe zadania",
                 "§7Ukończ zadanie, żeby odebrać nagrodę"
         ));
+        map.put("clan", List.of(
+                "§6§l★ Klany",
+                "§7/clan create <tag> - załóż własny klan",
+                "§7/clan invite <gracz> - zaproś do klanu",
+                "§7/clan bank deposit|withdraw - wspólna kasa klanu"
+        ));
+        map.put("friends", List.of(
+                "§b§l★ Znajomi",
+                "§7/friend add <gracz> - dodaj do znajomych",
+                "§7/friend list - zobacz kto jest online",
+                "§7Dostaniesz powiadomienie gdy znajomy dołączy!"
+        ));
+        map.put("ranked", List.of(
+                "§d§l★ Ranked",
+                "§7Wpisz §f/duel §7i wybierz §bRanked",
+                "§7Dobiera przeciwnika o zbliżonym ELO",
+                "§7Co 14 dni koniec sezonu - TOP 3 dostaje nagrodę!"
+        ));
         return map;
     }
 }

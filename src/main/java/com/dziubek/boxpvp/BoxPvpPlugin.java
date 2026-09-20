@@ -66,6 +66,8 @@ public class BoxPvpPlugin extends JavaPlugin {
     private HillEventManager hillEvent;
     private LastManStandingManager lms;
     private EloManager elo;
+    private ClanManager clans;
+    private FriendManager friends;
     private BoosterManager boosters;
     private RotatingShopManager rotatingShop;
     private RotatingShopGuiManager rotatingShopGui;
@@ -125,6 +127,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         hillEvent = new HillEventManager(this);
         lms = new LastManStandingManager(this);
         elo = new EloManager(this);
+        clans = new ClanManager(this);
+        friends = new FriendManager(this);
         boosters = new BoosterManager();
         rotatingShop = new RotatingShopManager(this);
         rotatingShopGui = new RotatingShopGuiManager(this);
@@ -159,6 +163,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         stats.start();
         playtime.start();
         elo.start();
+        clans.start();
+        friends.start();
         rotatingShop.start();
         cheatWatch.start();
         infoHolograms.start();
@@ -196,6 +202,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RotatingShopListener(this), this);
         getServer().getPluginManager().registerEvents(new MatchmakingListener(this), this);
         getServer().getPluginManager().registerEvents(new ModerationListener(this), this);
+        getServer().getPluginManager().registerEvents(new ClanChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new FriendJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new CheckpointListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
@@ -226,6 +234,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("lms").setExecutor(new LmsCommand(this));
         getCommand("reportduel").setExecutor(new ReportDuelCommand(this));
         getCommand("elo").setExecutor(new EloCommand(this));
+        getCommand("clan").setExecutor(new ClanCommand(this));
+        getCommand("friend").setExecutor(new FriendCommand(this));
         getCommand("booster").setExecutor(new BoosterCommand(this));
         getCommand("rotshop").setExecutor(new RotShopCommand(this));
         getCommand("vanish").setExecutor(new VanishCommand(this));
@@ -524,6 +534,14 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public EloManager getElo() {
         return elo;
+    }
+
+    public ClanManager getClans() {
+        return clans;
+    }
+
+    public FriendManager getFriends() {
+        return friends;
     }
 
     public BoosterManager getBoosters() {
