@@ -77,21 +77,16 @@ public class MatchmakingGuiManager {
         List<String> lines = new ArrayList<>();
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (hand != null && hand.getType() != Material.AIR) {
-            lines.add("§f- " + humanize(hand.getType()) + " §7(w ręce)");
+            lines.add("§f- " + MaterialNames.humanize(hand.getType()) + " §7(w ręce)");
         }
         for (ItemStack armor : player.getInventory().getArmorContents()) {
             if (armor != null && armor.getType() != Material.AIR) {
-                lines.add("§f- " + humanize(armor.getType()));
+                lines.add("§f- " + MaterialNames.humanize(armor.getType()));
             }
         }
         if (lines.isEmpty()) {
             lines.add("§7(pusto)");
         }
         return lines;
-    }
-
-    private static String humanize(Material material) {
-        String name = material.name().replace('_', ' ').toLowerCase();
-        return Character.toUpperCase(name.charAt(0)) + name.substring(1);
     }
 }

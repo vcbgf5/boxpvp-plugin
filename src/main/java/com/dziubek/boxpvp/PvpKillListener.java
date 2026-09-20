@@ -1,5 +1,7 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -28,7 +30,18 @@ public class PvpKillListener implements Listener {
             plugin.getKillstreaks().onKill(killer);
             plugin.getMissions().addProgress(killer, MissionManager.Type.KILLS, 1);
             playKillEffect(killer, victim);
+            broadcastKillfeed(killer, victim);
         }
+    }
+
+    /** Krótka linia na czacie przy każdym PvP zabójstwie - broń + ewentualna seria zabójcy. */
+    private void broadcastKillfeed(Player killer, Player victim) {
+        Material weaponType = killer.getInventory().getItemInMainHand().getType();
+        String weaponName = weaponType == Material.AIR ? "Pięści" : MaterialNames.humanize(weaponType);
+        int streak = plugin.getKillstreaks().getCurrent(killer.getUniqueId());
+        String streakSuffix = streak >= 2 ? " §c[seria: " + streak + "]" : "";
+        Bukkit.broadcastMessage("§c☠ §f" + killer.getName() + " §7zabił §f" + victim.getName()
+                + " §8[" + weaponName + "]" + streakSuffix);
     }
 
     @EventHandler

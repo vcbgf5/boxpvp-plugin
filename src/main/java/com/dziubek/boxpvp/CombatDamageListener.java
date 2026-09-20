@@ -38,6 +38,8 @@ public class CombatDamageListener implements Listener {
             return;
         }
 
+        plugin.getCheatWatch().onPlayerHit(attacker, attacker.getEyeLocation().distance(victim.getEyeLocation()));
+
         long duration = plugin.getCombatDurationSeconds();
         alertIfFreshTag(victim, duration);
         alertIfFreshTag(attacker, duration);

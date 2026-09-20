@@ -70,6 +70,8 @@ public class BoxPvpPlugin extends JavaPlugin {
     private RotatingShopGuiManager rotatingShopGui;
     private MatchmakingManager matchmaking;
     private MatchmakingGuiManager matchmakingGui;
+    private CheatWatchManager cheatWatch;
+    private ModerationManager moderation;
 
     @Override
     public void onEnable() {
@@ -125,6 +127,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         rotatingShopGui = new RotatingShopGuiManager(this);
         matchmaking = new MatchmakingManager(this);
         matchmakingGui = new MatchmakingGuiManager(this);
+        cheatWatch = new CheatWatchManager(this);
+        moderation = new ModerationManager(this);
 
         setupEconomy();
 
@@ -152,6 +156,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         playtime.start();
         elo.start();
         rotatingShop.start();
+        cheatWatch.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
@@ -185,6 +190,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new LmsListener(this), this);
         getServer().getPluginManager().registerEvents(new RotatingShopListener(this), this);
         getServer().getPluginManager().registerEvents(new MatchmakingListener(this), this);
+        getServer().getPluginManager().registerEvents(new ModerationListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -216,6 +222,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("elo").setExecutor(new EloCommand(this));
         getCommand("booster").setExecutor(new BoosterCommand(this));
         getCommand("rotshop").setExecutor(new RotShopCommand(this));
+        getCommand("vanish").setExecutor(new VanishCommand(this));
+        getCommand("freeze").setExecutor(new FreezeCommand(this));
+        getCommand("report").setExecutor(new ReportCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -528,5 +537,13 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public MatchmakingGuiManager getMatchmakingGui() {
         return matchmakingGui;
+    }
+
+    public CheatWatchManager getCheatWatch() {
+        return cheatWatch;
+    }
+
+    public ModerationManager getModeration() {
+        return moderation;
     }
 }

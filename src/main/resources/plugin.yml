@@ -87,6 +87,17 @@ commands:
   rotshop:
     description: Otwiera rotujacy sklep - co godzine inna oferta specjalna z rabatem 20-50%
     usage: /rotshop
+  vanish:
+    description: Przelacza Twoja niewidzialnosc dla zwyklych graczy (admin)
+    usage: /vanish
+    permission: boxpvp.admin
+  freeze:
+    description: Zamraza/odmraza gracza (zero ruchu) - do zlapania na goracym uczynku (admin)
+    usage: /freeze <gracz>
+    permission: boxpvp.admin
+  report:
+    description: Ogolne zgloszenie gracza administracji (inne niz /reportduel)
+    usage: /report <gracz> [powod]
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
 
