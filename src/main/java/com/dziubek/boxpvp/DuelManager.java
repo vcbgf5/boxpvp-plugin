@@ -58,6 +58,7 @@ public class DuelManager {
     private static final int COUNTDOWN_SECONDS = 5;
     private static final int GHOST_SECONDS = 10;
     private static final int WIN_CELEBRATION_SECONDS = 10;
+    private static final int DUEL_FOOD_LEVEL = 10;
     private static final String DUEL_WORLD_PREFIX = "duel_";
 
     private final BoxPvpPlugin plugin;
@@ -381,12 +382,18 @@ public class DuelManager {
         }
     }
 
+    /**
+     * Głód na stałe zablokowany na połowie (patrz DuelListener#onFoodChange, które anuluje każdą
+     * próbę jego zmiany w świecie pojedynku) - gracz nie musi jeść ani nie dostaje obrażeń z
+     * głodu, a pasek zawsze wygląda tak samo przez cały pojedynek.
+     */
     private void fullyHeal(Player player) {
         var maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
         if (maxHealth != null) {
             player.setHealth(maxHealth.getValue());
         }
-        player.setFoodLevel(20);
+        player.setFoodLevel(DUEL_FOOD_LEVEL);
+        player.setSaturation(DUEL_FOOD_LEVEL);
     }
 
     /** Poddanie się w trakcie trwającego pojedynku - liczy się jak przegrana (płaci zakład). */

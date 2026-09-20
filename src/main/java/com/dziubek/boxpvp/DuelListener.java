@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -81,6 +82,18 @@ public class DuelListener implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         if (plugin.getDuels().isDuelWorld(event.getBlock().getWorld())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** Głód na arenie jest zablokowany na stałe na połowie (patrz DuelManager#fullyHeal) - nikt nie musi jeść. */
+    @EventHandler
+    public void onFoodChange(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
+        Player player = (Player) event.getEntity();
+        if (plugin.getDuels().isDuelWorld(player.getWorld())) {
             event.setCancelled(true);
         }
     }
