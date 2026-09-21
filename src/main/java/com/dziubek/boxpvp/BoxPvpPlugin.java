@@ -173,6 +173,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatKickListener(this), this);
         getServer().getPluginManager().registerEvents(new FirstJoinSpawnListener(this), this);
+        getServer().getPluginManager().registerEvents(new VoidTeleportListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerSessionListener(this), this);
         getServer().getPluginManager().registerEvents(new PvpKillListener(this), this);
         getServer().getPluginManager().registerEvents(new DailyGuiListener(this), this);
