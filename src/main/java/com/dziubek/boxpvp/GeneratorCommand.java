@@ -103,6 +103,7 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp event zombieitem add|clear|list §7- pula nagród za zabicie zombie-eventu");
         sender.sendMessage("§c/bpvp event megazombie §7- zrzuca wielką skrzynkę, z której po 10s wyjdzie Giant (mega-zombie)");
         sender.sendMessage("§c/bpvp event megazombieitem add|clear|list §7- pula nagród za zabicie mega-zombie");
+        sender.sendMessage("§c/bpvp event megazombietoggle §7- włącza/wyłącza mega-zombie event (jeśli nie chcesz go na serwerze)");
         sender.sendMessage("§c/bpvp event hillzone1 §7/ §c hillzone2 §7- wyznacza strefę Króla Wzgórza (dwa przeciwległe rogi)");
         sender.sendMessage("§c/bpvp event hill <minuty> §7- startuje Króla Wzgórza (najwięcej sekund w strefie wygrywa)");
         sender.sendMessage("§c/bpvp event lmszone1 §7/ §c lmszone2 §7- wyznacza strefę Ostatniego Ocalałego (dwa przeciwległe rogi)");
@@ -394,6 +395,10 @@ public class GeneratorCommand implements CommandExecutor {
             case "zombieitem":
                 return handleZombieItem(sender, args);
             case "megazombie": {
+                if (!plugin.getEvents().isMegaZombieEnabled()) {
+                    sender.sendMessage("§cMega-zombie event jest wyłączony. Włącz go: /bpvp event megazombietoggle");
+                    return true;
+                }
                 if (plugin.getGiantEvent().isEventActive()) {
                     sender.sendMessage("§cMega-zombie już trwa - poczekaj, aż zniknie albo zostanie zabity.");
                     return true;
@@ -405,6 +410,15 @@ public class GeneratorCommand implements CommandExecutor {
             }
             case "megazombieitem":
                 return handleMegaZombieItem(sender, args);
+            case "megazombietoggle": {
+                boolean enabled = !plugin.getEvents().isMegaZombieEnabled();
+                plugin.getEvents().setMegaZombieEnabled(enabled);
+                sender.sendMessage(enabled
+                        ? "§aMega-zombie event włączony - automatyczne zrzuty i /bpvp event megazombie znów działają."
+                        : "§cMega-zombie event wyłączony - zniknął z automatycznej rotacji, a /bpvp event megazombie nic nie zrobi. "
+                                + "(Gianta, który akurat trwa, to NIE zabija.)");
+                return true;
+            }
             case "hillzone1":
             case "hillzone2": {
                 if (!(sender instanceof Player)) {
@@ -457,7 +471,7 @@ public class GeneratorCommand implements CommandExecutor {
     private void sendEventUsage(CommandSender sender) {
         sender.sendMessage("§cUżycie: /bpvp event start <minuty> [mnożnik] | envoy | mega | zombie | megazombie | setzone1 | setzone2 "
                 + "| envoyitem add|clear|list | megaitem add|clear|list | zombieitem add|clear|list | megazombieitem add|clear|list "
-                + "| hill <minuty> | hillzone1 | hillzone2 | lms | lmszone1 | lmszone2");
+                + "| megazombietoggle | hill <minuty> | hillzone1 | hillzone2 | lms | lmszone1 | lmszone2");
     }
 
     private boolean handleEnvoyItem(CommandSender sender, String[] args) {

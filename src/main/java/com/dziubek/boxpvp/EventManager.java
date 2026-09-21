@@ -33,6 +33,7 @@ public class EventManager {
     private long nextMegaEnvoyAt;
     private long nextZombieAt;
     private long nextMegaZombieAt;
+    private boolean megaZombieEnabled;
 
     public EventManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
@@ -49,6 +50,7 @@ public class EventManager {
         }
         this.data = YamlConfiguration.loadConfiguration(file);
         loadEnvoyZone();
+        megaZombieEnabled = data.getBoolean("megazombie-enabled", true);
     }
 
     /**
@@ -84,7 +86,9 @@ public class EventManager {
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             nextMegaZombieAt = System.currentTimeMillis() + megaZombieTicks * 50L;
-            spawnMegaZombieEvent();
+            if (megaZombieEnabled) {
+                spawnMegaZombieEvent();
+            }
         }, megaZombieTicks, megaZombieTicks);
 
         long coin2xTicks = minutesToTicks("envoy.coin2x-interval-minutes", 30);
@@ -109,11 +113,26 @@ public class EventManager {
     }
 
     public boolean spawnMegaZombieEvent() {
-        if (!hasEnvoyZone() || plugin.getGiantEvent().isEventActive()) {
+        if (!megaZombieEnabled || !hasEnvoyZone() || plugin.getGiantEvent().isEventActive()) {
             return false;
         }
         plugin.getGiantEvent().dropCrate(randomPointInZone());
         return true;
+    }
+
+    public boolean isMegaZombieEnabled() {
+        return megaZombieEnabled;
+    }
+
+    /**
+     * Włącza/wyłącza mega-zombie event (automatyczne cykliczne zrzuty i ręczny
+     * /bpvp event megazombie) - admin może go całkiem usunąć z rotacji, jeśli nie chce go na
+     * serwerze. Nie dotyka Gianta, który już akurat trwa (wyłączenie nie zabija go w locie).
+     */
+    public void setMegaZombieEnabled(boolean enabled) {
+        this.megaZombieEnabled = enabled;
+        data.set("megazombie-enabled", enabled);
+        save();
     }
 
     /** Ile milisekund zostało do kolejnych automatycznych zrzutów - do wyświetlenia na tablicy. */
