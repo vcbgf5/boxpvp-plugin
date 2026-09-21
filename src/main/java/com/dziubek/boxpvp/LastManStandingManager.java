@@ -82,6 +82,22 @@ public class LastManStandingManager {
         return alive.contains(uuid);
     }
 
+    /** Czy podana lokacja jest w prostokątnej strefie LMS - używane do blokowania wejścia obcych w trakcie rundy. */
+    public boolean isInsideZone(Location loc) {
+        if (!isConfigured() || loc.getWorld() == null || !loc.getWorld().equals(corner1.getWorld())) {
+            return false;
+        }
+        double minX = Math.min(corner1.getX(), corner2.getX());
+        double maxX = Math.max(corner1.getX(), corner2.getX());
+        double minY = Math.min(corner1.getY(), corner2.getY());
+        double maxY = Math.max(corner1.getY(), corner2.getY());
+        double minZ = Math.min(corner1.getZ(), corner2.getZ());
+        double maxZ = Math.max(corner1.getZ(), corner2.getZ());
+        return loc.getX() >= minX && loc.getX() <= maxX
+                && loc.getY() >= minY && loc.getY() <= maxY
+                && loc.getZ() >= minZ && loc.getZ() <= maxZ;
+    }
+
     public void setCorner(int corner, Location location) {
         if (corner == 1) {
             this.corner1 = location.clone();
