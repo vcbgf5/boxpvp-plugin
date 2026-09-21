@@ -19,15 +19,19 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Boczna tablica wyników (sidebar) pokazująca saldo (Vault = ecoBalance), liczbę zabójstw,
- * aktualną serię zabójstw, poziom prestiżu i (jeśli LuckPerms jest zainstalowany) rangę gracza -
- * odświeżana co sekundę dla wszystkich online.
+ * Boczna tablica wyników (sidebar) - zbiera niemal wszystkie dane gracza rozrzucone po innych
+ * managerach (ekonomia, PvP, ranking, klan, czas gry...) w jednym miejscu, żeby gracz nie musiał
+ * wchodzić do /stats czy /elo, żeby je zobaczyć. Odświeżana co sekundę dla wszystkich online.
  */
 public class ScoreboardManager {
 
     private static final String OBJECTIVE_ID = "bpvp_side";
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
     private static final List<Double> WEALTH_MILESTONES = List.of(10_000.0, 100_000.0, 1_000_000.0, 10_000_000.0);
+    // Puste linie-separatory - muszą być różnymi stringami (scoreboard wymaga unikalnych wpisów),
+    // stąd różna liczba niewidocznych kolorów zamiast dwóch identycznych "§7".
+    private static final String BLANK_1 = "§7";
+    private static final String BLANK_2 = "§7§7";
 
     private final BoxPvpPlugin plugin;
     private final Map<UUID, String> lastRank = new HashMap<>();
@@ -78,24 +82,54 @@ public class ScoreboardManager {
             board.resetScores(entry);
         }
 
+        UUID uuid = player.getUniqueId();
         double balance = plugin.getEconomy() != null ? plugin.getEconomy().getBalance(player) : 0;
-        int streak = plugin.getKillstreaks().getCurrent(player.getUniqueId());
-        int prestige = plugin.getPrestige().getLevel(player.getUniqueId());
-        int kills = plugin.getStats().getKills(player.getUniqueId());
+        int kills = plugin.getStats().getKills(uuid);
+        int deaths = plugin.getStats().getDeaths(uuid);
+        int streak = plugin.getKillstreaks().getCurrent(uuid);
+        int bestStreak = plugin.getStats().getBestKillstreak(uuid);
+        int prestige = plugin.getPrestige().getLevel(uuid);
+        int elo = plugin.getElo().getRating(uuid);
+        int duelWins = plugin.getStats().getDuelWins(uuid);
+        String clanTag = plugin.getClans().getClanTag(uuid);
+        long boosterMillis = plugin.getBoosters().getMillisRemaining(uuid);
+        double boosterMultiplier = plugin.getBoosters().getMultiplier(uuid);
         String rank = plugin.getLuckPerms().getPrefix(player);
 
         checkWealthMilestone(player, balance);
         checkRankChange(player, rank);
 
-        int line = (rank != null && !rank.isEmpty()) ? 6 : 5;
-        if (rank != null && !rank.isEmpty()) {
-            objective.getScore(rank).setScore(line--);
+        String kd = deaths > 0 ? String.format("%.2f", kills / (double) deaths) : String.valueOf(kills);
+        boolean hasRank = rank != null && !rank.isEmpty();
+        boolean hasBooster = boosterMillis > 0;
+
+        List<String> lines = new ArrayList<>();
+        if (hasRank) {
+            lines.add(rank);
         }
-        objective.getScore("§aSaldo: §f" + String.format("%.2f", balance) + "$").setScore(line--);
-        objective.getScore("§bKille: §f" + kills).setScore(line--);
-        objective.getScore("§cSeria: §f" + streak).setScore(line--);
-        objective.getScore("§dPrestiż: §f" + prestige).setScore(line--);
-        objective.getScore("§7").setScore(line);
+        lines.add("§7▸ §fKille: §a" + kills + " §8| §fŚmierci: §c" + deaths + " §8| §fK/D: §e" + kd);
+        lines.add("§7▸ §fSeria: §c" + streak + " §8(rekord §f" + bestStreak + "§8)");
+        lines.add(BLANK_1);
+        lines.add("§7▸ §fSaldo: §a" + String.format("%.2f", balance) + "$");
+        lines.add("§7▸ §fPrestiż: §d" + prestige);
+        if (hasBooster) {
+            lines.add("§7▸ §6Booster: §fx" + trimMultiplier(boosterMultiplier)
+                    + " §8(" + PlaytimeManager.formatDuration(boosterMillis / 1000) + ")");
+        }
+        lines.add("§7▸ §fELO: §b" + elo + " §8| §fPojedynki: §a" + duelWins);
+        lines.add(BLANK_2);
+        lines.add("§7▸ §fKlan: §f" + (clanTag != null ? plugin.getClans().getDisplayTag(clanTag) : "§8Brak"));
+        lines.add("§7▸ §fCzas gry: §f" + PlaytimeManager.formatDuration(plugin.getPlaytime().getSeconds(uuid)));
+
+        int line = lines.size();
+        for (String text : lines) {
+            objective.getScore(text).setScore(line--);
+        }
+    }
+
+    /** "x2.0" -> "x2", "x1.5" zostaje "x1.5" - bez zbędnych zer po przecinku na tablicy. */
+    private static String trimMultiplier(double value) {
+        return value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
     }
 
     /** Jednorazowy, duży efekt gdy gracz pierwszy raz przekroczy kolejny próg salda. */
