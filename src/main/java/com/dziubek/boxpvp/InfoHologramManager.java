@@ -225,6 +225,45 @@ public class InfoHologramManager {
                 "§7Dobiera przeciwnika o zbliżonym ELO",
                 "§7Co 14 dni koniec sezonu - TOP 3 dostaje nagrodę!"
         ));
+        map.put("rotshop", List.of(
+                "§b§l⟳ Rotujący sklep",
+                "§7Wpisz §f/rotshop §7- zobacz aktualną rotację",
+                "§73 losowe przedmioty z rabatem 20-50%",
+                "§7Rotacja zmienia się co godzinę!"
+        ));
+        map.put("sklep", List.of(
+                "§a§l$ Sklep",
+                "§7Wpisz §f/sklep §7- kup broń, zbroję i bloki",
+                "§7Zarobione pieniądze wydawaj tutaj"
+        ));
+        map.put("daily", List.of(
+                "§e§l★ Nagroda dzienna",
+                "§7Wpisz §f/daily §7raz na dobę",
+                "§7Kolejne dni z rzędu = lepsze nagrody!"
+        ));
+        map.put("prestige", List.of(
+                "§d§l✦ Prestiż",
+                "§7Wpisz §f/prestige §7- sprawdź koszt i mnożnik",
+                "§7Zapłać całą gotówkę, żeby zdobyć poziom",
+                "§7Każdy poziom to wyższy mnożnik zarobków"
+        ));
+        map.put("booster", List.of(
+                "§6§l⚡ Booster zarobków",
+                "§7Kup booster w §f/sklep §7- mnoży Twoje zarobki",
+                "§7Wpisz §f/booster §7- sprawdź ile czasu zostało"
+        ));
+        map.put("lms", List.of(
+                "§4§l☠ Ostatni Ocalały",
+                "§7Wpisz §f/lms join §7- zapisz się gdy zapisy otwarte",
+                "§7/lms leave §7- wypisz się przed startem",
+                "§7Ostatnia żywa osoba wygrywa!"
+        ));
+        map.put("trade", List.of(
+                "§3§l⇄ Wymiana",
+                "§7Wpisz §f/trade <gracz> §7- zaproś do wymiany",
+                "§7/trade accept §7- zaakceptuj, §7/trade cancel §7- anuluj",
+                "§7Bezpieczna wymiana itemów z innym graczem"
+        ));
         return map;
     }
 }
