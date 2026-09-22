@@ -73,7 +73,7 @@ public class MissionsGuiManager {
         lore.add("§7Postęp: §f" + progress + "/" + target);
         lore.add("§7Nagroda: §a" + String.format("%.2f", reward) + "$");
         if (claimed) {
-            lore.add("§a✔ Odebrano");
+            lore.add("§a Odebrano");
         } else if (complete) {
             lore.add("§e§lKLIKNIJ, aby odebrać!");
         } else {

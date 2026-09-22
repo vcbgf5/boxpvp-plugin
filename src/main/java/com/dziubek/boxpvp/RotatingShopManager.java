@@ -98,7 +98,7 @@ public class RotatingShopManager {
             int discount = MIN_DISCOUNT + random.nextInt(MAX_DISCOUNT - MIN_DISCOUNT + 1);
             currentRotation.add(new RotationEntry(entry.icon.clone(), entry.basePrice, discount));
         }
-        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("★ Nowa oferta specjalna!") + " §7Sprawdź §f/rotshop§7!");
+        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent(" Nowa oferta specjalna!") + " §7Sprawdź §f/rotshop§7!");
     }
 
     /** Kupuje ofertę pod danym indeksem aktualnej rotacji - zwraca false, jeśli się nie udało (wtedy sam wysyła powód). */

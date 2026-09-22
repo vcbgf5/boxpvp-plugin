@@ -176,51 +176,51 @@ public class InfoHologramManager {
                 "§7Zarabiaj pasywnie, farmiąc generatory!"
         ));
         map.put("crate", List.of(
-                "§6§l★ Skrzynie",
+                "§6§l Skrzynie",
                 "§7Zdobądź klucz i kliknij fizyczną skrzynię",
                 "§7Otwórz, żeby wylosować nagrodę",
                 "§7MEGA-skrzynie dają lepsze nagrody!"
         ));
         map.put("kit", List.of(
-                "§b§l★ Kity",
+                "§b§l Kity",
                 "§7/kit <nazwa> - odbierz gotowy zestaw",
                 "§7Część kitów ma cooldown między odbiorami"
         ));
         map.put("bank", List.of(
-                "§e§l★ Bank (Kantor)",
+                "§e§l Bank (Kantor)",
                 "§7Kupuj/sprzedawaj fizyczne banknoty u NPC",
                 "§7Płać nimi innym graczom bez komend"
         ));
         map.put("rynek", List.of(
-                "§d§l★ Rynek graczy",
+                "§d§l Rynek graczy",
                 "§7/wymiana <cena> - wystaw trzymany item na 3 dni",
                 "§7/rynek - kup coś wystawione przez innych"
         ));
         map.put("party", List.of(
-                "§3§l★ Drużyny",
+                "§3§l Drużyny",
                 "§7/party create - stwórz drużynę",
                 "§7/party invite <gracz> - zaproś kogoś",
                 "§7Członkowie nie zadają sobie obrażeń"
         ));
         map.put("missions", List.of(
-                "§2§l★ Misje",
+                "§2§l Misje",
                 "§7/missions - dzienne i tygodniowe zadania",
                 "§7Ukończ zadanie, żeby odebrać nagrodę"
         ));
         map.put("clan", List.of(
-                "§6§l★ Klany",
+                "§6§l Klany",
                 "§7/clan create <tag> - załóż własny klan",
                 "§7/clan invite <gracz> - zaproś do klanu",
                 "§7/clan bank deposit|withdraw - wspólna kasa klanu"
         ));
         map.put("friends", List.of(
-                "§b§l★ Znajomi",
+                "§b§l Znajomi",
                 "§7/friend add <gracz> - dodaj do znajomych",
                 "§7/friend list - zobacz kto jest online",
                 "§7Dostaniesz powiadomienie gdy znajomy dołączy!"
         ));
         map.put("ranked", List.of(
-                "§d§l★ Ranked",
+                "§d§l Ranked",
                 "§7Wpisz §f/duel §7i wybierz §bRanked",
                 "§7Dobiera przeciwnika o zbliżonym ELO",
                 "§7Co 14 dni koniec sezonu - TOP 3 dostaje nagrodę!"
@@ -237,12 +237,12 @@ public class InfoHologramManager {
                 "§7Zarobione pieniądze wydawaj tutaj"
         ));
         map.put("daily", List.of(
-                "§e§l★ Nagroda dzienna",
+                "§e§l Nagroda dzienna",
                 "§7Wpisz §f/daily §7raz na dobę",
                 "§7Kolejne dni z rzędu = lepsze nagrody!"
         ));
         map.put("prestige", List.of(
-                "§d§l✦ Prestiż",
+                "§d§l Prestiż",
                 "§7Wpisz §f/prestige §7- sprawdź koszt i mnożnik",
                 "§7Zapłać całą gotówkę, żeby zdobyć poziom",
                 "§7Każdy poziom to wyższy mnożnik zarobków"

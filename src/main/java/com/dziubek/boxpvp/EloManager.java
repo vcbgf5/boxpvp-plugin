@@ -89,7 +89,7 @@ public class EloManager {
         }
         ranked.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
 
-        Bukkit.broadcastMessage(Branding.chatPrefix() + "§d§l★ KONIEC SEZONU ELO! §7Ratingi zresetowane, zaczyna się nowy sezon.");
+        Bukkit.broadcastMessage(Branding.chatPrefix() + "§d§l KONIEC SEZONU ELO! §7Ratingi zresetowane, zaczyna się nowy sezon.");
         for (int i = 0; i < ranked.size() && i < SEASON_REWARDS.length; i++) {
             UUID uuid = ranked.get(i).getKey();
             int rating = ranked.get(i).getValue();

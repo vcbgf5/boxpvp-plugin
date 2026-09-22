@@ -64,7 +64,7 @@ public class MatchmakingGuiManager {
 
         inv.setItem(0, build(new ItemStack(Material.CLOCK), "§eMasz 5s",
                 List.of("§7Zaakceptuj, odrzuć, albo nic nie rób -", "§7pojedynek wystartuje sam po czasie")));
-        inv.setItem(2, build(new ItemStack(Material.LIME_DYE), "§a§l✔ Akceptuj",
+        inv.setItem(2, build(new ItemStack(Material.LIME_DYE), "§a§l Akceptuj",
                 List.of("§7Kliknij, żeby zacząć od razu", "§7(gdy obaj klikną, pomija resztę czekania)")));
         inv.setItem(6, build(new ItemStack(Material.RED_DYE), "§c§l✖ Odrzuć",
                 List.of("§7Anuluje ten pojedynek", "§7Przeciwnik wraca do kolejki")));

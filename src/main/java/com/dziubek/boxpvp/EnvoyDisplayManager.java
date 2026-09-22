@@ -187,7 +187,7 @@ public class EnvoyDisplayManager {
             e.addScoreboardTag(TAG);
         });
 
-        String label = mega ? Branding.accent("★ MEGA skrzynka-event!") : "§f§l☀ Skrzynka-event";
+        String label = mega ? Branding.accent(" MEGA skrzynka-event!") : "§f§l☀ Skrzynka-event";
         Bukkit.broadcastMessage(Branding.chatPrefix() + label + " §7spadnie tutaj za 10 sekund!");
         BossBarUtil.showTimed(plugin, label + " §7ląduje...", mega ? BarColor.PURPLE : BarColor.WHITE, WARNING_TICKS);
         world.playSound(groundAnchor, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, mega ? 0.8f : 1.4f);
@@ -251,7 +251,7 @@ public class EnvoyDisplayManager {
             e.addScoreboardTag(TAG);
         });
 
-        String labelText = mega ? Branding.accent("★ MEGA Skrzynka-event") : "§c§lSkrzynka-event";
+        String labelText = mega ? Branding.accent(" MEGA Skrzynka-event") : "§c§lSkrzynka-event";
         drop.label = world.spawn(spawnAt.clone().add(0, LABEL_HEIGHT_OFFSET, 0), TextDisplay.class, e -> {
             e.setBillboard(Display.Billboard.CENTER);
             e.setGravity(false);
@@ -266,7 +266,7 @@ public class EnvoyDisplayManager {
         });
         activeDrops.add(drop);
 
-        String label = mega ? Branding.accent("★ MEGA skrzynka-event") : "§c§l☁ Skrzynka-event";
+        String label = mega ? Branding.accent(" MEGA skrzynka-event") : "§c§l☁ Skrzynka-event";
         Bukkit.broadcastMessage(Branding.chatPrefix() + label + " §7spada z nieba!");
         world.playSound(groundAnchor, mega ? Sound.ENTITY_WITHER_AMBIENT : Sound.ENTITY_ENDER_DRAGON_FLAP, 1.0f, 0.6f);
 
@@ -357,7 +357,7 @@ public class EnvoyDisplayManager {
                     new Particle.DustOptions(Color.fromRGB(Branding.DARK_PURPLE), 1.4f));
             world.spawnParticle(Particle.FLAME, groundAnchor, 40, 0.6, 0.3, 0.6, 0.03);
             world.playSound(groundAnchor, Sound.ENTITY_WITHER_SPAWN, 0.6f, 1.2f);
-            Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("★ MEGA skrzynka-event")
+            Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent(" MEGA skrzynka-event")
                     + " §7wylądowała! Kliknij ją PPM, żeby otworzyć.");
         } else {
             world.spawnParticle(Particle.EXPLOSION, groundAnchor, 1);
@@ -406,7 +406,7 @@ public class EnvoyDisplayManager {
         player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 40, 0.4, 0.5, 0.4, 0.3);
         if (drop.mega) {
             Bukkit.broadcastMessage(Branding.chatPrefix() + "§e" + player.getName() + " §7otworzył(a) "
-                    + Branding.accent("★ MEGA skrzynkę-event") + "§7!");
+                    + Branding.accent(" MEGA skrzynkę-event") + "§7!");
         }
         despawn(drop);
     }

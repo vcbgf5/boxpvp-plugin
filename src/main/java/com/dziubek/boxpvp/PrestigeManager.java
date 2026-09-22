@@ -81,9 +81,9 @@ public class PrestigeManager {
         data.set(player.getUniqueId() + ".level", newLevel);
         save();
 
-        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("✦ PRESTIŻ!") + " §f" + player.getName()
+        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent(" PRESTIŻ!") + " §f" + player.getName()
                 + " §7awansował na prestiż §d" + newLevel + "§7!");
-        TitleUtil.show(player, Branding.accent("✦ PRESTIŻ " + newLevel),
+        TitleUtil.show(player, Branding.accent(" PRESTIŻ " + newLevel),
                 "§7Mnożnik zarobków: §fx" + format(getMultiplier(player.getUniqueId())));
 
         player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.2f);

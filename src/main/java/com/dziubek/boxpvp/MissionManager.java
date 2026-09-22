@@ -131,7 +131,7 @@ public class MissionManager {
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.3f);
                 player.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING,
                         player.getLocation().add(0, 1.2, 0), 35, 0.4, 0.6, 0.4, 0.25);
-                FloatingTextEffect.show(plugin, player.getLocation().add(0, 2.2, 0), "§a✔ Misja ukończona!");
+                FloatingTextEffect.show(plugin, player.getLocation().add(0, 2.2, 0), "§a Misja ukończona!");
             }
         }
     }

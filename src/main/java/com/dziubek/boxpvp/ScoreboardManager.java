@@ -150,7 +150,7 @@ public class ScoreboardManager {
         }
         player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1.2, 0), 50, 0.5, 0.7, 0.5, 0.3);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 0.8f);
-        TitleUtil.show(player, Branding.accent("✦ BOGACTWO!"), "§7Przekroczono §f" + formatMilestone(reached) + "§7 na koncie!");
+        TitleUtil.show(player, Branding.accent(" BOGACTWO!"), "§7Przekroczono §f" + formatMilestone(reached) + "§7 na koncie!");
         Bukkit.broadcastMessage(Branding.chatPrefix() + "§e" + player.getName() + " §7przekroczył(a) §f"
                 + formatMilestone(reached) + "§7 na koncie!");
     }
@@ -173,6 +173,6 @@ public class ScoreboardManager {
         }
         player.getWorld().spawnParticle(Particle.FIREWORK, player.getLocation().add(0, 1.5, 0), 40, 0.4, 0.6, 0.4, 0.08);
         player.playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 1.0f, 1.0f);
-        FloatingTextEffect.show(plugin, player.getLocation().add(0, 2.3, 0), "§d✦ " + rank);
+        FloatingTextEffect.show(plugin, player.getLocation().add(0, 2.3, 0), "§d " + rank);
     }
 }

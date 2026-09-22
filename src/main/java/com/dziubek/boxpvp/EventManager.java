@@ -179,15 +179,15 @@ public class EventManager {
         long expiresAt = System.currentTimeMillis() + minutes * 60_000L;
         this.multiplierExpiresAt = expiresAt;
 
-        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("★ EVENT!") + " §fMonety x" + trim(multiplier) + " przez " + minutes + " minut!");
+        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent(" EVENT!") + " §fMonety x" + trim(multiplier) + " przez " + minutes + " minut!");
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         }
-        BossBarUtil.showTimed(plugin, "§6§l★ EVENT: §fMonety x" + trim(multiplier), BarColor.YELLOW, minutes * 60L * 20L);
+        BossBarUtil.showTimed(plugin, "§6§l EVENT: §fMonety x" + trim(multiplier), BarColor.YELLOW, minutes * 60L * 20L);
 
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (multiplierExpiresAt == expiresAt && System.currentTimeMillis() >= multiplierExpiresAt) {
-                Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("★ EVENT zakończony.") + " §7Monety wracają do normy.");
+                Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent(" EVENT zakończony.") + " §7Monety wracają do normy.");
             }
         }, minutes * 60L * 20L);
     }

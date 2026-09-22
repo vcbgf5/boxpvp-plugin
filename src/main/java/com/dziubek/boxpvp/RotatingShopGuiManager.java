@@ -22,7 +22,7 @@ public class RotatingShopGuiManager {
     }
 
     public void open(Player player) {
-        Inventory inv = Bukkit.createInventory(new RotatingShopGuiHolder(), 27, Branding.accent("★ Oferta specjalna"));
+        Inventory inv = Bukkit.createInventory(new RotatingShopGuiHolder(), 27, Branding.accent(" Oferta specjalna"));
         List<RotatingShopManager.RotationEntry> rotation = plugin.getRotatingShop().getCurrentRotation();
 
         for (int i = 0; i < OFFER_SLOTS.length && i < rotation.size(); i++) {

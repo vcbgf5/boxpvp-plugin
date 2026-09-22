@@ -125,7 +125,7 @@ public class LeaderboardManager {
         lines.add(Branding.accent("Zbliżające się eventy"));
         double multiplier = plugin.getEvents().getActiveMultiplier();
         if (multiplier > 1.0) {
-            lines.add("§6§l★ TRWA: §fMonety x" + (long) multiplier
+            lines.add("§6§l TRWA: §fMonety x" + (long) multiplier
                     + " §7(" + formatCountdown(plugin.getEvents().getMultiplierMillisRemaining()) + ")");
         }
         lines.add("§fSkrzynka: " + pulse(plugin.getEvents().getMillisUntilNextNormalEnvoy()));

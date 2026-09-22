@@ -88,12 +88,12 @@ public class HillEventManager {
         totalDurationMs = durationMinutes * 60_000L;
         endsAt = System.currentTimeMillis() + totalDurationMs;
 
-        bossBar = Bukkit.createBossBar(Branding.accent("★ Król Wzgórza"), BarColor.YELLOW, BarStyle.SOLID);
+        bossBar = Bukkit.createBossBar(Branding.accent(" Król Wzgórza"), BarColor.YELLOW, BarStyle.SOLID);
         for (Player player : Bukkit.getOnlinePlayers()) {
             bossBar.addPlayer(player);
         }
 
-        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("★ KRÓL WZGÓRZA!")
+        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent(" KRÓL WZGÓRZA!")
                 + " §7Wejdź do strefy i przetrwaj w niej najdłużej - masz " + durationMinutes + " min!");
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.6f, 1.4f);
@@ -127,7 +127,7 @@ public class HillEventManager {
         UUID leader = leader();
         String leaderName = leader != null ? nameOf(leader) : "-";
         long leaderSeconds = leader != null ? secondsInZone.get(leader) : 0;
-        bossBar.setTitle(Branding.accent("★ Król Wzgórza") + " §7- §f" + leaderName + " §7(" + leaderSeconds
+        bossBar.setTitle(Branding.accent(" Król Wzgórza") + " §7- §f" + leaderName + " §7(" + leaderSeconds
                 + "s) §7- zostało " + (msLeft / 1000) + "s");
         bossBar.setProgress(Math.max(0.0, Math.min(1.0, msLeft / (double) totalDurationMs)));
 
@@ -151,11 +151,11 @@ public class HillEventManager {
         if (plugin.getEconomy() != null) {
             plugin.getEconomy().depositPlayer(Bukkit.getOfflinePlayer(winner), reward);
         }
-        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent("★ Król Wzgórza!") + " §f" + nameOf(winner)
+        Bukkit.broadcastMessage(Branding.chatPrefix() + Branding.accent(" Król Wzgórza!") + " §f" + nameOf(winner)
                 + " §7wygrał(a) i dostaje §a" + BankGuiManager.formatMoney(reward) + "$§7!");
 
         if (winnerPlayer != null && winnerPlayer.isOnline()) {
-            TitleUtil.show(winnerPlayer, Branding.accent("★ KRÓL WZGÓRZA!"), "§7+" + BankGuiManager.formatMoney(reward) + "$");
+            TitleUtil.show(winnerPlayer, Branding.accent(" KRÓL WZGÓRZA!"), "§7+" + BankGuiManager.formatMoney(reward) + "$");
             winnerPlayer.playSound(winnerPlayer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
             winnerPlayer.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, winnerPlayer.getLocation().add(0, 1.2, 0), 60, 0.5, 0.8, 0.5, 0.3);
         }

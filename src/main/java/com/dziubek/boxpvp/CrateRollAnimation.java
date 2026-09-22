@@ -233,18 +233,18 @@ public class CrateRollAnimation {
     private static void announceRarity(BoxPvpPlugin plugin, Player player, String crateName, String itemName,
                                         double chance, Location crateBlockLocation) {
         if (chance < LEGENDARY_THRESHOLD) {
-            TitleUtil.show(player, Branding.accent("✦ LEGENDARY ✦"), "§f" + itemName);
+            TitleUtil.show(player, Branding.accent(" LEGENDARY "), "§f" + itemName);
             player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.6f, 1.4f);
             spawnFirework(plugin, player);
             if (crateBlockLocation != null) {
                 spawnLegendaryBeacon(plugin, crateBlockLocation);
             }
 
-            String broadcast = Branding.chatPrefix() + Branding.accent("✦") + " §e" + player.getName()
+            String broadcast = Branding.chatPrefix() + Branding.accent("") + " §e" + player.getName()
                     + " §dwylosował(a) RZADKI przedmiot §f" + itemName
-                    + " §dze skrzyni '" + crateName + "'! " + Branding.accent("✦");
+                    + " §dze skrzyni '" + crateName + "'! " + Branding.accent("");
             Bukkit.getServer().broadcastMessage(broadcast);
-            BossBarUtil.showTimed(plugin, Branding.accent("✦ LEGENDARY: ") + "§e" + player.getName() + " §7- §f" + itemName,
+            BossBarUtil.showTimed(plugin, Branding.accent(" LEGENDARY: ") + "§e" + player.getName() + " §7- §f" + itemName,
                     org.bukkit.boss.BarColor.YELLOW, 8L * 20L);
         } else if (chance < RARE_THRESHOLD) {
             TitleUtil.show(player, "§b§lRZADKI!", "§f" + itemName);
