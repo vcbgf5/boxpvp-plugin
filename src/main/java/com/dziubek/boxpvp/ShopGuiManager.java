@@ -24,7 +24,7 @@ public class ShopGuiManager {
         List<String> categories = plugin.getShop().getCategories();
         int size = Math.min(54, Math.max(9, ((categories.size() - 1) / 9 + 1) * 9));
 
-        Inventory inv = Bukkit.createInventory(new ShopMainGuiHolder(), size, Branding.accent("Sklep"));
+        Inventory inv = Bukkit.createInventory(new ShopMainGuiHolder(), size, Branding.ICON_DIAMOND + " " + Branding.accent("Sklep"));
 
         int slot = 0;
         for (String category : categories) {

@@ -107,19 +107,19 @@ public class ScoreboardManager {
         if (hasRank) {
             lines.add(rank);
         }
-        lines.add("§7▸ §fKille: §a" + kills + " §8| §fŚmierci: §c" + deaths + " §8| §fK/D: §e" + kd);
+        lines.add("§7▸ " + Branding.ICON_CHECK + " §fKille: §a" + kills + " §8| §fŚmierci: §c" + deaths + " §8| §fK/D: §e" + kd);
         lines.add("§7▸ §fSeria: §c" + streak + " §8(rekord §f" + bestStreak + "§8)");
         lines.add(BLANK_1);
-        lines.add("§7▸ §fSaldo: §a" + String.format("%.2f", balance) + "$");
-        lines.add("§7▸ §fPrestiż: §d" + prestige);
+        lines.add("§7▸ " + Branding.ICON_DIAMOND + " §fSaldo: §a" + String.format("%.2f", balance) + "$");
+        lines.add("§7▸ " + Branding.ICON_STAR + " §fPrestiż: §d" + prestige);
         if (hasBooster) {
-            lines.add("§7▸ §6Booster: §fx" + trimMultiplier(boosterMultiplier)
+            lines.add("§7▸ " + Branding.ICON_HOURGLASS + " §6Booster: §fx" + trimMultiplier(boosterMultiplier)
                     + " §8(" + PlaytimeManager.formatDuration(boosterMillis / 1000) + ")");
         }
         lines.add("§7▸ §fELO: §b" + elo + " §8| §fPojedynki: §a" + duelWins);
         lines.add(BLANK_2);
         lines.add("§7▸ §fKlan: §f" + (clanTag != null ? plugin.getClans().getDisplayTag(clanTag) : "§8Brak"));
-        lines.add("§7▸ §fCzas gry: §f" + PlaytimeManager.formatDuration(plugin.getPlaytime().getSeconds(uuid)));
+        lines.add("§7▸ " + Branding.ICON_HOURGLASS + " §fCzas gry: §f" + PlaytimeManager.formatDuration(plugin.getPlaytime().getSeconds(uuid)));
 
         int line = lines.size();
         for (String text : lines) {

@@ -28,7 +28,7 @@ public class BankGuiManager {
     }
 
     public void open(Player player) {
-        Inventory inv = Bukkit.createInventory(new BankGuiHolder(), 27, Branding.accent("Kantor"));
+        Inventory inv = Bukkit.createInventory(new BankGuiHolder(), 27, Branding.ICON_DIAMOND + " " + Branding.accent("Kantor"));
 
         List<Material> ordered = plugin.getCurrency().orderedMaterials();
         int slot = FIRST_SLOT;
