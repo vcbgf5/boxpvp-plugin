@@ -26,7 +26,7 @@ public class MatchmakingGuiManager {
 
     public void openJoinPrompt(Player player) {
         Inventory inv = Bukkit.createInventory(new MatchmakingGuiHolder(MatchmakingGuiHolder.Kind.JOIN_PROMPT),
-                27, Branding.accent("Matchmaking - /duel"));
+                27, Branding.customGuiTitle(Branding.GUI_BG_DUELS));
 
         inv.setItem(11, build(new ItemStack(Material.LIME_WOOL), "§a§lZwykły matchmaking",
                 List.of("§7Dobiera przeciwnika wg killi,", "§7serii zabójstw i kasy.", "",
