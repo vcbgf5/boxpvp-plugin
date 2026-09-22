@@ -23,5 +23,8 @@ public class PlayerSessionListener implements Listener {
         plugin.getStats().touch(player.getUniqueId(), player.getName());
         plugin.getScoreboards().assign(player);
         plugin.getMarket().deliverPendingReturns(player);
+
+        player.sendMessage("§7Wskazówka: §fmodele 3D broni §7działają u KAŻDEGO gracza automatycznie (zwykły resource pack). "
+                + "§fWłasny wygląd zbroi §7wymaga zainstalowanego po Twojej stronie §eOptiFine §7(albo CIT Resewn) - bez tego zbroja wygląda normalnie.");
     }
 }
