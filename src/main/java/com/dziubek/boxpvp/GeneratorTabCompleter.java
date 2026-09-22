@@ -94,6 +94,9 @@ public class GeneratorTabCompleter implements TabCompleter {
         if (sub.equals("giveset") && args.length == 2) {
             return filter(GIVESET_LEVELS, args[1]);
         }
+        if (sub.equals("giveset") && args.length == 3) {
+            return filter(List.of("weapon"), args[2]);
+        }
 
         if (sub.equals("teleportto") && args.length == 2) {
             return filter(TELEPORTTO_TARGETS, args[1]);

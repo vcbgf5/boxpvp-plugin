@@ -52,11 +52,16 @@ public final class GearSetManager {
         player.getInventory().setBoots(armorPiece(armorPrefix, "BOOTS", "Buty", level, i));
 
         player.getInventory().addItem(
-                sword(toolPrefix, level, i),
+                sword(level, i),
                 pickaxe(toolPrefix, level, i),
                 axe(toolPrefix, level, i),
                 shovel(toolPrefix, level, i)
         );
+    }
+
+    /** /bpvp giveset <poziom> weapon - tylko miecz (bez zbroi/narzedzi), np. do testowania resource packa. */
+    public static void giveWeapon(Player player, int level) {
+        player.getInventory().addItem(sword(level, level - 1));
     }
 
     private static ItemStack armorPiece(String prefix, String piece, String polishName, int level, int i) {
@@ -68,9 +73,15 @@ public final class GearSetManager {
         return item;
     }
 
-    private static ItemStack sword(String prefix, int level, int i) {
-        ItemStack item = new ItemStack(Material.valueOf(prefix + "_SWORD"));
-        applyEnchant(item, Enchantment.SHARPNESS, SHARPNESS[i]);
+    /**
+     * Zawsze IRON_SWORD (niezaleznie od poziomu) - z resource packiem "Fabulous Enchanted 3D"
+     * kazdy zaczarowany zelazny miecz dostaje swiecacy model 3D, wiec cala progresja mocy idzie
+     * przez poziom Ostrosci (1-10, ponad wanilijny limit 5 - addUnsafeEnchantment to pozwala),
+     * a nie przez zmiane materialu jak reszta zestawu.
+     */
+    private static ItemStack sword(int level, int i) {
+        ItemStack item = new ItemStack(Material.IRON_SWORD);
+        applyEnchant(item, Enchantment.SHARPNESS, level);
         applyEnchant(item, Enchantment.UNBREAKING, UNBREAKING[i]);
         applyEnchant(item, Enchantment.LOOTING, LOOTING[i]);
         applyMending(item, level);

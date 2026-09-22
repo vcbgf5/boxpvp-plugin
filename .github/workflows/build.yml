@@ -38,6 +38,8 @@ jobs:
           tag_name: "v${{ env.VERSION }}"
           name: "Build v${{ env.VERSION }}"
           make_latest: true
-          files: target/BoxPvPManager.jar
+          files: |
+            target/BoxPvPManager.jar
+            resourcepack/BoxPvP-ResourcePack.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -115,6 +115,7 @@ public class GeneratorCommand implements CommandExecutor {
         sender.sendMessage("§c/bpvp craftblock add|remove <materiał> §7- blokuje/odblokowuje crafting materiału (np. NETHERITE_BLOCK)");
         sender.sendMessage("§c/bpvp craftblock list §7- lista zablokowanych materiałów");
         sender.sendMessage("§c/bpvp giveset <poziom 1-10> §7- daje pełny zestaw PvP (zbroja + miecz/kilof/siekiera/łopata)");
+        sender.sendMessage("§c/bpvp giveset <poziom 1-10> weapon §7- daje TYLKO miecz (żelazny, Ostrość = poziom, do 10)");
         sender.sendMessage("§c/bpvp teleportto normal|mega|megazombie §7- teleportuje Cię tam, gdzie ostatnio spadła dana skrzynka");
         sender.sendMessage("§c/bpvp duel setworld <świat> §7- ustawia świat-szablon areny pojedynków i przenosi Cię tam");
         sender.sendMessage("§c/bpvp duel setpos1 §7/ §c setpos2 §7- ustawia OSOBNE pozycje startowe dla gracza 1 i 2 (musisz być w świecie-szablonie)");
@@ -683,7 +684,7 @@ public class GeneratorCommand implements CommandExecutor {
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage("§cUżycie: /bpvp giveset <poziom 1-10>");
+            sender.sendMessage("§cUżycie: /bpvp giveset <poziom 1-10> [weapon]");
             return true;
         }
         int level;
@@ -695,6 +696,11 @@ public class GeneratorCommand implements CommandExecutor {
         }
         if (!GearSetManager.isValidLevel(level)) {
             sender.sendMessage("§cPoziom musi być w zakresie 1-10.");
+            return true;
+        }
+        if (args.length >= 3 && args[2].equalsIgnoreCase("weapon")) {
+            GearSetManager.giveWeapon((Player) sender, level);
+            sender.sendMessage("§aOtrzymujesz miecz - Poziom " + level + " (żelazny, Ostrość " + level + ").");
             return true;
         }
         GearSetManager.giveSet((Player) sender, level);
