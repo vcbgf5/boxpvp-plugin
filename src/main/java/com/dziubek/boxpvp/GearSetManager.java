@@ -9,9 +9,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.Collections;
 
 /**
- * Gotowe zestawy PvP (zbroja + miecz/kilof/siekiera/łopata) na 10 poziomów - /bpvp giveset
- * <poziom> ubiera gracza w pancerz i wrzuca narzędzia do ekwipunku. Poziom rośnie materiałem
- * (drewno/skóra -> żelazo -> diament -> netheryt) i siłą enczantów, aż do maksimów z wanilii.
+ * Gotowe zestawy PvP (zbroja + miecz/siekiera/włócznia/kilof/łopata) na 10 poziomów - /bpvp
+ * giveset <poziom> ubiera gracza w pancerz i wrzuca narzędzia do ekwipunku. Poziom rośnie
+ * materiałem (drewno/skóra -> żelazo -> diament -> netheryt) i siłą enczantów.
  */
 public final class GearSetManager {
 
@@ -26,8 +26,12 @@ public final class GearSetManager {
             "WOODEN", "STONE", "IRON", "IRON", "IRON",
             "DIAMOND", "DIAMOND", "DIAMOND", "NETHERITE", "NETHERITE"
     };
-    /** Osobna progresja materiału dla miecza - resource pack "Fabulous Enchanted 3D" ma swiecacy model 3D dla kazdego z tych 7 materialow. */
-    private static final String[] SWORD_PREFIX = {
+    /**
+     * Osobna progresja materiału dla broni (miecz, siekiera, włócznia) - resource pack
+     * "Fabulous Enchanted 3D" ma swiecacy model 3D dla kazdego z tych 7 materialow (w tym
+     * miedz/zloto, ktorych nie ma w TOOL_PREFIX uzywanym dla kilofa/lopaty).
+     */
+    private static final String[] WEAPON_PREFIX = {
             "WOODEN", "STONE", "COPPER", "IRON", "IRON",
             "GOLDEN", "DIAMOND", "DIAMOND", "NETHERITE", "NETHERITE"
     };
@@ -57,17 +61,22 @@ public final class GearSetManager {
         player.getInventory().setBoots(armorPiece(armorPrefix, "BOOTS", "Buty", level, i));
 
         player.getInventory().addItem(
-                sword(SWORD_PREFIX[i], level, i),
+                sword(WEAPON_PREFIX[i], level, i),
+                spear(WEAPON_PREFIX[i], level, i),
                 pickaxe(toolPrefix, level, i),
-                axe(toolPrefix, level, i),
+                axe(WEAPON_PREFIX[i], level, i),
                 shovel(toolPrefix, level, i)
         );
     }
 
-    /** /bpvp giveset <poziom> weapon - tylko miecz (bez zbroi/narzedzi), np. do testowania resource packa. */
+    /** /bpvp giveset <poziom> weapon - tylko bronie (miecz, siekiera, włócznia, bez zbroi/kilofa/łopaty). */
     public static void giveWeapon(Player player, int level) {
         int i = level - 1;
-        player.getInventory().addItem(sword(SWORD_PREFIX[i], level, i));
+        player.getInventory().addItem(
+                sword(WEAPON_PREFIX[i], level, i),
+                spear(WEAPON_PREFIX[i], level, i),
+                axe(WEAPON_PREFIX[i], level, i)
+        );
     }
 
     private static ItemStack armorPiece(String prefix, String piece, String polishName, int level, int i) {
@@ -80,7 +89,7 @@ public final class GearSetManager {
     }
 
     /**
-     * Materiał rośnie razem z poziomem (SWORD_PREFIX) - resource pack "Fabulous Enchanted 3D" ma
+     * Materiał rośnie razem z poziomem (WEAPON_PREFIX) - resource pack "Fabulous Enchanted 3D" ma
      * swiecacy model 3D dla kazdego z 7 materialow, wiec wyglad miecza faktycznie zmienia się co
      * poziom. Ostrość rośnie NIEZALEŻNIE 1-10 (ponad wanilijny limit 5 - addUnsafeEnchantment na
      * to pozwala) jako dodatkowy wskaźnik mocy obok materiału.
@@ -112,6 +121,17 @@ public final class GearSetManager {
         applyEnchant(item, Enchantment.UNBREAKING, UNBREAKING[i]);
         applyMending(item, level);
         style(item, "Siekiera", level);
+        return item;
+    }
+
+    /** Włócznia - tak samo jak miecz ma swiecacy model 3D dla kazdego z 7 materialow w resource packu. */
+    private static ItemStack spear(String prefix, int level, int i) {
+        ItemStack item = new ItemStack(Material.valueOf(prefix + "_SPEAR"));
+        applyEnchant(item, Enchantment.SHARPNESS, level);
+        applyEnchant(item, Enchantment.UNBREAKING, UNBREAKING[i]);
+        applyEnchant(item, Enchantment.LOOTING, LOOTING[i]);
+        applyMending(item, level);
+        style(item, "Włócznia", level);
         return item;
     }
 
