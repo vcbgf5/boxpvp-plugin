@@ -261,7 +261,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         }
 
         if (economy == null) {
-            getLogger().warning("Vault + system ekonomii (np. EssentialsX) NIE znaleziony - /sklep nie będzie działać dopóki go nie zainstalujesz.");
+            getLogger().warning("Vault + system ekonomii (np. EzEconomy) NIE znaleziony - /sklep nie będzie działać dopóki go nie zainstalujesz.");
         } else {
             getLogger().info("Ekonomia podłączona przez Vault: " + economy.getName());
         }

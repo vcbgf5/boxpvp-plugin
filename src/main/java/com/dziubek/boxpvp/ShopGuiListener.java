@@ -76,7 +76,7 @@ public class ShopGuiListener implements Listener {
 
     private void purchase(Player player, ShopManager.ShopItemData item) {
         if (plugin.getEconomy() == null) {
-            player.sendMessage("§cSklep jest niedostępny - brak podłączonego systemu ekonomii (Vault + EssentialsX).");
+            player.sendMessage("§cSklep jest niedostępny - brak podłączonego systemu ekonomii (Vault + EzEconomy).");
             return;
         }
 
