@@ -76,6 +76,8 @@ public class GeneratorCommand implements CommandExecutor {
                 return handleRotShop(sender, args);
             case "infohologram":
                 return handleInfoHologram(sender, args);
+            case "reload":
+                return handleReload(sender);
             default:
                 sendHelp(sender);
                 return true;
@@ -127,6 +129,16 @@ public class GeneratorCommand implements CommandExecutor {
                 + "(tematy: " + String.join(", ", InfoHologramManager.topics()) + ")");
         sender.sendMessage("§c/bpvp infohologram remove <id> §7- usuwa postawiony hologram-info");
         sender.sendMessage("§c/bpvp infohologram list §7- lista dostępnych tematów");
+        sender.sendMessage("§c/bpvp reload §7- przeładowuje configi (config.yml, shop.yml, kits.yml, craftblock.yml) bez restartu serwera");
+    }
+
+    private boolean handleReload(CommandSender sender) {
+        plugin.reloadConfig();
+        plugin.getShop().reload();
+        plugin.getKits().reload();
+        plugin.getCraftBlocks().reload();
+        sender.sendMessage("§aPrzeładowano config.yml, shop.yml, kits.yml i craftblock.yml.");
+        return true;
     }
 
     private boolean handleWand(CommandSender sender) {

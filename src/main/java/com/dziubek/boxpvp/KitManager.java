@@ -2,6 +2,7 @@ package com.dziubek.boxpvp;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -37,6 +38,15 @@ public class KitManager {
             }
         }
         this.data = YamlConfiguration.loadConfiguration(file);
+    }
+
+    /** Wczytuje kits.yml na nowo z dysku - do reczej edycji pliku bez restartu serwera (/bpvp reload). */
+    public void reload() {
+        try {
+            data.load(file);
+        } catch (IOException | InvalidConfigurationException e) {
+            plugin.getLogger().warning("Nie udało się przeładować kits.yml: " + e.getMessage());
+        }
     }
 
     public boolean exists(String name) {

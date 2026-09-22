@@ -16,7 +16,7 @@ public class GeneratorTabCompleter implements TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of("wand", "create", "remove", "list", "villager",
             "sellprice", "event", "leaderboard", "movehologram", "craftblock", "giveset", "teleportto",
-            "duel", "booster", "rotshop", "infohologram");
+            "duel", "booster", "rotshop", "infohologram", "reload");
     private static final List<String> VILLAGER_ACTIONS = List.of("create", "remove");
     private static final List<String> SELLPRICE_ACTIONS = List.of("set", "remove", "list");
     private static final List<String> EVENT_ACTIONS = List.of("start", "envoy", "mega", "zombie", "megazombie", "setzone1", "setzone2",

@@ -2,6 +2,7 @@ package com.dziubek.boxpvp;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -33,6 +34,15 @@ public class ShopManager {
             }
         }
         this.data = YamlConfiguration.loadConfiguration(file);
+    }
+
+    /** Wczytuje shop.yml na nowo z dysku - do reczej edycji pliku bez restartu serwera (/bpvp reload). */
+    public void reload() {
+        try {
+            data.load(file);
+        } catch (IOException | InvalidConfigurationException e) {
+            plugin.getLogger().warning("Nie udało się przeładować shop.yml: " + e.getMessage());
+        }
     }
 
     public boolean categoryExists(String id) {
