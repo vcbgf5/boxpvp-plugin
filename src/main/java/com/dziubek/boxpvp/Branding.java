@@ -68,7 +68,8 @@ public final class Branding {
      * zaczynał się dokładnie od lewej krawędzi okna zamiast być przesunięty w prawo.
      */
     private static final String SPACE_NEG8 = "";
-    public static final String GUI_BG_DUELS = "";
+    public static final String GUI_BG_CRATE_CHOICE = "";
+    public static final String GUI_BG_CRATE_ROLL = "";
 
     /** Buduje tytuł GUI z własnym tłem (patrz GUI_BG_* powyżej) zamiast zwykłego tekstu. */
     public static Component customGuiTitle(String backgroundGlyph) {

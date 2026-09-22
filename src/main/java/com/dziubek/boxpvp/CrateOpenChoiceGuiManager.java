@@ -31,7 +31,7 @@ public class CrateOpenChoiceGuiManager {
 
     public void open(Player player, String crateName, List<CrateReward> rewards, Location crateBlockLocation) {
         Inventory inv = Bukkit.createInventory(new CrateOpenChoiceGuiHolder(crateName, rewards, crateBlockLocation),
-                9, Branding.accent("Otwórz:") + " §f" + crateName);
+                9, Branding.customGuiTitle(Branding.GUI_BG_CRATE_CHOICE));
 
         inv.setItem(ANIMATED_SLOT, button(Material.CHEST, Branding.accent("▶ Otwórz z animacją"),
                 "§7Zobaczysz kręcący się bęben", "§7i dramatyczne odliczanie."));
@@ -39,7 +39,8 @@ public class CrateOpenChoiceGuiManager {
         inv.setItem(INSTANT_SLOT, button(Material.FEATHER, "§b§l⏩ Otwórz bez animacji",
                 "§7Od razu poznasz wynik,", "§7bez czekania na bęben."));
 
-        GuiDecor.fillEmpty(inv);
+        // Bez GuiDecor.fillEmpty() - puste sloty maja pokazywac wlasne tlo (GUI_BG_CRATE_CHOICE)
+        // zamiast szklanych paneli, ktore by je zaslonily.
         player.openInventory(inv);
         GuiDecor.playOpenSound(player);
     }
