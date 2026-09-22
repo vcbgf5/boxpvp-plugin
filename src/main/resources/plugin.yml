@@ -109,7 +109,7 @@ commands:
     description: Lista znajomych z powiadomieniem o dolaczeniu - /friend add|remove|list
     usage: /friend add <gracz>|remove <gracz>|list
 
-softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms]
+softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms, EcoItems]
 
 permissions:
   boxpvp.setspawn:

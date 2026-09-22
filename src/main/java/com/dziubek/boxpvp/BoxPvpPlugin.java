@@ -247,6 +247,11 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
 
+        if (getServer().getPluginManager().getPlugin("EcoItems") != null) {
+            getLogger().info("Wykryto EcoItems - w /sklep additem wybierz typ COMMAND i wpisz komende EcoItems "
+                    + "(np. /ecoitems give %player% <id> 1), zeby sprzedawac custom itemy.");
+        }
+
         boolean worldGuardFound = getServer().getPluginManager().getPlugin("WorldGuard") != null;
         if (worldGuardFound) {
             getServer().getPluginManager().registerEvents(new SpawnRegionGuardListener(this), this);
