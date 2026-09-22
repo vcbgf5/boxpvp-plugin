@@ -26,6 +26,11 @@ public final class GearSetManager {
             "WOODEN", "STONE", "IRON", "IRON", "IRON",
             "DIAMOND", "DIAMOND", "DIAMOND", "NETHERITE", "NETHERITE"
     };
+    /** Osobna progresja materiału dla miecza - resource pack "Fabulous Enchanted 3D" ma swiecacy model 3D dla kazdego z tych 7 materialow. */
+    private static final String[] SWORD_PREFIX = {
+            "WOODEN", "STONE", "COPPER", "IRON", "IRON",
+            "GOLDEN", "DIAMOND", "DIAMOND", "NETHERITE", "NETHERITE"
+    };
     private static final int[] PROTECTION = {0, 1, 1, 2, 2, 3, 3, 4, 4, 4};
     private static final int[] SHARPNESS = {0, 1, 1, 2, 3, 3, 4, 4, 5, 5};
     private static final int[] EFFICIENCY = {0, 1, 2, 2, 3, 3, 4, 4, 5, 5};
@@ -52,7 +57,7 @@ public final class GearSetManager {
         player.getInventory().setBoots(armorPiece(armorPrefix, "BOOTS", "Buty", level, i));
 
         player.getInventory().addItem(
-                sword(level, i),
+                sword(SWORD_PREFIX[i], level, i),
                 pickaxe(toolPrefix, level, i),
                 axe(toolPrefix, level, i),
                 shovel(toolPrefix, level, i)
@@ -61,7 +66,8 @@ public final class GearSetManager {
 
     /** /bpvp giveset <poziom> weapon - tylko miecz (bez zbroi/narzedzi), np. do testowania resource packa. */
     public static void giveWeapon(Player player, int level) {
-        player.getInventory().addItem(sword(level, level - 1));
+        int i = level - 1;
+        player.getInventory().addItem(sword(SWORD_PREFIX[i], level, i));
     }
 
     private static ItemStack armorPiece(String prefix, String piece, String polishName, int level, int i) {
@@ -74,13 +80,13 @@ public final class GearSetManager {
     }
 
     /**
-     * Zawsze IRON_SWORD (niezaleznie od poziomu) - z resource packiem "Fabulous Enchanted 3D"
-     * kazdy zaczarowany zelazny miecz dostaje swiecacy model 3D, wiec cala progresja mocy idzie
-     * przez poziom Ostrosci (1-10, ponad wanilijny limit 5 - addUnsafeEnchantment to pozwala),
-     * a nie przez zmiane materialu jak reszta zestawu.
+     * Materiał rośnie razem z poziomem (SWORD_PREFIX) - resource pack "Fabulous Enchanted 3D" ma
+     * swiecacy model 3D dla kazdego z 7 materialow, wiec wyglad miecza faktycznie zmienia się co
+     * poziom. Ostrość rośnie NIEZALEŻNIE 1-10 (ponad wanilijny limit 5 - addUnsafeEnchantment na
+     * to pozwala) jako dodatkowy wskaźnik mocy obok materiału.
      */
-    private static ItemStack sword(int level, int i) {
-        ItemStack item = new ItemStack(Material.IRON_SWORD);
+    private static ItemStack sword(String prefix, int level, int i) {
+        ItemStack item = new ItemStack(Material.valueOf(prefix + "_SWORD"));
         applyEnchant(item, Enchantment.SHARPNESS, level);
         applyEnchant(item, Enchantment.UNBREAKING, UNBREAKING[i]);
         applyEnchant(item, Enchantment.LOOTING, LOOTING[i]);
