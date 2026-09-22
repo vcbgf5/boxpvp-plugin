@@ -19,9 +19,10 @@ import java.util.List;
  */
 public class CrateOpenChoiceGuiManager {
 
-    public static final int ANIMATED_SLOT = 3;
-    public static final int ICON_SLOT = 4;
-    public static final int INSTANT_SLOT = 5;
+    private static final int SIZE = 27;
+    public static final int ICON_SLOT = 4;         // gorny rzad, srodek - duzy podglad skrzyni
+    public static final int ANIMATED_SLOT = 12;    // srodkowy rzad, lewo od centrum
+    public static final int INSTANT_SLOT = 14;     // srodkowy rzad, prawo od centrum
 
     private final BoxPvpPlugin plugin;
 
@@ -31,11 +32,11 @@ public class CrateOpenChoiceGuiManager {
 
     public void open(Player player, String crateName, List<CrateReward> rewards, Location crateBlockLocation) {
         Inventory inv = Bukkit.createInventory(new CrateOpenChoiceGuiHolder(crateName, rewards, crateBlockLocation),
-                9, Branding.customGuiTitle(Branding.GUI_BG_CRATE_CHOICE));
+                SIZE, Branding.customGuiTitle(Branding.GUI_BG_CRATE_CHOICE));
 
+        inv.setItem(ICON_SLOT, crateIcon(crateName));
         inv.setItem(ANIMATED_SLOT, button(Material.CHEST, Branding.accent("▶ Otwórz z animacją"),
                 "§7Zobaczysz kręcący się bęben", "§7i dramatyczne odliczanie."));
-        inv.setItem(ICON_SLOT, crateIcon(crateName));
         inv.setItem(INSTANT_SLOT, button(Material.FEATHER, "§b§l⏩ Otwórz bez animacji",
                 "§7Od razu poznasz wynik,", "§7bez czekania na bęben."));
 
