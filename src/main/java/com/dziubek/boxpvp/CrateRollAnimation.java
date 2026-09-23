@@ -46,8 +46,8 @@ public class CrateRollAnimation {
 
     public static void play(BoxPvpPlugin plugin, Player player, String crateName, List<CrateReward> rewards,
                              Location crateBlockLocation) {
-        Inventory inv = Bukkit.createInventory(new CrateRollGuiHolder(), GUI_SIZE, Branding.accent("Otwieranie:") + " §f" + crateName);
-        paintFrame(inv, Material.BLACK_STAINED_GLASS_PANE);
+        Inventory inv = Bukkit.createInventory(new CrateRollGuiHolder(), GUI_SIZE, Branding.customGuiTitle(Branding.GUI_BG_CRATE_2));
+        paintFrame(inv, Material.YELLOW_STAINED_GLASS_PANE);
 
         Random random = new Random();
         List<ItemStack> reel = new ArrayList<>();
@@ -194,20 +194,16 @@ public class CrateRollAnimation {
     }
 
     /**
-     * Wypełnia całe GUI ramką z podanego materiału, a potem wstawia strzałki wskazujące
-     * slot wyniku (nad i pod środkowym rzędem bębenka).
+     * Test: zamiast pelnej ramki na wszystkich 27 slotach - tylko strzalki wskazujace slot
+     * wyniku (w kolorze rzadkosci), zeby bylo widac wlasne tlo (crate_2.png) pod spodem.
      */
     private static void paintFrame(Inventory inv, Material frameMaterial) {
-        ItemStack frame = borderPane(frameMaterial);
-        for (int i = 0; i < GUI_SIZE; i++) {
-            inv.setItem(i, frame);
-        }
-        inv.setItem(ARROW_TOP_SLOT, arrowPane(true));
-        inv.setItem(ARROW_BOTTOM_SLOT, arrowPane(false));
+        inv.setItem(ARROW_TOP_SLOT, arrowPane(true, frameMaterial));
+        inv.setItem(ARROW_BOTTOM_SLOT, arrowPane(false, frameMaterial));
     }
 
-    private static ItemStack arrowPane(boolean pointingDown) {
-        ItemStack pane = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
+    private static ItemStack arrowPane(boolean pointingDown, Material material) {
+        ItemStack pane = new ItemStack(material);
         ItemMeta meta = pane.getItemMeta();
         meta.setDisplayName(pointingDown ? "§e§l▼ TU WYPADNIE ▼" : "§e§l▲ TU WYPADNIE ▲");
         pane.setItemMeta(meta);
@@ -316,11 +312,4 @@ public class CrateRollAnimation {
         return item.getType().toString();
     }
 
-    private static ItemStack borderPane(Material material) {
-        ItemStack glass = new ItemStack(material);
-        ItemMeta meta = glass.getItemMeta();
-        meta.setDisplayName(" ");
-        glass.setItemMeta(meta);
-        return glass;
-    }
 }

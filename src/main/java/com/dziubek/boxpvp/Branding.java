@@ -1,5 +1,6 @@
 package com.dziubek.boxpvp;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -56,6 +57,23 @@ public final class Branding {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    /**
+     * Technika "custom GUI przez font" (test dla skrzynek): jeden znak font-glyph o celowo
+     * duzej wysokosci (height:256, ascent:19 z resource packa) renderuje sie jako CALE tlo
+     * menu zamiast zwyklej tekstury skrzyni - nadmiar wysokosci wychodzi poza okno i jest
+     * ucinany przez klienta. Dziala u KAZDEGO gracza (w przeciwienstwie do OptiFine), a pliki
+     * moga miec dowolna nazwe (crate_1.png, crate_2.png) - to jedyny sposob na to bez OptiFine.
+     * SPACE_NEG8 cofa kursor o 8px (domyslny margines tekstu w tytule GUI).
+     */
+    private static final String SPACE_NEG8 = "";
+    public static final String GUI_BG_CRATE_1 = "";
+    public static final String GUI_BG_CRATE_2 = "";
+
+    /** Buduje tytul GUI z wlasnym tlem (patrz GUI_BG_* powyzej) zamiast zwyklego tekstu. */
+    public static Component customGuiTitle(String backgroundGlyph) {
+        return Component.text(SPACE_NEG8 + backgroundGlyph);
     }
 
     static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
