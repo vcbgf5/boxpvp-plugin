@@ -1,6 +1,5 @@
 package com.dziubek.boxpvp;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -57,23 +56,6 @@ public final class Branding {
             item.setItemMeta(meta);
         }
         return item;
-    }
-
-    /**
-     * Technika "custom GUI przez font": jeden znak font-glyph o celowo dużej wysokości
-     * (height:256, ascent:19 z resource packa) renderuje się jako CAŁE tło menu zamiast
-     * zwyklej tekstury skrzyni - nadmiar wysokości po prostu wychodzi poza okno i jest
-     * ucinany przez klienta, więc nie trzeba trafić piksel w piksel w wysokość okna.
-     * SPACE_NEG8 cofa kursor o 8px (domyślny margines tekstu w tytule GUI), żeby obrazek
-     * zaczynał się dokładnie od lewej krawędzi okna zamiast być przesunięty w prawo.
-     */
-    private static final String SPACE_NEG8 = "";
-    public static final String GUI_BG_CRATE_CHOICE = "";
-    public static final String GUI_BG_CRATE_ROLL = "";
-
-    /** Buduje tytuł GUI z własnym tłem (patrz GUI_BG_* powyżej) zamiast zwykłego tekstu. */
-    public static Component customGuiTitle(String backgroundGlyph) {
-        return Component.text(SPACE_NEG8 + backgroundGlyph);
     }
 
     static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet

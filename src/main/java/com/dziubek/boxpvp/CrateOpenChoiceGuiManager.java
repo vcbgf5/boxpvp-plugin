@@ -19,10 +19,9 @@ import java.util.List;
  */
 public class CrateOpenChoiceGuiManager {
 
-    private static final int SIZE = 27;
-    public static final int ICON_SLOT = 4;         // gorny rzad, srodek - duzy podglad skrzyni
-    public static final int ANIMATED_SLOT = 12;    // srodkowy rzad, lewo od centrum
-    public static final int INSTANT_SLOT = 14;     // srodkowy rzad, prawo od centrum
+    public static final int ANIMATED_SLOT = 3;
+    public static final int ICON_SLOT = 4;
+    public static final int INSTANT_SLOT = 5;
 
     private final BoxPvpPlugin plugin;
 
@@ -32,16 +31,15 @@ public class CrateOpenChoiceGuiManager {
 
     public void open(Player player, String crateName, List<CrateReward> rewards, Location crateBlockLocation) {
         Inventory inv = Bukkit.createInventory(new CrateOpenChoiceGuiHolder(crateName, rewards, crateBlockLocation),
-                SIZE, Branding.customGuiTitle(Branding.GUI_BG_CRATE_CHOICE));
+                9, Branding.accent("Otwórz:") + " §f" + crateName);
 
-        inv.setItem(ICON_SLOT, crateIcon(crateName));
         inv.setItem(ANIMATED_SLOT, button(Material.CHEST, Branding.accent("▶ Otwórz z animacją"),
                 "§7Zobaczysz kręcący się bęben", "§7i dramatyczne odliczanie."));
+        inv.setItem(ICON_SLOT, crateIcon(crateName));
         inv.setItem(INSTANT_SLOT, button(Material.FEATHER, "§b§l⏩ Otwórz bez animacji",
                 "§7Od razu poznasz wynik,", "§7bez czekania na bęben."));
 
-        // Bez GuiDecor.fillEmpty() - puste sloty maja pokazywac wlasne tlo (GUI_BG_CRATE_CHOICE)
-        // zamiast szklanych paneli, ktore by je zaslonily.
+        GuiDecor.fillEmpty(inv);
         player.openInventory(inv);
         GuiDecor.playOpenSound(player);
     }
