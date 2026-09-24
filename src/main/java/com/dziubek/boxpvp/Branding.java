@@ -60,14 +60,12 @@ public final class Branding {
 
     /**
      * Obrazkowe glify (bitmap font providers, resource pack) używane przez BalanceHudManager do
-     * zbudowania napisu "Kasa: X,XX" wyłącznie z własnych tekstur (nie zwykłym kolorowym tekstem).
-     * Litery/cyfry wycięte z prawdziwej czcionki Minecrafta
+     * zbudowania napisu "Kasa: X,XXK/M/B/T" wyłącznie z własnych tekstur (nie zwykłym kolorowym
+     * tekstem). Litery/cyfry wycięte z prawdziwej czcionki Minecrafta
      * (assets/minecraft/textures/font/ascii.png z gry) - nie generyczny font, dzięki czemu
      * wszystkie glify (litery, cyfry, przecinek) dzielą tę samą siatkę pikseli co reszta gry i są
-     * wzajemnie wyrównane (wspólna linia bazowa). Kodpointy 0xE84F-0xE85B.
+     * wzajemnie wyrównane (wspólna linia bazowa). Kodpointy 0xE850-0xE865.
      */
-    public static final String KASA_COIN = "";
-    public static final int KASA_COIN_WIDTH = 22;
     public static final String KASA_LABEL = "";
     public static final int KASA_LABEL_WIDTH = 52;
     private static final String[] KASA_DIGITS = {
@@ -78,8 +76,14 @@ public final class Branding {
     /** Przecinek (polski separator dziesiętny) - podmienia kropkę z String.format. */
     public static final String KASA_COMMA = "";
     private static final int KASA_COMMA_WIDTH = 4;
+    /** Sufiksy skróconego zapisu salda (12,27K / 3,40M / ...). */
+    private static final String KASA_K = "";
+    private static final String KASA_M = "";
+    private static final String KASA_B = "";
+    private static final String KASA_T = "";
+    private static final int KASA_LETTER_WIDTH = 12;
 
-    /** Zamienia znak cyfry '0'-'9' na jego obrazkowy glif; kropkę zamienia na przecinek. */
+    /** Zamienia znak cyfry '0'-'9' na jego obrazkowy glif; kropkę/przecinek/K,M,B,T też. */
     public static String kasaDigit(char c) {
         if (c >= '0' && c <= '9') {
             return KASA_DIGITS[c - '0'];
@@ -87,7 +91,13 @@ public final class Branding {
         if (c == '.' || c == ',') {
             return KASA_COMMA;
         }
-        return String.valueOf(c);
+        switch (c) {
+            case 'K': return KASA_K;
+            case 'M': return KASA_M;
+            case 'B': return KASA_B;
+            case 'T': return KASA_T;
+            default: return String.valueOf(c);
+        }
     }
 
     /** Szerokość w px glifu zwróconego przez kasaDigit() dla znaku c (0 dla nieobsługiwanych). */
@@ -98,7 +108,34 @@ public final class Branding {
         if (c == '.' || c == ',') {
             return KASA_COMMA_WIDTH;
         }
+        if (c == 'K' || c == 'M' || c == 'B' || c == 'T') {
+            return KASA_LETTER_WIDTH;
+        }
         return 0;
+    }
+
+    /**
+     * Skraca kwotę do formatu K/M/B/T (tysiąc/milion/miliard/bilion), np. 12270 -> "12,27K",
+     * 3400000 -> "3,40M". Poniżej 1000 zwraca zwykłe dwa miejsca po przecinku bez sufiksu.
+     */
+    public static String formatCompact(double value) {
+        double abs = Math.abs(value);
+        double divided = value;
+        String suffix = "";
+        if (abs >= 1_000_000_000_000.0) {
+            divided = value / 1_000_000_000_000.0;
+            suffix = "T";
+        } else if (abs >= 1_000_000_000.0) {
+            divided = value / 1_000_000_000.0;
+            suffix = "B";
+        } else if (abs >= 1_000_000.0) {
+            divided = value / 1_000_000.0;
+            suffix = "M";
+        } else if (abs >= 1_000.0) {
+            divided = value / 1_000.0;
+            suffix = "K";
+        }
+        return String.format(java.util.Locale.ROOT, "%.2f", divided) + suffix;
     }
 
     /**

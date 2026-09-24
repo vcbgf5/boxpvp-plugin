@@ -101,12 +101,11 @@ public class BalanceHudManager {
 
     private String titleFor(Player player) {
         double balance = plugin.getEconomy() != null ? plugin.getEconomy().getBalance(player) : 0.0;
-        String formatted = String.format(java.util.Locale.ROOT, "%.2f", balance);
+        String formatted = Branding.formatCompact(balance);
 
         StringBuilder kasaContent = new StringBuilder();
-        kasaContent.append(Branding.KASA_COIN);
         kasaContent.append(Branding.KASA_LABEL);
-        int kasaWidth = Branding.KASA_COIN_WIDTH + Branding.KASA_LABEL_WIDTH;
+        int kasaWidth = Branding.KASA_LABEL_WIDTH;
         for (int i = 0; i < formatted.length(); i++) {
             char c = formatted.charAt(i);
             kasaContent.append(Branding.kasaDigit(c));
