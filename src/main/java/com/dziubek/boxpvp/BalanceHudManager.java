@@ -74,7 +74,7 @@ public class BalanceHudManager {
 
     private String titleFor(Player player) {
         double balance = plugin.getEconomy() != null ? plugin.getEconomy().getBalance(player) : 0.0;
-        String formatted = String.format("%.2f", balance);
+        String formatted = String.format(java.util.Locale.ROOT, "%.2f", balance);
 
         StringBuilder kasaContent = new StringBuilder();
         kasaContent.append(Branding.KASA_COIN);

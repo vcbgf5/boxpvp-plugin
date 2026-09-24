@@ -84,7 +84,7 @@ public final class Branding {
         if (c >= '0' && c <= '9') {
             return KASA_DIGITS[c - '0'];
         }
-        if (c == '.') {
+        if (c == '.' || c == ',') {
             return KASA_COMMA;
         }
         return String.valueOf(c);
@@ -95,7 +95,7 @@ public final class Branding {
         if (c >= '0' && c <= '9') {
             return KASA_DIGIT_WIDTH;
         }
-        if (c == '.') {
+        if (c == '.' || c == ',') {
             return KASA_COMMA_WIDTH;
         }
         return 0;
