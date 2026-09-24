@@ -244,6 +244,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("booster").setExecutor(new BoosterCommand(this));
         getCommand("rotshop").setExecutor(new RotShopCommand(this));
         getCommand("vanish").setExecutor(new VanishCommand(this));
+        getCommand("reloadpack").setExecutor(new ReloadResourcePackCommand());
         getCommand("freeze").setExecutor(new FreezeCommand(this));
         getCommand("report").setExecutor(new ReportCommand(this));
         getCommand("sprawdz").setExecutor(new SprawdzCommand(this));
