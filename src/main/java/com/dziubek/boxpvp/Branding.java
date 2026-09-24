@@ -66,6 +66,30 @@ public final class Branding {
      */
     public static final String SPACE_POS200 = "";
 
+    /**
+     * Obrazkowe glify (bitmap font providers, resource pack) używane przez BalanceHudManager do
+     * zbudowania napisu "Kasa: X$" wyłącznie z własnych tekstur (nie zwykłym kolorowym tekstem).
+     * Kodpointy 0xE850-0xE85C.
+     */
+    public static final String KASA_LABEL = "";
+    private static final String[] KASA_DIGITS = {
+            "", "", "", "", "",
+            "", "", "", "", ""
+    };
+    public static final String KASA_DOT = "";
+    public static final String KASA_CURRENCY = "";
+
+    /** Zamienia znak cyfry '0'-'9' na jego obrazkowy glif; inne znaki (np. '.') zwraca bez zmian. */
+    public static String kasaDigit(char c) {
+        if (c >= '0' && c <= '9') {
+            return KASA_DIGITS[c - '0'];
+        }
+        if (c == '.') {
+            return KASA_DOT;
+        }
+        return String.valueOf(c);
+    }
+
     static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
     static final int LIGHT_LAVENDER = 0xD8B4FE; // jasny fiolet / lawenda
 
