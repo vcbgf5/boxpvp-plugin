@@ -58,6 +58,14 @@ public final class Branding {
         return item;
     }
 
+    /**
+     * Znak "przesuwający kursor" (font provider typu space, +200px) - używany do przesunięcia
+     * tekstu bossbara (domyślnie wyśrodkowany na górze ekranu) w stronę prawego rogu, tak żeby
+     * BalanceHudManager mógł zbudować w ten sposób stałe "GUI" w rogu ekranu z samego tekstu.
+     * Wartość dobrana w ciemno (bez testów w grze) - może wymagać korekty.
+     */
+    public static final String SPACE_POS200 = "";
+
     static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
     static final int LIGHT_LAVENDER = 0xD8B4FE; // jasny fiolet / lawenda
 

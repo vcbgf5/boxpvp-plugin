@@ -47,6 +47,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private EnvoyDisplayManager envoy;
     private LeaderboardManager leaderboards;
     private ScoreboardManager scoreboards;
+    private BalanceHudManager balanceHud;
     private StatsGuiManager statsGui;
     private PartyManager party;
     private MissionManager missions;
@@ -108,6 +109,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         killstreaks = new KillstreakManager(this);
         leaderboards = new LeaderboardManager(this);
         scoreboards = new ScoreboardManager(this);
+        balanceHud = new BalanceHudManager(this);
         statsGui = new StatsGuiManager(this);
         party = new PartyManager(this);
         missions = new MissionManager(this);
@@ -157,6 +159,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         giantEvent.purgeOrphans();
         leaderboards.start();
         scoreboards.start();
+        balanceHud.start();
         events.start();
         market.start();
         missions.start();
@@ -175,6 +178,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new FirstJoinSpawnListener(this), this);
         getServer().getPluginManager().registerEvents(new VoidTeleportListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerSessionListener(this), this);
+        getServer().getPluginManager().registerEvents(new BalanceHudQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new PvpKillListener(this), this);
         getServer().getPluginManager().registerEvents(new DailyGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new CrateGuiListener(this), this);
@@ -464,6 +468,10 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public ScoreboardManager getScoreboards() {
         return scoreboards;
+    }
+
+    public BalanceHudManager getBalanceHud() {
+        return balanceHud;
     }
 
     public StatsGuiManager getStatsGui() {

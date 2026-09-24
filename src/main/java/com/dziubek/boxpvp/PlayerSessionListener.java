@@ -22,6 +22,7 @@ public class PlayerSessionListener implements Listener {
         Player player = event.getPlayer();
         plugin.getStats().touch(player.getUniqueId(), player.getName());
         plugin.getScoreboards().assign(player);
+        plugin.getBalanceHud().show(player);
         plugin.getMarket().deliverPendingReturns(player);
 
         player.sendMessage("§7Wskazówka: §fmodele 3D broni §7działają u KAŻDEGO gracza automatycznie (zwykły resource pack). "
