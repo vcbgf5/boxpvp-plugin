@@ -59,14 +59,6 @@ public final class Branding {
     }
 
     /**
-     * Znak "przesuwający kursor" (font provider typu space, +200px) - używany do przesunięcia
-     * tekstu bossbara (domyślnie wyśrodkowany na górze ekranu) w stronę prawego rogu, tak żeby
-     * BalanceHudManager mógł zbudować w ten sposób stałe "GUI" w rogu ekranu z samego tekstu.
-     * Wartość dobrana w ciemno (bez testów w grze) - może wymagać korekty.
-     */
-    public static final String SPACE_POS200 = "";
-
-    /**
      * Obrazkowe glify (bitmap font providers, resource pack) używane przez BalanceHudManager do
      * zbudowania napisu "Kasa: X,XX" wyłącznie z własnych tekstur (nie zwykłym kolorowym tekstem).
      * Litery/cyfry wycięte z prawdziwej czcionki Minecrafta

@@ -16,10 +16,11 @@ import java.util.UUID;
  * bossbar w pluginie (ten, mega-zombie HP, ogłoszenia eventów) nie pokazuje już paska - widać
  * wyłącznie tytuł. Sam napis nie jest zwykłym kolorowym tekstem Minecrafta, tylko sekwencją
  * własnych obrazkowych glifów z resource packa (Branding.KASA_*) - etykieta "Kasa:" i każda cyfra
- * salda to osobna, narysowana tekstura. Branding.SPACE_POS200 przesuwa ten domyślnie
- * wyśrodkowany tekst w stronę prawej krawędzi ekranu. Bez resource packa gracz zobaczy zwykły,
- * wyśrodkowany, niewidoczny pasek z "chińskimi znaczkami" zamiast glifów - nie psuje się, tylko
- * wygląda gorzej.
+ * salda to osobna, narysowana tekstura. Tekst zostaje na domyślnej, wyśrodkowanej pozycji bossbara
+ * (próba przesunięcia go w stronę krawędzi przez sztuczny "space" offset wypychała go poza ekran -
+ * usunięte) - jedyna korekta to lekkie przesunięcie w dół (patrz ascent glifów kasa_* w
+ * font/default.json). Bez resource packa gracz zobaczy zwykły, wyśrodkowany, niewidoczny pasek z
+ * "chińskimi znaczkami" zamiast glifów - nie psuje się, tylko wygląda gorzej.
  */
 public class BalanceHudManager {
 
@@ -69,7 +70,6 @@ public class BalanceHudManager {
         String formatted = String.format("%.2f", balance);
 
         StringBuilder title = new StringBuilder();
-        title.append(Branding.SPACE_POS200);
         title.append(Branding.KASA_COIN);
         title.append(Branding.KASA_LABEL);
         for (int i = 0; i < formatted.length(); i++) {
