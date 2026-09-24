@@ -22,9 +22,12 @@ import java.util.UUID;
  * font/default.json). Bez resource packa gracz zobaczy zwykły, wyśrodkowany, niewidoczny pasek z
  * "chińskimi znaczkami" zamiast glifów - nie psuje się, tylko wygląda gorzej.
  *
- * Wszystkie elementy własnego HUD-u (saldo + eksperymentalne linie testowe) są w JEDNYM bossbarze
- * (jednym tytule) - Minecraft dopuszcza tylko ograniczoną liczbę jednoczesnych bossbarów, więc
- * zamiast osobnego bossbara na każdy element, doklejamy kolejne glify do tego samego tytułu.
+ * CELOWO osobny bossbar (nie sklejony z ScreenTestHudManager) - Minecraft centruje tytuł KAŻDEGO
+ * bossbara niezależnie i automatycznie. Sklejenie wielu elementów w JEDEN tytuł psuje to: glify w
+ * jednej linii tekstu ustawiają się jeden za drugim (kursor przesuwa się w prawo o szerokość
+ * poprzedniego glifu), więc kolejny element wypada przesunięty względem środka o szerokość
+ * wszystkiego, co było przed nim - a szerokość salda zmienia się z liczbą cyfr. Osobne bossbary
+ * dają darmowe, automatyczne centrowanie każdego elementu z osobna.
  */
 public class BalanceHudManager {
 
@@ -79,8 +82,6 @@ public class BalanceHudManager {
         for (int i = 0; i < formatted.length(); i++) {
             title.append(Branding.kasaDigit(formatted.charAt(i)));
         }
-        title.append(Branding.SCREEN_TEST_1);
-        title.append(Branding.SCREEN_TEST_2);
         return title.toString();
     }
 }

@@ -23,6 +23,7 @@ public class PlayerSessionListener implements Listener {
         plugin.getStats().touch(player.getUniqueId(), player.getName());
         plugin.getScoreboards().assign(player);
         plugin.getBalanceHud().show(player);
+        plugin.getScreenTestHud().show(player);
         plugin.getMarket().deliverPendingReturns(player);
         ResourcePackPusher.push(player);
 
