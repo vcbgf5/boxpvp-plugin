@@ -46,8 +46,12 @@ public class CrateRollAnimation {
 
     public static void play(BoxPvpPlugin plugin, Player player, String crateName, List<CrateReward> rewards,
                              Location crateBlockLocation) {
-        Inventory inv = Bukkit.createInventory(new CrateRollGuiHolder(), GUI_SIZE, Branding.accent("Otwieranie:") + " §f" + crateName);
-        paintFrame(inv, Material.BLACK_STAINED_GLASS_PANE);
+        String title = isSrebna(crateName) ? Branding.SREBNA_ROLL_TITLE
+                : Branding.accent("Otwieranie:") + " §f" + crateName;
+        Inventory inv = Bukkit.createInventory(new CrateRollGuiHolder(), GUI_SIZE, title);
+        if (!isSrebna(crateName)) {
+            paintFrame(inv, Material.BLACK_STAINED_GLASS_PANE);
+        }
 
         Random random = new Random();
         List<ItemStack> reel = new ArrayList<>();
@@ -108,7 +112,9 @@ public class CrateRollAnimation {
             CrateReward wonReward = pickWeighted(rewards, random);
             ItemStack won = wonReward.item().clone();
 
-            paintFrame(inv, frameColorFor(wonReward.chance()));
+            if (!isSrebna(crateName)) {
+                paintFrame(inv, frameColorFor(wonReward.chance()));
+            }
             inv.setItem(RESULT_SLOT, won);
 
             applyReward(plugin, player, crateName, wonReward, crateBlockLocation);
@@ -314,6 +320,12 @@ public class CrateRollAnimation {
             return item.getItemMeta().getDisplayName();
         }
         return item.getType().toString();
+    }
+
+    /** Skrzynia "Srebna" ma pełnoekranowe własne tło (Branding.SREBNA_ROLL_TITLE) zamiast
+     * ramki ze szklanych paneli - dla niej pomijamy paintFrame() całkowicie. */
+    private static boolean isSrebna(String crateName) {
+        return "Srebna".equalsIgnoreCase(crateName);
     }
 
     private static ItemStack borderPane(Material material) {

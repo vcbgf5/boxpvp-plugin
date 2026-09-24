@@ -120,6 +120,20 @@ public final class Branding {
         return String.format(java.util.Locale.ROOT, "%.2f", divided) + suffix;
     }
 
+    /**
+     * Pełnoekranowe tło GUI skrzyni "Srebna" (bitmap font providers, resource pack) - jeden
+     * glif obrazkowy zakrywający cały panel ekwipunku (włącznie z zawsze widocznym plecakiem
+     * gracza pod spodem), zamiast zwykłego tła kontenera + szklanych paneli jako wypełniacza.
+     * Tytuł GUI to dwa znaki: niewidoczna spacja o ujemnym advance -8 (przesuwa kursor z
+     * domyślnego x=8 na x=0, bo tekst tytułu w vanilla renderuje się zaczynając od x=8) plus
+     * sam obrazkowy glif (ascent=13=6+7 - domyślny y tytułu to 6, +7 to wysokość baseline
+     * zwykłej czcionki - ustawia górną krawędź obrazka dokładnie na y=0 panelu). Kodpointy
+     * 0xE870-0xE872.
+     */
+    private static final String SREBNA_SHIFT = "";
+    public static final String SREBNA_ROLL_TITLE = SREBNA_SHIFT + "";
+    public static final String SREBNA_CHOICE_TITLE = SREBNA_SHIFT + "";
+
     static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
     static final int LIGHT_LAVENDER = 0xD8B4FE; // jasny fiolet / lawenda
 
