@@ -68,9 +68,10 @@ public final class Branding {
 
     /**
      * Obrazkowe glify (bitmap font providers, resource pack) używane przez BalanceHudManager do
-     * zbudowania napisu "Kasa: X$" wyłącznie z własnych tekstur (nie zwykłym kolorowym tekstem).
-     * Litery/cyfry wycięte z prawdziwej czcionki Minecrafta (assets/minecraft/textures/font/ascii.png
-     * z gry) - nie generyczny font. Kodpointy 0xE84F-0xE85C.
+     * zbudowania napisu "Kasa: X, XX monety" wyłącznie z własnych tekstur (nie zwykłym kolorowym
+     * tekstem). Litery/cyfry wycięte z prawdziwej czcionki Minecrafta
+     * (assets/minecraft/textures/font/ascii.png z gry) - nie generyczny font. Kodpointy
+     * 0xE84F-0xE85D.
      */
     public static final String KASA_COIN = "";
     public static final String KASA_LABEL = "";
@@ -78,16 +79,20 @@ public final class Branding {
             "", "", "", "", "",
             "", "", "", "", ""
     };
-    public static final String KASA_DOT = "";
-    public static final String KASA_CURRENCY = "";
+    /** Przecinek (polski separator dziesiętny) - podmienia kropkę z String.format. */
+    public static final String KASA_COMMA = "";
+    /** Napis "monety" (zastępuje symbol $) - doklejany po saldzie. */
+    public static final String KASA_MONETY_LABEL = "";
+    /** Mały odstęp (space provider) między saldem a KASA_MONETY_LABEL. */
+    public static final String KASA_GAP = "";
 
-    /** Zamienia znak cyfry '0'-'9' na jego obrazkowy glif; inne znaki (np. '.') zwraca bez zmian. */
+    /** Zamienia znak cyfry '0'-'9' na jego obrazkowy glif; kropkę zamienia na przecinek. */
     public static String kasaDigit(char c) {
         if (c >= '0' && c <= '9') {
             return KASA_DIGITS[c - '0'];
         }
         if (c == '.') {
-            return KASA_DOT;
+            return KASA_COMMA;
         }
         return String.valueOf(c);
     }

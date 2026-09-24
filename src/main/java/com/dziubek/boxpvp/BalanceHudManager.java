@@ -75,7 +75,8 @@ public class BalanceHudManager {
         for (int i = 0; i < formatted.length(); i++) {
             title.append(Branding.kasaDigit(formatted.charAt(i)));
         }
-        title.append(Branding.KASA_CURRENCY);
+        title.append(Branding.KASA_GAP);
+        title.append(Branding.KASA_MONETY_LABEL);
         return title.toString();
     }
 }
