@@ -22,12 +22,12 @@ import java.util.UUID;
  * font/default.json). Bez resource packa gracz zobaczy zwykły, wyśrodkowany, niewidoczny pasek z
  * "chińskimi znaczkami" zamiast glifów - nie psuje się, tylko wygląda gorzej.
  *
- * CELOWO osobny bossbar (nie sklejony z ScreenTestHudManager) - Minecraft centruje tytuł KAŻDEGO
- * bossbara niezależnie i automatycznie. Sklejenie wielu elementów w JEDEN tytuł psuje to: glify w
- * jednej linii tekstu ustawiają się jeden za drugim (kursor przesuwa się w prawo o szerokość
- * poprzedniego glifu), więc kolejny element wypada przesunięty względem środka o szerokość
- * wszystkiego, co było przed nim - a szerokość salda zmienia się z liczbą cyfr. Osobne bossbary
- * dają darmowe, automatyczne centrowanie każdego elementu z osobna.
+ * JEDEN bossbar dla całego własnego HUD-u (saldo + eksperymentalne TEST 1/TEST 2) - jak w prawdziwym
+ * BetterHud (kr.toxicity.hud.component.LayoutComponentContainer): każdy "wiersz" jest owinięty
+ * przez Branding.centeredRow() w spację -szerokość/2 przed i po, co zeruje jego wkład do sumy
+ * zaawansowań całego tytułu (Minecraft centruje tytuł na bazie tej sumy) - dzięki temu każdy
+ * wiersz wyśrodkowuje się NIEZALEŻNIE od szerokości pozostałych, mimo że wszystkie są w jednym
+ * tytule jednego bossbara.
  */
 public class BalanceHudManager {
 
@@ -76,12 +76,20 @@ public class BalanceHudManager {
         double balance = plugin.getEconomy() != null ? plugin.getEconomy().getBalance(player) : 0.0;
         String formatted = String.format("%.2f", balance);
 
-        StringBuilder title = new StringBuilder();
-        title.append(Branding.KASA_COIN);
-        title.append(Branding.KASA_LABEL);
+        StringBuilder kasaContent = new StringBuilder();
+        kasaContent.append(Branding.KASA_COIN);
+        kasaContent.append(Branding.KASA_LABEL);
+        int kasaWidth = Branding.KASA_COIN_WIDTH + Branding.KASA_LABEL_WIDTH;
         for (int i = 0; i < formatted.length(); i++) {
-            title.append(Branding.kasaDigit(formatted.charAt(i)));
+            char c = formatted.charAt(i);
+            kasaContent.append(Branding.kasaDigit(c));
+            kasaWidth += Branding.kasaDigitWidth(c);
         }
+
+        StringBuilder title = new StringBuilder();
+        title.append(Branding.centeredRow(kasaContent.toString(), kasaWidth));
+        title.append(Branding.centeredRow(Branding.SCREEN_TEST_1, Branding.SCREEN_TEST_1_WIDTH));
+        title.append(Branding.centeredRow(Branding.SCREEN_TEST_2, Branding.SCREEN_TEST_2_WIDTH));
         return title.toString();
     }
 }
