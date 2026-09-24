@@ -36,7 +36,6 @@ public class MatchmakingGuiManager {
                 List.of("§7Dobiera przeciwnika o zbliżonym", "§7ratingu ELO §f(Twój: " + plugin.getElo().getRating(player.getUniqueId()) + ")", "",
                         "§eKliknij, a potem napisz na czacie", "§eile monet chcesz obstawić.")));
 
-        GuiDecor.fillEmpty(inv);
         player.openInventory(inv);
         GuiDecor.playOpenSound(player);
     }
