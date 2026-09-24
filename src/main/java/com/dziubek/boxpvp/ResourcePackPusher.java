@@ -16,14 +16,17 @@ import java.time.Duration;
 /**
  * Wysyła resource pack graczom bezpośrednio z pluginu (Player#setResourcePack), zamiast polegać
  * na ręcznie wklejanych liniach resource-pack/resource-pack-sha1 w server.properties. Adres URL
- * wskazuje na "latest" release GitHuba (przekierowanie zawsze na najnowsze wydanie).
+ * wskazuje na surowy plik w repo (raw.githubusercontent.com) na branchu main - aktualizuje się
+ * NATYCHMIAST po każdym pushu do resourcepack/BoxPvP-ResourcePack.zip, bez czekania na build/release
+ * przez CI (w przeciwieństwie do poprzedniego "releases/latest/download/..." - to wymagało pełnego
+ * przebiegu build.yml, zanim nowa paczka była w ogóle dostępna pod tym linkiem).
  *
  * SHA-1 NIE jest wpisany na sztywno ani nawet zaszyty w jarze przy buildzie - jest liczony NA ŻYWO
- * (refreshHash()) przez pobranie AKTUALNEJ zawartości "latest" paczki i policzenie jej hasha w
- * locie. Dzięki temu nawet zmiana samej paczki w repo (bez nowego builda jara) jest w pełni
- * obsługiwana - /reloadhud wywołuje refreshHash() i wysyła paczkę z jej PRAWDZIWYM, aktualnym
- * hashem, więc klient zawsze poprawnie wykrywa czy ma pobrać coś nowego (zgodnie ze specyfikacją
- * protokołu Minecrafta - to hash decyduje, nie sama zmiana URL).
+ * (refreshHash()) przez pobranie AKTUALNEJ zawartości paczki spod tego linku i policzenie jej hasha
+ * w locie. Dzięki temu każda zmiana samej paczki w repo jest w pełni obsługiwana - /reloadhud
+ * wywołuje refreshHash() i wysyła paczkę z jej PRAWDZIWYM, aktualnym hashem, więc klient zawsze
+ * poprawnie wykrywa czy ma pobrać coś nowego (zgodnie ze specyfikacją protokołu Minecrafta - to hash
+ * decyduje, nie sama zmiana URL).
  */
 public final class ResourcePackPusher {
 
@@ -34,7 +37,7 @@ public final class ResourcePackPusher {
             .build();
 
     private static final String URL =
-            "https://github.com/vcbgf5/boxpvp-plugin/releases/latest/download/BoxPvP-ResourcePack.zip";
+            "https://raw.githubusercontent.com/vcbgf5/boxpvp-plugin/main/resourcepack/BoxPvP-ResourcePack.zip";
     private static final Component PROMPT = LEGACY.deserialize("§7Zainstaluj pack, zeby zobaczyc pelny wyglad serwera!");
 
     private static volatile byte[] hash;
