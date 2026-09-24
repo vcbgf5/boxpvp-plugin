@@ -68,10 +68,11 @@ public final class Branding {
 
     /**
      * Obrazkowe glify (bitmap font providers, resource pack) używane przez BalanceHudManager do
-     * zbudowania napisu "Kasa: X, XX monety" wyłącznie z własnych tekstur (nie zwykłym kolorowym
-     * tekstem). Litery/cyfry wycięte z prawdziwej czcionki Minecrafta
-     * (assets/minecraft/textures/font/ascii.png z gry) - nie generyczny font. Kodpointy
-     * 0xE84F-0xE85D.
+     * zbudowania napisu "Kasa: X,XX" wyłącznie z własnych tekstur (nie zwykłym kolorowym tekstem).
+     * Litery/cyfry wycięte z prawdziwej czcionki Minecrafta
+     * (assets/minecraft/textures/font/ascii.png z gry) - nie generyczny font, dzięki czemu
+     * wszystkie glify (litery, cyfry, przecinek) dzielą tę samą siatkę pikseli co reszta gry i są
+     * wzajemnie wyrównane (wspólna linia bazowa). Kodpointy 0xE84F-0xE85B.
      */
     public static final String KASA_COIN = "";
     public static final String KASA_LABEL = "";
@@ -81,10 +82,6 @@ public final class Branding {
     };
     /** Przecinek (polski separator dziesiętny) - podmienia kropkę z String.format. */
     public static final String KASA_COMMA = "";
-    /** Napis "monety" (zastępuje symbol $) - doklejany po saldzie. */
-    public static final String KASA_MONETY_LABEL = "";
-    /** Mały odstęp (space provider) między saldem a KASA_MONETY_LABEL. */
-    public static final String KASA_GAP = "";
 
     /** Zamienia znak cyfry '0'-'9' na jego obrazkowy glif; kropkę zamienia na przecinek. */
     public static String kasaDigit(char c) {
