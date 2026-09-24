@@ -87,9 +87,10 @@ public final class Branding {
     }
 
     /**
-     * Eksperyment ScreenTestHudManager: "TEST 1"/"TEST 2" wbudowane w wysokie, w większości
-     * przezroczyste obrazy (screentest_1.png/screentest_2.png), tak żeby wystawały daleko w dół
-     * ekranu ponad zwykłą pozycję bossbara. Kodpointy 0xE860-0xE861.
+     * Eksperyment: "TEST 1"/"TEST 2" wbudowane w wysokie, w większości przezroczyste obrazy
+     * (screentest_1.png/screentest_2.png), tak żeby wystawały daleko w dół ekranu ponad zwykłą
+     * pozycję bossbara. Doklejone do tego samego bossbara/tytułu co Kasa HUD (BalanceHudManager) -
+     * jeden bossbar na gracza, nie osobny. Kodpointy 0xE860-0xE861.
      */
     public static final String SCREEN_TEST_1 = "";
     public static final String SCREEN_TEST_2 = "";

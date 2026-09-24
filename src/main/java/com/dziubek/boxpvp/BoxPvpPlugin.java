@@ -48,7 +48,6 @@ public class BoxPvpPlugin extends JavaPlugin {
     private LeaderboardManager leaderboards;
     private ScoreboardManager scoreboards;
     private BalanceHudManager balanceHud;
-    private ScreenTestHudManager screenTestHud;
     private StatsGuiManager statsGui;
     private PartyManager party;
     private MissionManager missions;
@@ -111,7 +110,6 @@ public class BoxPvpPlugin extends JavaPlugin {
         leaderboards = new LeaderboardManager(this);
         scoreboards = new ScoreboardManager(this);
         balanceHud = new BalanceHudManager(this);
-        screenTestHud = new ScreenTestHudManager(this);
         statsGui = new StatsGuiManager(this);
         party = new PartyManager(this);
         missions = new MissionManager(this);
@@ -162,7 +160,6 @@ public class BoxPvpPlugin extends JavaPlugin {
         leaderboards.start();
         scoreboards.start();
         balanceHud.start();
-        screenTestHud.start();
         events.start();
         market.start();
         missions.start();
@@ -182,7 +179,6 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new VoidTeleportListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerSessionListener(this), this);
         getServer().getPluginManager().registerEvents(new BalanceHudQuitListener(this), this);
-        getServer().getPluginManager().registerEvents(new ScreenTestHudQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new PvpKillListener(this), this);
         getServer().getPluginManager().registerEvents(new DailyGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new CrateGuiListener(this), this);
@@ -477,10 +473,6 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public BalanceHudManager getBalanceHud() {
         return balanceHud;
-    }
-
-    public ScreenTestHudManager getScreenTestHud() {
-        return screenTestHud;
     }
 
     public StatsGuiManager getStatsGui() {

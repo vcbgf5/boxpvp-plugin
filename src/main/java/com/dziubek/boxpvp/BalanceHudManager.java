@@ -21,6 +21,10 @@ import java.util.UUID;
  * usunięte) - jedyna korekta to lekkie przesunięcie w dół (patrz ascent glifów kasa_* w
  * font/default.json). Bez resource packa gracz zobaczy zwykły, wyśrodkowany, niewidoczny pasek z
  * "chińskimi znaczkami" zamiast glifów - nie psuje się, tylko wygląda gorzej.
+ *
+ * Wszystkie elementy własnego HUD-u (saldo + eksperymentalne linie testowe) są w JEDNYM bossbarze
+ * (jednym tytule) - Minecraft dopuszcza tylko ograniczoną liczbę jednoczesnych bossbarów, więc
+ * zamiast osobnego bossbara na każdy element, doklejamy kolejne glify do tego samego tytułu.
  */
 public class BalanceHudManager {
 
@@ -75,6 +79,8 @@ public class BalanceHudManager {
         for (int i = 0; i < formatted.length(); i++) {
             title.append(Branding.kasaDigit(formatted.charAt(i)));
         }
+        title.append(Branding.SCREEN_TEST_1);
+        title.append(Branding.SCREEN_TEST_2);
         return title.toString();
     }
 }
