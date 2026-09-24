@@ -5,48 +5,63 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 
 /**
  * Wysyła resource pack graczom bezpośrednio z pluginu (Player#setResourcePack), zamiast polegać
  * na ręcznie wklejanych liniach resource-pack/resource-pack-sha1 w server.properties. Adres URL
- * wskazuje na "latest" release GitHuba (przekierowanie zawsze na najnowsze wydanie). SHA-1 NIE
- * jest hardkodowany w kodzie - CI (.github/workflows/build.yml) liczy go z resourcepack.zip PRZED
- * buildem jara i zapisuje do resourcepack.sha1 (pakowany razem z jarem), więc ta klasa zawsze ma
- * hash dokładnie pasujący do paczki wydanej RAZEM z tym jarem - nie da się już rozjechać wersji.
- * Prawdziwy hash (zamiast null) jest też ważny dla klienta Minecrafta - zgodnie ze specyfikacją
- * protokołu to WŁAŚNIE hash decyduje, czy klient ma coś ponownie pobrać, czy zaufać swojemu cache.
+ * wskazuje na "latest" release GitHuba (przekierowanie zawsze na najnowsze wydanie).
+ *
+ * SHA-1 NIE jest wpisany na sztywno ani nawet zaszyty w jarze przy buildzie - jest liczony NA ŻYWO
+ * (refreshHash()) przez pobranie AKTUALNEJ zawartości "latest" paczki i policzenie jej hasha w
+ * locie. Dzięki temu nawet zmiana samej paczki w repo (bez nowego builda jara) jest w pełni
+ * obsługiwana - /reloadhud wywołuje refreshHash() i wysyła paczkę z jej PRAWDZIWYM, aktualnym
+ * hashem, więc klient zawsze poprawnie wykrywa czy ma pobrać coś nowego (zgodnie ze specyfikacją
+ * protokołu Minecrafta - to hash decyduje, nie sama zmiana URL).
  */
 public final class ResourcePackPusher {
 
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+    private static final HttpClient CLIENT = HttpClient.newBuilder()
+            .followRedirects(HttpClient.Redirect.ALWAYS)
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
     private static final String URL =
             "https://github.com/vcbgf5/boxpvp-plugin/releases/latest/download/BoxPvP-ResourcePack.zip";
     private static final Component PROMPT = LEGACY.deserialize("§7Zainstaluj pack, zeby zobaczyc pelny wyglad serwera!");
-    private static final byte[] SHA1 = loadPackSha1();
+
+    private static volatile byte[] hash;
 
     private ResourcePackPusher() {
     }
 
     public static void push(Player player) {
-        player.setResourcePack(URL, SHA1, PROMPT, false);
+        player.setResourcePack(URL, hash, PROMPT, false);
     }
 
-    private static byte[] loadPackSha1() {
-        try (InputStream in = ResourcePackPusher.class.getResourceAsStream("/resourcepack.sha1")) {
-            if (in == null) {
-                return null;
+    /** Sieciowe - wołać TYLKO z wątku async. Pobiera aktualną paczkę i liczy jej SHA-1 na nowo. */
+    public static boolean refreshHash() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(URL))
+                    .timeout(Duration.ofSeconds(20))
+                    .GET()
+                    .build();
+            HttpResponse<byte[]> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            if (response.statusCode() != 200) {
+                return false;
             }
-            String hex = new String(in.readAllBytes(), StandardCharsets.UTF_8).trim();
-            byte[] bytes = new byte[hex.length() / 2];
-            for (int i = 0; i < bytes.length; i++) {
-                bytes[i] = (byte) Integer.parseInt(hex.substring(i * 2, i * 2 + 2), 16);
-            }
-            return bytes;
-        } catch (IOException | NumberFormatException e) {
-            return null;
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            hash = digest.digest(response.body());
+            return true;
+        } catch (IOException | InterruptedException | NoSuchAlgorithmException e) {
+            return false;
         }
     }
 }

@@ -61,19 +61,6 @@ public class BalanceHudManager {
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, UPDATE_INTERVAL_TICKS, UPDATE_INTERVAL_TICKS);
     }
 
-    /** Ponownie pobiera config na żywo z GitHuba (/reloadhud) i od razu odświeża HUD wszystkim online. */
-    public void reloadConfigAndRefresh(java.util.function.Consumer<Boolean> onDone) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            boolean ok = config.reload();
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
-                refreshAll();
-                if (onDone != null) {
-                    onDone.accept(ok);
-                }
-            });
-        });
-    }
-
     public void show(Player player) {
         BossBar bar = Bukkit.createBossBar(titleFor(player), BarColor.PINK, BarStyle.SOLID);
         bar.setProgress(1.0);
@@ -88,7 +75,7 @@ public class BalanceHudManager {
         }
     }
 
-    private void refreshAll() {
+    public void refreshAll() {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             BossBar bar = bars.get(player.getUniqueId());
             if (bar == null) {

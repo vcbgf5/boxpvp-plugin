@@ -1,13 +1,16 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 /**
- * Pobiera na żywo hud-config.json z GitHuba (HudConfigLoader) i od razu odświeża HUD wszystkim
- * online graczom - bez potrzeby przebudowania/wgrania nowego jara. Przydatne do włączania/
- * wyłączania eksperymentalnych elementów (TEST1/TEST2) i dostrajania pozycji w locie.
+ * Pobiera na żywo hud-config.json ORAZ aktualną paczkę tekstur z GitHuba (świeży hash liczony w
+ * locie, nie z jara) i od razu wysyła wszystko wszystkim online graczom - bez potrzeby
+ * przebudowania/wgrania nowego jara. Przydatne do włączania/wyłączania eksperymentalnych
+ * elementów (TEST1/TEST2) i dostrajania pozycji w locie, nawet po samej zmianie paczki w repo.
  */
 public class ReloadHudCommand implements CommandExecutor {
 
@@ -25,10 +28,20 @@ public class ReloadHudCommand implements CommandExecutor {
             sender.sendMessage("§cNie masz uprawnień.");
             return true;
         }
-        sender.sendMessage("§7Pobieram hud-config.json z GitHuba...");
-        plugin.getBalanceHud().reloadConfigAndRefresh(ok -> sender.sendMessage(ok
-                ? "§aHUD przeładowany z GitHuba i odświeżony wszystkim online graczom."
-                : "§cNie udało się pobrać hud-config.json - HUD odświeżony ze starą konfiguracją."));
+        sender.sendMessage("§7Pobieram hud-config.json i aktualną paczkę tekstur z GitHuba...");
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            boolean configOk = plugin.getBalanceHud().getConfig().reload();
+            boolean packOk = ResourcePackPusher.refreshHash();
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                plugin.getBalanceHud().refreshAll();
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    ResourcePackPusher.push(player);
+                }
+                sender.sendMessage((configOk ? "§aConfig" : "§cConfig (nieudane, zostaje stary)") + " | "
+                        + (packOk ? "§apaczka tekstur" : "§cpaczka tekstur (nieudane, zostaje stary hash)")
+                        + " §7- odświeżono " + Bukkit.getOnlinePlayers().size() + " graczom.");
+            });
+        });
         return true;
     }
 }

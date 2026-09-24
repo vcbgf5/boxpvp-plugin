@@ -160,6 +160,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         leaderboards.start();
         scoreboards.start();
         balanceHud.start();
+        getServer().getScheduler().runTaskAsynchronously(this, ResourcePackPusher::refreshHash);
         events.start();
         market.start();
         missions.start();

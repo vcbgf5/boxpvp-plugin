@@ -1,8 +1,8 @@
 {
     "kasaEnabled": true,
     "kasaNudgeX": 0,
-    "test1Enabled": false,
+    "test1Enabled": true,
     "test1NudgeX": 0,
-    "test2Enabled": false,
+    "test2Enabled": true,
     "test2NudgeX": 0
 }

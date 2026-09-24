@@ -2,4 +2,3 @@ target/
 *.class
 .idea/
 *.iml
-src/main/resources/resourcepack.sha1
