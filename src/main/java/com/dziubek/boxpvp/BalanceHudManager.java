@@ -28,6 +28,10 @@ import java.util.UUID;
  * zaawansowań całego tytułu (Minecraft centruje tytuł na bazie tej sumy) - dzięki temu każdy
  * wiersz wyśrodkowuje się NIEZALEŻNIE od szerokości pozostałych, mimo że wszystkie są w jednym
  * tytule jednego bossbara.
+ *
+ * Które wiersze są włączone i ich drobne poziome dostrojenie (nudgeX) NIE są zaszyte w kodzie -
+ * pochodzą z HudConfigLoader (config pobierany na żywo z GitHuba, odświeżany komendą /reloadhud) -
+ * pozwala to eksperymentować/diagnozować bez przebudowywania jara przy każdej zmianie.
  */
 public class BalanceHudManager {
 
@@ -35,16 +39,39 @@ public class BalanceHudManager {
 
     private final BoxPvpPlugin plugin;
     private final Map<UUID, BossBar> bars = new HashMap<>();
+    private final HudConfigLoader config = new HudConfigLoader();
 
     public BalanceHudManager(BoxPvpPlugin plugin) {
         this.plugin = plugin;
     }
 
+    public HudConfigLoader getConfig() {
+        return config;
+    }
+
     public void start() {
-        for (Player player : plugin.getServer().getOnlinePlayers()) {
-            show(player);
-        }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            config.reload();
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                for (Player player : plugin.getServer().getOnlinePlayers()) {
+                    show(player);
+                }
+            });
+        });
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, UPDATE_INTERVAL_TICKS, UPDATE_INTERVAL_TICKS);
+    }
+
+    /** Ponownie pobiera config na żywo z GitHuba (/reloadhud) i od razu odświeża HUD wszystkim online. */
+    public void reloadConfigAndRefresh(java.util.function.Consumer<Boolean> onDone) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            boolean ok = config.reload();
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                refreshAll();
+                if (onDone != null) {
+                    onDone.accept(ok);
+                }
+            });
+        });
     }
 
     public void show(Player player) {
@@ -86,10 +113,16 @@ public class BalanceHudManager {
             kasaWidth += Branding.kasaDigitWidth(c);
         }
 
-        // DIAGNOSTYKA: TEST1/TEST2 chwilowo wyłączone - izolujemy, czy samo centeredRow() na
-        // JEDNYM wierszu (bez łączenia z innymi) działa poprawnie, zanim wracamy do pełnej wersji.
         StringBuilder title = new StringBuilder();
-        title.append(Branding.centeredRow(kasaContent.toString(), kasaWidth));
+        if (config.kasaEnabled) {
+            title.append(Branding.centeredRow(kasaContent.toString(), kasaWidth, config.kasaNudgeX));
+        }
+        if (config.test1Enabled) {
+            title.append(Branding.centeredRow(Branding.SCREEN_TEST_1, Branding.SCREEN_TEST_1_WIDTH, config.test1NudgeX));
+        }
+        if (config.test2Enabled) {
+            title.append(Branding.centeredRow(Branding.SCREEN_TEST_2, Branding.SCREEN_TEST_2_WIDTH, config.test2NudgeX));
+        }
         return title.toString();
     }
 }

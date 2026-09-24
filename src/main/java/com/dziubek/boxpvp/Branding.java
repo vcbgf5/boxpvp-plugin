@@ -124,7 +124,12 @@ public final class Branding {
      * tym samym na ekranie - niezależnie od szerokości pozostałych wierszy.
      */
     public static String centeredRow(String content, int widthPx) {
-        int left = widthPx / 2;
+        return centeredRow(content, widthPx, 0);
+    }
+
+    /** Jak centeredRow(content, widthPx), z dodatkowym poziomym dostrojeniem nudgeX (+prawo/-lewo). */
+    public static String centeredRow(String content, int widthPx, int nudgeX) {
+        int left = widthPx / 2 - nudgeX;
         int right = widthPx - left;
         return spaceOffset(-left) + content + spaceOffset(-right);
     }
