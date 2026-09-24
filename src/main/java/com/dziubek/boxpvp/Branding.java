@@ -69,8 +69,10 @@ public final class Branding {
     /**
      * Obrazkowe glify (bitmap font providers, resource pack) używane przez BalanceHudManager do
      * zbudowania napisu "Kasa: X$" wyłącznie z własnych tekstur (nie zwykłym kolorowym tekstem).
-     * Kodpointy 0xE850-0xE85C.
+     * Litery/cyfry wycięte z prawdziwej czcionki Minecrafta (assets/minecraft/textures/font/ascii.png
+     * z gry) - nie generyczny font. Kodpointy 0xE84F-0xE85C.
      */
+    public static final String KASA_COIN = "";
     public static final String KASA_LABEL = "";
     private static final String[] KASA_DIGITS = {
             "", "", "", "", "",

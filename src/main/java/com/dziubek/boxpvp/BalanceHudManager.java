@@ -70,6 +70,7 @@ public class BalanceHudManager {
 
         StringBuilder title = new StringBuilder();
         title.append(Branding.SPACE_POS200);
+        title.append(Branding.KASA_COIN);
         title.append(Branding.KASA_LABEL);
         for (int i = 0; i < formatted.length(); i++) {
             title.append(Branding.kasaDigit(formatted.charAt(i)));
