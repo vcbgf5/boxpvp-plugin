@@ -48,7 +48,7 @@ public class BoxPvpPlugin extends JavaPlugin {
     private LeaderboardManager leaderboards;
     private ScoreboardManager scoreboards;
     private BalanceHudManager balanceHud;
-    private ScreenAnchorTestManager screenAnchorTest;
+    private ScreenTestHudManager screenTestHud;
     private StatsGuiManager statsGui;
     private PartyManager party;
     private MissionManager missions;
@@ -111,7 +111,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         leaderboards = new LeaderboardManager(this);
         scoreboards = new ScoreboardManager(this);
         balanceHud = new BalanceHudManager(this);
-        screenAnchorTest = new ScreenAnchorTestManager(this);
+        screenTestHud = new ScreenTestHudManager(this);
         statsGui = new StatsGuiManager(this);
         party = new PartyManager(this);
         missions = new MissionManager(this);
@@ -162,7 +162,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         leaderboards.start();
         scoreboards.start();
         balanceHud.start();
-        screenAnchorTest.start();
+        screenTestHud.start();
         events.start();
         market.start();
         missions.start();
@@ -182,7 +182,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new VoidTeleportListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerSessionListener(this), this);
         getServer().getPluginManager().registerEvents(new BalanceHudQuitListener(this), this);
-        getServer().getPluginManager().registerEvents(new ScreenAnchorTestQuitListener(this), this);
+        getServer().getPluginManager().registerEvents(new ScreenTestHudQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new PvpKillListener(this), this);
         getServer().getPluginManager().registerEvents(new DailyGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new CrateGuiListener(this), this);
@@ -249,7 +249,6 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("rotshop").setExecutor(new RotShopCommand(this));
         getCommand("vanish").setExecutor(new VanishCommand(this));
         getCommand("reloadpack").setExecutor(new ReloadResourcePackCommand());
-        getCommand("hudoffset").setExecutor(new HudOffsetCommand(this));
         getCommand("freeze").setExecutor(new FreezeCommand(this));
         getCommand("report").setExecutor(new ReportCommand(this));
         getCommand("sprawdz").setExecutor(new SprawdzCommand(this));
@@ -480,8 +479,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         return balanceHud;
     }
 
-    public ScreenAnchorTestManager getScreenAnchorTest() {
-        return screenAnchorTest;
+    public ScreenTestHudManager getScreenTestHud() {
+        return screenTestHud;
     }
 
     public StatsGuiManager getStatsGui() {

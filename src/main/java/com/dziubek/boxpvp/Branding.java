@@ -86,6 +86,14 @@ public final class Branding {
         return String.valueOf(c);
     }
 
+    /**
+     * Eksperyment ScreenTestHudManager: "TEST 1"/"TEST 2" wbudowane w wysokie, w większości
+     * przezroczyste obrazy (screentest_1.png/screentest_2.png), tak żeby wystawały daleko w dół
+     * ekranu ponad zwykłą pozycję bossbara. Kodpointy 0xE860-0xE861.
+     */
+    public static final String SCREEN_TEST_1 = "";
+    public static final String SCREEN_TEST_2 = "";
+
     static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
     static final int LIGHT_LAVENDER = 0xD8B4FE; // jasny fiolet / lawenda
 

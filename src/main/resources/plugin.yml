@@ -95,10 +95,6 @@ commands:
     description: Wysyla resource pack ponownie do wszystkich online graczy (admin)
     usage: /reloadpack
     permission: boxpvp.admin
-  hudoffset:
-    description: Kalibruje na zywo pozycje testowego "przyklejonego do ekranu" HUD-u (admin)
-    usage: /hudoffset <1|2> <prawo> <gora> <dystans>
-    permission: boxpvp.admin
   freeze:
     description: Zamraza/odmraza gracza (zero ruchu) - do zlapania na goracym uczynku (admin)
     usage: /freeze <gracz>
