@@ -95,10 +95,6 @@ commands:
     description: Wysyla resource pack ponownie do wszystkich online graczy (admin)
     usage: /reloadpack
     permission: boxpvp.admin
-  reloadhud:
-    description: Pobiera hud-config.json z GitHuba na zywo i odswieza HUD (admin)
-    usage: /reloadhud
-    permission: boxpvp.admin
   freeze:
     description: Zamraza/odmraza gracza (zero ruchu) - do zlapania na goracym uczynku (admin)
     usage: /freeze <gracz>

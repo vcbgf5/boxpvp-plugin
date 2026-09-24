@@ -67,21 +67,17 @@ public final class Branding {
      * wzajemnie wyrównane (wspólna linia bazowa). Kodpointy 0xE850-0xE865.
      */
     public static final String KASA_LABEL = "";
-    public static final int KASA_LABEL_WIDTH = 52;
     private static final String[] KASA_DIGITS = {
             "", "", "", "", "",
             "", "", "", "", ""
     };
-    private static final int KASA_DIGIT_WIDTH = 12;
     /** Przecinek (polski separator dziesiętny) - podmienia kropkę z String.format. */
     public static final String KASA_COMMA = "";
-    private static final int KASA_COMMA_WIDTH = 4;
     /** Sufiksy skróconego zapisu salda (12,27K / 3,40M / ...). */
     private static final String KASA_K = "";
     private static final String KASA_M = "";
     private static final String KASA_B = "";
     private static final String KASA_T = "";
-    private static final int KASA_LETTER_WIDTH = 12;
 
     /** Zamienia znak cyfry '0'-'9' na jego obrazkowy glif; kropkę/przecinek/K,M,B,T też. */
     public static String kasaDigit(char c) {
@@ -98,20 +94,6 @@ public final class Branding {
             case 'T': return KASA_T;
             default: return String.valueOf(c);
         }
-    }
-
-    /** Szerokość w px glifu zwróconego przez kasaDigit() dla znaku c (0 dla nieobsługiwanych). */
-    public static int kasaDigitWidth(char c) {
-        if (c >= '0' && c <= '9') {
-            return KASA_DIGIT_WIDTH;
-        }
-        if (c == '.' || c == ',') {
-            return KASA_COMMA_WIDTH;
-        }
-        if (c == 'K' || c == 'M' || c == 'B' || c == 'T') {
-            return KASA_LETTER_WIDTH;
-        }
-        return 0;
     }
 
     /**
@@ -136,72 +118,6 @@ public final class Branding {
             suffix = "K";
         }
         return String.format(java.util.Locale.ROOT, "%.2f", divided) + suffix;
-    }
-
-    /**
-     * Eksperyment: "TEST 1"/"TEST 2" wbudowane w wysokie, w większości przezroczyste obrazy
-     * (screentest_1.png/screentest_2.png), tak żeby wystawały daleko w dół ekranu ponad zwykłą
-     * pozycję bossbara. Doklejone do tego samego bossbara/tytułu co Kasa HUD (BalanceHudManager),
-     * każdy własnym "wierszem" wyśrodkowanym niezależnie (patrz centeredRow()). Kodpointy
-     * 0xE860-0xE861.
-     */
-    public static final String SCREEN_TEST_1 = "";
-    public static final int SCREEN_TEST_1_WIDTH = 104;
-    public static final String SCREEN_TEST_2 = "";
-    public static final int SCREEN_TEST_2_WIDTH = 104;
-
-    /**
-     * Technika z prawdziwego kodu BetterHud (kr.toxicity.hud.component.LayoutComponentContainer):
-     * żeby doczepić kolejny "wiersz" (o znanej szerokości w px) do WSPÓLNEGO bossbara i mimo to
-     * wyśrodkować go NIEZALEŻNIE od pozostałych, owija się go spacją -polowaSzerokosc PRZED i
-     * -polowaSzerokosc PO. Suma tych dwóch spacji i szerokości wiersza wynosi zero, więc kursor
-     * wraca do wspólnego punktu zerowego przed kolejnym wierszem - a ponieważ Minecraft centruje
-     * CAŁY tytuł bossbara na bazie sumy zaawansowań (tutaj: zero), ten wspólny punkt zerowy
-     * pokrywa się ze środkiem ekranu, więc każdy wiersz, wyśrodkowany wokół zera, wyśrodkowuje się
-     * tym samym na ekranie - niezależnie od szerokości pozostałych wierszy.
-     */
-    public static String centeredRow(String content, int widthPx) {
-        return centeredRow(content, widthPx, 0);
-    }
-
-    /** Jak centeredRow(content, widthPx), z dodatkowym poziomym dostrojeniem nudgeX (+prawo/-lewo). */
-    public static String centeredRow(String content, int widthPx, int nudgeX) {
-        int left = widthPx / 2 - nudgeX;
-        int right = widthPx - left;
-        return spaceOffset(-left) + content + spaceOffset(-right);
-    }
-
-    /**
-     * Zwraca sekwencję znaków "space" (font providery o zadeklarowanym przesunięciu będącym
-     * potęgą dwójki, kodpointy 0xE870-0xE883) sumujących się dokładnie do zadanej liczby pikseli -
-     * standardowy rozkład dwójkowy, pozwala uzyskać DOWOLNE całkowite przesunięcie (do ±1023px)
-     * za pomocą co najwyżej 10 znaków.
-     */
-    private static final int[] SPACE_BITS = {512, 256, 128, 64, 32, 16, 8, 4, 2, 1};
-    private static final String[] SPACE_POS = {
-            "", "", "", "", "",
-            "", "", "", "", ""
-    };
-    private static final String[] SPACE_NEG = {
-            "", "", "", "", "",
-            "", "", "", "", ""
-    };
-
-    public static String spaceOffset(int pixels) {
-        if (pixels == 0) {
-            return "";
-        }
-        boolean negative = pixels < 0;
-        int remaining = Math.abs(pixels);
-        String[] table = negative ? SPACE_NEG : SPACE_POS;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < SPACE_BITS.length; i++) {
-            if (remaining >= SPACE_BITS[i]) {
-                sb.append(table[i]);
-                remaining -= SPACE_BITS[i];
-            }
-        }
-        return sb.toString();
     }
 
     static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
