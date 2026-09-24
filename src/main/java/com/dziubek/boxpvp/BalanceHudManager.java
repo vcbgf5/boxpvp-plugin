@@ -87,6 +87,13 @@ public class BalanceHudManager {
     }
 
     private String titleFor(Player player) {
+        if (config.debugMode) {
+            // DIAGNOSTYKA: minimalny test - czy POJEDYNCZY znak spacji o UJEMNEJ wartości (-16px)
+            // w ogóle działa. "5" [spacja -16px] "7" - jeśli "7" wygląda jak kwadracik zamiast
+            // cyfry, ujemne spacje nie są rozpoznawane przez klienta.
+            return Branding.kasaDigit('5') + Branding.spaceOffset(-16) + Branding.kasaDigit('7');
+        }
+
         double balance = plugin.getEconomy() != null ? plugin.getEconomy().getBalance(player) : 0.0;
         String formatted = Branding.formatCompact(balance);
 

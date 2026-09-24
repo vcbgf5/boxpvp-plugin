@@ -4,5 +4,6 @@
     "test1Enabled": true,
     "test1NudgeX": 0,
     "test2Enabled": true,
-    "test2NudgeX": 0
+    "test2NudgeX": 0,
+    "debugMode": true
 }

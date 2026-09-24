@@ -32,6 +32,8 @@ public class HudConfigLoader {
     public volatile int test1NudgeX = 0;
     public volatile boolean test2Enabled = false;
     public volatile int test2NudgeX = 0;
+    /** Gdy true, HUD pokazuje minimalny test diagnostyczny zamiast normalnej zawartości. */
+    public volatile boolean debugMode = false;
 
     /** Synchroniczne pobranie - wołać TYLKO z wątku async (sieć). Zwraca false przy błędzie. */
     public boolean reload() {
@@ -51,6 +53,7 @@ public class HudConfigLoader {
             test1NudgeX = getInt(obj, "test1NudgeX", test1NudgeX);
             test2Enabled = getBool(obj, "test2Enabled", test2Enabled);
             test2NudgeX = getInt(obj, "test2NudgeX", test2NudgeX);
+            debugMode = getBool(obj, "debugMode", debugMode);
             return true;
         } catch (Exception e) {
             return false;
