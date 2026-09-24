@@ -86,10 +86,10 @@ public class BalanceHudManager {
             kasaWidth += Branding.kasaDigitWidth(c);
         }
 
+        // DIAGNOSTYKA: TEST1/TEST2 chwilowo wyłączone - izolujemy, czy samo centeredRow() na
+        // JEDNYM wierszu (bez łączenia z innymi) działa poprawnie, zanim wracamy do pełnej wersji.
         StringBuilder title = new StringBuilder();
         title.append(Branding.centeredRow(kasaContent.toString(), kasaWidth));
-        title.append(Branding.centeredRow(Branding.SCREEN_TEST_1, Branding.SCREEN_TEST_1_WIDTH));
-        title.append(Branding.centeredRow(Branding.SCREEN_TEST_2, Branding.SCREEN_TEST_2_WIDTH));
         return title.toString();
     }
 }
