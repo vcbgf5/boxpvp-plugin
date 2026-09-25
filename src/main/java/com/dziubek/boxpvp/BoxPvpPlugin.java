@@ -83,6 +83,9 @@ public class BoxPvpPlugin extends JavaPlugin {
     private PetManager petManager;
     private PetShelterManager petShelters;
     private PetGuiManager petGui;
+    private WingDisplayManager wingDisplays;
+    private WingManager wingManager;
+    private WingGuiManager wingGui;
 
     @Override
     public void onEnable() {
@@ -152,6 +155,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         petManager = new PetManager(this);
         petShelters = new PetShelterManager(this);
         petGui = new PetGuiManager(this);
+        wingDisplays = new WingDisplayManager();
+        wingManager = new WingManager(this);
+        wingGui = new WingGuiManager(this);
 
         setupEconomy();
 
@@ -193,6 +199,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         infoHolograms.start();
         petShelters.initialize();
         petManager.start();
+        wingManager.start();
         BetterModelInstaller.installModels(this);
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
@@ -234,6 +241,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new FriendJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new CheckpointListener(this), this);
         getServer().getPluginManager().registerEvents(new PetGuiListener(this), this);
+        getServer().getPluginManager().registerEvents(new WingGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new PetInteractListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
@@ -277,6 +285,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("giveeternalsword").setTabCompleter(new OnlinePlayerTabCompleter());
         getCommand("pet").setExecutor(new PetCommand(this));
         getCommand("pet").setTabCompleter(new PetTabCompleter(this));
+        getCommand("wings").setExecutor(new WingCommand(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -647,5 +656,17 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public PetGuiManager getPetGui() {
         return petGui;
+    }
+
+    public WingDisplayManager getWingDisplays() {
+        return wingDisplays;
+    }
+
+    public WingManager getWingManager() {
+        return wingManager;
+    }
+
+    public WingGuiManager getWingGui() {
+        return wingGui;
     }
 }

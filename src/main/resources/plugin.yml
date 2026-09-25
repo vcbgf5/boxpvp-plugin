@@ -120,6 +120,10 @@ commands:
     description: GUI wyboru aktywnego peta (max 1 na raz) - /pet npc create|remove <nazwa> i /pet givekey <gracz> [ilosc] to narzedzia admina
     usage: /pet lub /pet npc create|remove <nazwa> lub /pet givekey <gracz> [ilosc]
     aliases: [pety, pets]
+  wings:
+    description: GUI wyboru aktywnych skrzydel kosmetycznych (max 1 para na raz, wszystkie dostepne od razu)
+    usage: /wings
+    aliases: [skrzydla]
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms, EcoItems, BetterModel]
 

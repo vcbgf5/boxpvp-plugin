@@ -36,14 +36,15 @@ public class CrateItemDisplayManager {
     private static final float IDLE_SCALE = 0.6f;
     private static final float HIGHLIGHT_SCALE = 1.5f;
 
-    // wygrana "wyskakuje" Z SAMEJ SKRZYNI w gore, na miejsce spoczynku pywajacego przedmiotu -
-    // a NIE spada z gora nad tym miejscem spoczynku, zeby wizualnie wygladalo jak wyjmowanie
-    // nagrody ze srodka, a nie deszcz z nieba. Skrzynia z wlasnym modelem 3D (BetterModel, ma
-    // realnie otwierana pokrywe) - item wylatuje od bloku -1 (spod skrzyni) i wspina sie do
-    // WLASNEGO miejsca spoczynku 0.5 bloku NAD blokiem (MODEL_CRATE_REST_HEIGHT, nie globalnej
-    // heightAboveBlock - ta zostaje tylko dla zwyklych skrzyn bez modelu 3D).
+    // Skrzynia z wlasnym modelem 3D (BetterModel, ma realnie otwierana pokrywe) ma DWIE rozne
+    // wysokosci: IDLE (caly czas widoczny plywajacy przedmiot, gdy nikt nie otwiera) i WIN_SETTLE
+    // (gdzie ladzuje wygrana PO otwarciu - nizej niz idle). Item wylatuje z bloku -1 (spod
+    // skrzyni), wspina sie do WIN_SETTLE i tam trzyma przez cala dlugosc "podswietlenia"
+    // (HIGHLIGHT_DURATION_MS), potem wraca do zwyklego cyklu na wysokosci IDLE. Zwykla skrzynia
+    // (bez modelu) nie ma tego rozroznienia - IDLE i "settle" to ta sama, globalna heightAboveBlock.
     private static final double EMERGE_HEIGHT_MODEL_CRATE = -1.0;
-    private static final double MODEL_CRATE_REST_HEIGHT = 0.5;
+    private static final double MODEL_CRATE_IDLE_HEIGHT = 5.0;
+    private static final double MODEL_CRATE_WIN_SETTLE_HEIGHT = 1.5;
     private static final double EMERGE_HEIGHT_PLAIN_CRATE = 1.0;
     private static final long DROP_DURATION_MS = 1100;
     // ile wygrana zostaje duza w miejscu spoczynku PO wyladowaniu, zanim wroci do normalnego cyklu
@@ -112,8 +113,9 @@ public class CrateItemDisplayManager {
         plugin.saveConfig();
 
         for (Entry entry : entries.values()) {
-            // skrzynie z wlasnym modelem 3D maja stala wysokosc spoczynku (MODEL_CRATE_REST_HEIGHT),
-            // niezalezna od tego admin-ustawienia - dotyczy tylko zwyklych skrzyn bez modelu
+            // skrzynie z wlasnym modelem 3D maja stale wysokosci (MODEL_CRATE_IDLE_HEIGHT/
+            // MODEL_CRATE_WIN_SETTLE_HEIGHT), niezalezne od tego admin-ustawienia - dotyczy
+            // tylko zwyklych skrzyn bez modelu
             if (entry.hasModel || !entry.display.isValid()) {
                 continue;
             }
@@ -171,7 +173,7 @@ public class CrateItemDisplayManager {
         removeStrayEntities(blockLocation);
 
         boolean hasModel = plugin.getCrateModelDisplays().hasModel(blockLocation);
-        double restHeight = hasModel ? MODEL_CRATE_REST_HEIGHT : heightAboveBlock;
+        double restHeight = hasModel ? MODEL_CRATE_IDLE_HEIGHT : heightAboveBlock;
         Location spawnAt = blockLocation.clone().add(0.5, restHeight, 0.5);
         List<CrateReward> rewards = plugin.getCrates().getRewards(crateName);
         if (rewards.isEmpty()) {
@@ -251,23 +253,25 @@ public class CrateItemDisplayManager {
     }
 
     /**
-     * Pionowe przesunięcie renderowania względem pozycji spoczynku: lekkie bujanie cały czas,
-     * plus - zaraz po wygranej - wyjście ze skrzyni w górę, na miejsce spoczynku (ease-out).
-     * Startuje od EMERGE_HEIGHT_MODEL_CRATE/EMERGE_HEIGHT_PLAIN_CRATE (zależnie czy skrzynia ma
-     * własny model 3D), więc wygląda jak wyjmowanie nagrody ZE ŚRODKA skrzyni, a nie opadanie
-     * z nieba nad nią. Współdzielone przez spin() i getVisualLocation(), żeby kamera cutscenki
-     * (CrateRollAnimation) patrzyła dokładnie tam, gdzie przedmiot faktycznie jest renderowany
-     * w danej chwili, a nie w stałym punkcie.
+     * Pionowe przesunięcie renderowania względem pozycji spoczynku (IDLE): lekkie bujanie cały
+     * czas, plus - zaraz po wygranej - wyjście ze skrzyni w górę do wysokości WIN_SETTLE (ease-out
+     * w ciągu DROP_DURATION_MS), gdzie trzyma się przez resztę HIGHLIGHT_DURATION_MS (cały czas
+     * "podświetlenia" - większej skali/szybszego obrotu), po czym wraca do zwykłego cyklu na
+     * wysokości IDLE. Startuje od EMERGE_HEIGHT_MODEL_CRATE/EMERGE_HEIGHT_PLAIN_CRATE, więc
+     * wygląda jak wyjmowanie nagrody ZE ŚRODKA skrzyni, a nie opadanie z nieba nad nią.
+     * Współdzielone przez spin() i getVisualLocation(), żeby kamera cutscenki (CrateRollAnimation)
+     * patrzyła dokładnie tam, gdzie przedmiot faktycznie jest renderowany w danej chwili.
      */
     private float computeTranslateY(Entry entry, long now) {
         float translateY = (float) (Math.sin(now / 500.0) * 0.05);
         if (entry.dropStartAt > 0) {
             long elapsed = now - entry.dropStartAt;
-            if (elapsed < DROP_DURATION_MS) {
+            if (elapsed < HIGHLIGHT_DURATION_MS) {
                 double t = Math.min(1.0, elapsed / (double) DROP_DURATION_MS);
                 double emergeHeight = entry.hasModel ? EMERGE_HEIGHT_MODEL_CRATE : EMERGE_HEIGHT_PLAIN_CRATE;
-                double emergeOffset = emergeHeight - restHeightFor(entry);
-                translateY += (float) ((1.0 - CameraUtil.easeOutCubic(t)) * emergeOffset);
+                double currentAbsolute = emergeHeight
+                        + (settleHeightFor(entry) - emergeHeight) * CameraUtil.easeOutCubic(t);
+                translateY += (float) (currentAbsolute - restHeightFor(entry));
             } else {
                 entry.dropStartAt = 0L;
             }
@@ -276,7 +280,11 @@ public class CrateItemDisplayManager {
     }
 
     private double restHeightFor(Entry entry) {
-        return entry.hasModel ? MODEL_CRATE_REST_HEIGHT : heightAboveBlock;
+        return entry.hasModel ? MODEL_CRATE_IDLE_HEIGHT : heightAboveBlock;
+    }
+
+    private double settleHeightFor(Entry entry) {
+        return entry.hasModel ? MODEL_CRATE_WIN_SETTLE_HEIGHT : heightAboveBlock;
     }
 
     /**

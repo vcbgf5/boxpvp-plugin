@@ -65,6 +65,8 @@ public class CrateCommand implements CommandExecutor {
                 return handleSetDisplayHeight(sender, args);
             case "purgedisplays":
                 return handlePurgeDisplays(sender);
+            case "reload":
+                return handleReload(sender);
             case "preview":
                 return handlePreview(sender, args);
             case "list":
@@ -102,6 +104,7 @@ public class CrateCommand implements CommandExecutor {
         sender.sendMessage("§c/crate setidleeffect <nazwa> <efekt|none> §7- cichy efekt widoczny gdy nikt nie otwiera skrzyni");
         sender.sendMessage("§c/crate setdisplayheight <wysokość> §7- ile bloków nad skrzynią unosi się pływający przedmiot (na żywo, wszystkie skrzynie)");
         sender.sendMessage("§c/crate purgedisplays §7- usuwa i stawia od nowa WSZYSTKIE pływające przedmioty i modele 3D, bez restartu serwera");
+        sender.sendMessage("§c/crate reload §7- przeładowuje pliki modeli w BetterModel (/bettermodel reload) i stawia wszystko od nowa");
         sender.sendMessage("§c/crate preview <nazwa> §7- podgląd zawartości skrzyni z procentami (dla każdego)");
         sender.sendMessage("§c/crate list §7- lista skrzyń");
     }
@@ -282,6 +285,18 @@ public class CrateCommand implements CommandExecutor {
         } else {
             sender.sendMessage("§aGracze mogą teraz otworzyć skrzynię '" + name + "' za darmo raz na " + hours + "h (bez klucza).");
         }
+        return true;
+    }
+
+    private boolean handleReload(CommandSender sender) {
+        if (!BetterModelInstaller.isBetterModelPresent()) {
+            sender.sendMessage("§cBetterModel nie jest zainstalowany na serwerze.");
+            return true;
+        }
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bettermodel reload");
+        plugin.getCrates().initializeCrateModelDisplays();
+        plugin.getCrates().initializeItemDisplays();
+        sender.sendMessage("§aPrzeładowano modele w BetterModel i odświeżono wszystkie skrzynie (modele 3D + pływające przedmioty).");
         return true;
     }
 

@@ -24,6 +24,13 @@ public final class BetterModelInstaller {
     private static final String[] CRATE_MODELS =
             {"common_crate", "rare_crate", "legendary_crate", "cosmetic_crate", "vote_crate"};
 
+    // Skrzydła kosmetyczne z paczki "Wing Cosmetics" (Artillex-Studios) - pliki źródłowe miały
+    // myślniki w nazwach (np. "angel-wing.bbmodel"), przekonwertowane na podkreślnik z tego
+    // samego powodu co pety (patrz modelName()).
+    private static final String[] WING_MODELS = {"angel_wing", "demon_wing", "dragon_wing",
+            "phoenix_wing", "eagle_wing", "butterfly_wing", "astronaut_wing", "golden_wing",
+            "purple_wing", "bluefire_wing", "ocean_wing", "brown_wing"};
+
     private BetterModelInstaller() {
     }
 
@@ -61,6 +68,9 @@ public final class BetterModelInstaller {
         for (String crateModel : CRATE_MODELS) {
             copiedAny |= copyModel(plugin, modelsDir, crateModel);
         }
+        for (String wingModel : WING_MODELS) {
+            copiedAny |= copyModel(plugin, modelsDir, wingModel);
+        }
 
         if (copiedAny) {
             Bukkit.getScheduler().runTask(plugin, () ->
@@ -94,5 +104,10 @@ public final class BetterModelInstaller {
      */
     public static String modelName(String species) {
         return "cubee_" + species;
+    }
+
+    /** Nazwa modelu w BetterModel dla skrzydeł (np. "angel" -> "angel_wing"). */
+    public static String wingModelName(String species) {
+        return species + "_wing";
     }
 }
