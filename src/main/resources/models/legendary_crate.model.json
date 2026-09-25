@@ -1,0 +1,360 @@
+{
+  "name": "legendary_crate",
+  "namespace": "boxpvp",
+  "bones": [
+    {
+      "name": "lid",
+      "parent": "root",
+      "pivot": [
+        0,
+        14.24405,
+        11.175
+      ],
+      "hasGeometry": true,
+      "modelKey": "legendary_crate_lid"
+    },
+    {
+      "name": "root",
+      "parent": null,
+      "pivot": [
+        0,
+        0.90536,
+        1.23741
+      ],
+      "hasGeometry": true,
+      "modelKey": "legendary_crate_root"
+    },
+    {
+      "name": "lock",
+      "parent": "lid",
+      "pivot": [
+        0,
+        11.75,
+        -10.5
+      ],
+      "hasGeometry": true,
+      "modelKey": "legendary_crate_lock"
+    }
+  ],
+  "animations": {
+    "open": {
+      "length": 4.53925,
+      "loop": "once",
+      "tracks": {
+        "vfx": {
+          "rotation": [],
+          "position": [],
+          "scale": [
+            {
+              "time": 0.11741,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 0.79249,
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 1.58497,
+              "x": 1.0,
+              "y": 0.7,
+              "z": 1.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 2.1133,
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 2.55357,
+              "x": 1.0,
+              "y": 0.7,
+              "z": 1.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 3.14059,
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0,
+              "interpolation": "catmullrom"
+            }
+          ]
+        },
+        "lid": {
+          "rotation": [
+            {
+              "time": 0.41092,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 0.49897,
+              "x": -5.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 0.58703,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 0.79249,
+              "x": 62.5,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 1.0273,
+              "x": 42.5,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 1.2034,
+              "x": 62.5,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.11124,
+              "x": 62.5,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.28735,
+              "x": -2.5,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.40475,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            }
+          ],
+          "position": [],
+          "scale": []
+        },
+        "root": {
+          "rotation": [
+            {
+              "time": 0.20546,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 0.41092,
+              "x": -5.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 0.55768,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 0.79249,
+              "x": 17.5,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 0.96859,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 1.086,
+              "x": -5.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 1.26211,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.28735,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.3754,
+              "x": 0.0,
+              "y": 0.0,
+              "z": -5.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 3.49281,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 5.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 3.61021,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            }
+          ],
+          "position": [],
+          "scale": []
+        },
+        "lock": {
+          "rotation": [
+            {
+              "time": 0,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 0.11741,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 17.5,
+              "interpolation": "linear"
+            },
+            {
+              "time": 0.23481,
+              "x": -75.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 3.66892,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.75697,
+              "x": 0.0,
+              "y": 0.0,
+              "z": -12.5,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.84502,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 12.5,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.90373,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            }
+          ],
+          "position": [
+            {
+              "time": 0,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "catmullrom"
+            },
+            {
+              "time": 0.32286,
+              "x": 0.0,
+              "y": -8.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.46346,
+              "x": 0.0,
+              "y": -8.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.66892,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            }
+          ],
+          "scale": [
+            {
+              "time": 0.23481,
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 0.41092,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.46346,
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "interpolation": "linear"
+            },
+            {
+              "time": 3.66892,
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0,
+              "interpolation": "linear"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

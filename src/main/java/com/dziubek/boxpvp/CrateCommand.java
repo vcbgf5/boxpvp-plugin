@@ -45,6 +45,8 @@ public class CrateCommand implements CommandExecutor {
                 return handleGiveKey(sender, args);
             case "givekeytoall":
                 return handleGiveKeyToAll(sender, args);
+            case "setkeytexture":
+                return handleSetKeyTexture(sender, args);
             case "bind":
                 return handleBind(sender, args);
             case "unbind":
@@ -88,7 +90,10 @@ public class CrateCommand implements CommandExecutor {
         sender.sendMessage("§c/crate create <nazwa> §7- konfiguruje nagrody skrzyni (GUI)");
         sender.sendMessage("§c/crate givekey <nazwa> <gracz> [ilość] §7- daje klucz graczowi");
         sender.sendMessage("§c/crate givekeytoall <nazwa> [ilość] §7- daje klucz wszystkim graczom online");
-        sender.sendMessage("§c/crate bind <nazwa> §7- przypina blok, na który patrzysz, jako fizyczną skrzynię");
+        sender.sendMessage("§c/crate setkeytexture <nazwa> <tekstura|none> §7- customowa tekstura klucza ("
+                + String.join(", ", CrateTabCompleter.KEY_TEXTURES) + ")");
+        sender.sendMessage("§c/crate bind <nazwa> [model3d] §7- przypina blok, na który patrzysz, jako fizyczną skrzynię"
+                + " (opcjonalny model 3D zamienia blok na niewidzialną barierę + model obrócony w kierunku w jakim patrzysz)");
         sender.sendMessage("§c/crate unbind §7- odpina fizyczną skrzynię, na którą patrzysz");
         sender.sendMessage("§c/crate sethologram <nazwa> <tekst> §7- ustawia napis hologramu (obsługuje &kody kolorów)");
         sender.sendMessage("§c/crate seteffect <nazwa> <efekt> §7- ustawia efekt otwarcia: " + CrateEffect.listNames());
@@ -107,7 +112,7 @@ public class CrateCommand implements CommandExecutor {
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage("§cUżycie: /crate bind <nazwa> §7(patrząc na blok skrzyni)");
+            sender.sendMessage("§cUżycie: /crate bind <nazwa> [model3d] §7(patrząc na blok skrzyni)");
             return true;
         }
 
@@ -117,6 +122,16 @@ public class CrateCommand implements CommandExecutor {
         if (!plugin.getCrates().exists(name)) {
             sender.sendMessage("§cSkrzynia '" + name + "' nie istnieje. Najpierw /crate create " + name);
             return true;
+        }
+
+        String modelName = null;
+        if (args.length >= 3) {
+            modelName = args[2];
+            if (!plugin.getCrateModels().exists(modelName)) {
+                sender.sendMessage("§cNieznany model '" + modelName + "'. Dostępne: "
+                        + String.join(", ", plugin.getCrateModels().names()));
+                return true;
+            }
         }
 
         Block target = player.getTargetBlockExact(6, FluidCollisionMode.NEVER);
@@ -134,8 +149,15 @@ public class CrateCommand implements CommandExecutor {
             player.sendMessage("§eUwaga: DecentHolograms nie jest zainstalowany - skrzynia zadziała, ale bez hologramu.");
         }
 
-        plugin.getCrates().bindLocation(name, target.getLocation());
-        player.sendMessage("§aPrzypięto blok jako skrzynię '" + name + "'. Osobny hologram został tam postawiony.");
+        // tylko poziomy kierunek (yaw) - patrzysz w gorę/dół nie ma znaczenia dla modelu 3D
+        float yaw = player.getLocation().getYaw();
+        plugin.getCrates().bindLocation(name, target.getLocation(), modelName, yaw);
+        if (modelName != null) {
+            player.sendMessage("§aPrzypięto blok jako skrzynię '" + name + "' z modelem 3D '" + modelName
+                    + "' (blok zamieniony na niewidzialną barierę). Osobny hologram został tam postawiony.");
+        } else {
+            player.sendMessage("§aPrzypięto blok jako skrzynię '" + name + "'. Osobny hologram został tam postawiony.");
+        }
         return true;
     }
 
@@ -440,6 +462,32 @@ public class CrateCommand implements CommandExecutor {
         }
 
         sender.sendMessage("§aDano " + amount + "x klucz do '" + name + "' wszystkim graczom online (" + count + ").");
+        return true;
+    }
+
+    private boolean handleSetKeyTexture(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage("§cUżycie: /crate setkeytexture <nazwa> <tekstura|none>");
+            return true;
+        }
+        String name = args[1];
+        if (!plugin.getCrates().exists(name)) {
+            sender.sendMessage("§cSkrzynia '" + name + "' nie istnieje. Najpierw /crate create " + name);
+            return true;
+        }
+        String texture = args[2];
+        if (texture.equalsIgnoreCase("none")) {
+            plugin.getCrates().setKeyTexture(name, null);
+            sender.sendMessage("§aUsunięto customową teksturę klucza dla '" + name + "' (wraca do zwykłego wyglądu).");
+            return true;
+        }
+        if (!CrateTabCompleter.KEY_TEXTURES.contains(texture)) {
+            sender.sendMessage("§cNieznana tekstura '" + texture + "'. Dostępne: "
+                    + String.join(", ", CrateTabCompleter.KEY_TEXTURES));
+            return true;
+        }
+        plugin.getCrates().setKeyTexture(name, texture);
+        sender.sendMessage("§aUstawiono teksturę klucza '" + texture + "' dla skrzyni '" + name + "'.");
         return true;
     }
 }

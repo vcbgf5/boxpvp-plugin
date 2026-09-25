@@ -293,8 +293,24 @@ public class CrateManager {
         meta.setLore(lore);
 
         meta.getPersistentDataContainer().set(keyTag, PersistentDataType.STRING, crateName);
+
+        String texture = getKeyTexture(crateName);
+        if (texture != null) {
+            meta.setItemModel(new NamespacedKey("boxpvp", "key_" + texture));
+        }
+
         key.setItemMeta(meta);
         return key;
+    }
+
+    /** Nazwa customowej tekstury klucza (bez prefixu "key_") ustawiona przez /crate setkeytexture, albo null. */
+    public String getKeyTexture(String crateName) {
+        return data.getString(crateName + ".key-texture");
+    }
+
+    public void setKeyTexture(String crateName, String texture) {
+        data.set(crateName + ".key-texture", texture);
+        save();
     }
 
     public String getKeyCrateName(ItemStack item) {
@@ -307,6 +323,16 @@ public class CrateManager {
     // ===================== Fizyczne skrzynie w świecie =====================
 
     public boolean bindLocation(String name, Location location) {
+        return bindLocation(name, location, null, 0f);
+    }
+
+    /**
+     * @param modelName nazwa 3D modelu skrzyni (z CrateModelRegistry) do wyświetlenia zamiast
+     *                   bloku, albo null - wtedy blok zostaje jaki jest, bez modelu 3D.
+     * @param yaw        kierunek (tylko w poziomie, patrz CrateModelDisplayManager) w jakim model
+     *                   ma być obrócony - kąt gracza w momencie bindowania.
+     */
+    public boolean bindLocation(String name, Location location, String modelName, float yaw) {
         if (!exists(name) || location.getWorld() == null) {
             return false;
         }
@@ -317,10 +343,20 @@ public class CrateManager {
         data.set(path + ".x", location.getBlockX());
         data.set(path + ".y", location.getBlockY());
         data.set(path + ".z", location.getBlockZ());
+        if (modelName != null) {
+            data.set(path + ".model", modelName);
+            data.set(path + ".yaw", yaw);
+        }
         save();
         rebuildLocationCache();
         createHologram(name, id, location);
         plugin.getCrateItemDisplays().spawnDisplay(name, location);
+        if (modelName != null) {
+            CrateModel model = plugin.getCrateModels().get(modelName);
+            if (model != null) {
+                plugin.getCrateModelDisplays().spawn(location, model, yaw);
+            }
+        }
         return true;
     }
 
@@ -352,6 +388,8 @@ public class CrateManager {
                     rebuildLocationCache();
                     removeHologram(name, id);
                     plugin.getCrateItemDisplays().removeDisplay(location);
+                    plugin.getCrateModelDisplays().despawn(location);
+                    location.getBlock().setType(Material.AIR);
                     return name;
                 }
             }
@@ -492,6 +530,38 @@ public class CrateManager {
             }
         }
         plugin.getLogger().info("Pływające przedmioty nad skrzyniami: " + spawned + "/" + total + " postawionych.");
+    }
+
+    /** Odtwarza 3D modele skrzyń (jeśli przypięte z modelem) po restarcie serwera. */
+    public void initializeCrateModelDisplays() {
+        int spawned = 0;
+        for (String name : names()) {
+            ConfigurationSection locations = data.getConfigurationSection(name + ".locations");
+            if (locations == null) {
+                continue;
+            }
+            for (String id : locations.getKeys(false)) {
+                String base = name + ".locations." + id;
+                String modelName = data.getString(base + ".model");
+                if (modelName == null) {
+                    continue;
+                }
+                CrateModel model = plugin.getCrateModels().get(modelName);
+                Location location = readLocation(name, id);
+                if (model == null || location == null) {
+                    continue;
+                }
+                float yaw = (float) data.getDouble(base + ".yaw", 0);
+                try {
+                    plugin.getCrateModelDisplays().spawn(location, model, yaw);
+                    spawned++;
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Nie udało się postawić modelu 3D skrzyni '"
+                            + name + "' (" + location + "): " + e);
+                }
+            }
+        }
+        plugin.getLogger().info("Modele 3D skrzyń: " + spawned + " postawionych.");
     }
 
     private void refreshHolograms(String name) {

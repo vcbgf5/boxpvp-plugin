@@ -13,14 +13,20 @@ import java.util.stream.Collectors;
 public class CrateTabCompleter implements TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "create", "givekey", "givekeytoall", "bind", "unbind", "sethologram",
+            "create", "givekey", "givekeytoall", "setkeytexture", "bind", "unbind", "sethologram",
             "seteffect", "setidleeffect", "setprivate", "setfreecooldown", "setdisplayheight",
             "purgedisplays", "preview", "list"
     );
     private static final List<String> BOOLEANS = List.of("true", "false");
     private static final List<String> NEEDS_CRATE_NAME = List.of(
-            "givekey", "givekeytoall", "bind", "sethologram", "seteffect", "setidleeffect",
+            "givekey", "givekeytoall", "setkeytexture", "bind", "sethologram", "seteffect", "setidleeffect",
             "setprivate", "setfreecooldown", "preview"
+    );
+
+    public static final List<String> KEY_TEXTURES = List.of(
+            "copper_key1", "copper_key2", "fire_key1", "fire_key2", "golden_key1", "golden_key2",
+            "ice_key1", "ice_key2", "iron_key1", "iron_key2", "mythic_key1", "mythic_key2",
+            "stone_key1", "stone_key2", "wood_key1", "wood_key2"
     );
 
     private final BoxPvpPlugin plugin;
@@ -53,6 +59,14 @@ public class CrateTabCompleter implements TabCompleter {
             }
             if (sub.equals("givekey")) {
                 return filter(onlinePlayerNames(), args[2]);
+            }
+            if (sub.equals("bind")) {
+                return filter(plugin.getCrateModels().names(), args[2]);
+            }
+            if (sub.equals("setkeytexture")) {
+                List<String> options = new ArrayList<>(KEY_TEXTURES);
+                options.add("none");
+                return filter(options, args[2]);
             }
         }
 

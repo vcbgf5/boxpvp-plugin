@@ -36,6 +36,8 @@ public class BoxPvpPlugin extends JavaPlugin {
     private StatsManager stats;
     private CratePreviewGuiManager cratePreviewGui;
     private CrateItemDisplayManager crateItemDisplays;
+    private CrateModelRegistry crateModels;
+    private CrateModelDisplayManager crateModelDisplays;
     private CrateOpenChoiceGuiManager crateOpenChoiceGui;
     private GeneratorManager generators;
     private TraderManager traders;
@@ -86,6 +88,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         tpa = new TpaManager(this);
         kits = new KitManager(this);
         daily = new DailyRewardManager(this);
+        crateModels = new CrateModelRegistry(this);
+        crateModels.load();
+        crateModelDisplays = new CrateModelDisplayManager();
         crates = new CrateManager(this);
         shop = new ShopManager(this);
         shopGui = new ShopGuiManager(this);
@@ -151,6 +156,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         crates.refreshAllHolograms();
         crates.initializeItemDisplays();
         crateItemDisplays.start();
+        crates.initializeCrateModelDisplays();
         generators.start();
         traders.initialize();
         banks.initialize();
@@ -422,6 +428,14 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public CratePreviewGuiManager getCratePreviewGui() {
         return cratePreviewGui;
+    }
+
+    public CrateModelRegistry getCrateModels() {
+        return crateModels;
+    }
+
+    public CrateModelDisplayManager getCrateModelDisplays() {
+        return crateModelDisplays;
     }
 
     public CrateItemDisplayManager getCrateItemDisplays() {
