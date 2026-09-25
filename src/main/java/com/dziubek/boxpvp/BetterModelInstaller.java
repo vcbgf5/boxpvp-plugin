@@ -39,10 +39,19 @@ public final class BetterModelInstaller {
             return;
         }
 
+        // Sprzątamy stare pliki z myślnikiem (poprzednia, zła nazwa - "cubee-evil.bbmodel" itd.),
+        // żeby BetterModel nie trzymał w pamięci martwych, nieużywanych modeli "cubee2d...".
+        for (String species : SPECIES) {
+            File stale = new File(modelsDir, "cubee-" + species + ".bbmodel");
+            if (stale.exists()) {
+                stale.delete();
+            }
+        }
+
         boolean copiedAny = false;
         for (String species : SPECIES) {
-            String resourceName = "bettermodel/cubee-" + species + ".bbmodel";
-            File target = new File(modelsDir, "cubee-" + species + ".bbmodel");
+            String resourceName = "bettermodel/cubee_" + species + ".bbmodel";
+            File target = new File(modelsDir, "cubee_" + species + ".bbmodel");
             try (InputStream in = plugin.getResource(resourceName)) {
                 if (in == null) {
                     plugin.getLogger().warning("Brak zasobu modelu peta: " + resourceName);
@@ -70,8 +79,15 @@ public final class BetterModelInstaller {
         }
     }
 
-    /** Nazwa modelu w BetterModel dla gatunku peta (np. "good" -> "cubee-good"). */
+    /**
+     * Nazwa modelu w BetterModel dla gatunku peta (np. "good" -> "cubee_good"). UWAGA: myślnik
+     * w nazwie pliku ("cubee-evil.bbmodel") BetterModel wewnętrznie koduje jako szesnastkowy
+     * kod znaku ("2d", bo '-' = 0x2D w ASCII) - stąd nazwy w grze/logu jak "cubee2devil" i
+     * dlaczego BetterModel.model("cubee-evil") zawsze zwracało pustkę. Podkreślnik nie jest
+     * kodowany (widać to po nazwach kości typu "left_arm" w wygenerowanych plikach), więc pliki
+     * .bbmodel są teraz nazwane z podkreślnikiem zamiast myślnika.
+     */
     public static String modelName(String species) {
-        return "cubee-" + species;
+        return "cubee_" + species;
     }
 }
