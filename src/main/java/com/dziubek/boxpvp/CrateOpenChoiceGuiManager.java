@@ -30,8 +30,8 @@ public class CrateOpenChoiceGuiManager {
     }
 
     public void open(Player player, String crateName, List<CrateReward> rewards, Location crateBlockLocation) {
-        boolean srebna = "Srebna".equalsIgnoreCase(crateName);
-        String title = srebna ? Branding.SREBNA_CHOICE_TITLE : Branding.accent("Otwórz:") + " §f" + crateName;
+        String customTitle = Branding.customCrateTitle(crateName, Branding.CrateScreen.CHOICE);
+        String title = customTitle != null ? customTitle : Branding.accent("Otwórz:") + " §f" + crateName;
         Inventory inv = Bukkit.createInventory(new CrateOpenChoiceGuiHolder(crateName, rewards, crateBlockLocation),
                 9, title);
 
@@ -41,7 +41,7 @@ public class CrateOpenChoiceGuiManager {
         inv.setItem(INSTANT_SLOT, button(Material.FEATHER, "§b§l⏩ Otwórz bez animacji",
                 "§7Od razu poznasz wynik,", "§7bez czekania na bęben."));
 
-        if (!srebna) {
+        if (customTitle == null) {
             GuiDecor.fillEmpty(inv);
         }
         player.openInventory(inv);

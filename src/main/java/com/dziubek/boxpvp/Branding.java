@@ -134,13 +134,43 @@ public final class Branding {
      * 0xE870-0xE872.
      */
     private static final String SREBNA_SHIFT = "";
-    public static final String SREBNA_ROLL_TITLE = SREBNA_SHIFT + "§f" + "";
-    public static final String SREBNA_CHOICE_TITLE = SREBNA_SHIFT + "§f" + "";
+    private static final String SREBNA_ROLL_TITLE = SREBNA_SHIFT + "§f" + "";
+    private static final String SREBNA_CHOICE_TITLE = SREBNA_SHIFT + "§f" + "";
     /** Tylko dla podglądu przy dokładnie 9 slotach (1 rząd) - większe pule nagród wracają do
      * zwykłego wyglądu, bo ten obrazek pokrywa tylko 1-rzędowy panel. */
-    public static final String SREBNA_PREVIEW_TITLE = SREBNA_SHIFT + "§f" + "";
+    private static final String SREBNA_PREVIEW_TITLE = SREBNA_SHIFT + "§f" + "";
     /** Pełnoekranowe tło GUI matchmakingu (/duel, "Otwórz kolejkę"), ten sam mechanizm co Srebna. */
     public static final String DUELE_TITLE = SREBNA_SHIFT + "§f" + "";
+
+    private static final String ZLOTA_ROLL_TITLE = SREBNA_SHIFT + "§f" + "";
+    private static final String ZLOTA_CHOICE_TITLE = SREBNA_SHIFT + "§f" + "";
+    private static final String ZLOTA_PREVIEW_TITLE = SREBNA_SHIFT + "§f" + "";
+
+    /**
+     * Zwraca własny obrazkowy tytuł/tło dla danej skrzyni i rodzaju ekranu, albo {@code null}
+     * jeśli ta skrzynia nie ma customowej tekstury (wtedy GUI ma zwykły tekstowy tytuł + szklany
+     * filler jak każda inna skrzynia). Jedno miejsce zamiast powielania warunków po nazwie
+     * skrzyni w każdym z 3 GUI managerów (roll/choice/preview).
+     */
+    public static String customCrateTitle(String crateName, CrateScreen screen) {
+        if ("Srebna".equalsIgnoreCase(crateName)) {
+            return switch (screen) {
+                case ROLL -> SREBNA_ROLL_TITLE;
+                case CHOICE -> SREBNA_CHOICE_TITLE;
+                case PREVIEW -> SREBNA_PREVIEW_TITLE;
+            };
+        }
+        if ("Zlota".equalsIgnoreCase(crateName)) {
+            return switch (screen) {
+                case ROLL -> ZLOTA_ROLL_TITLE;
+                case CHOICE -> ZLOTA_CHOICE_TITLE;
+                case PREVIEW -> ZLOTA_PREVIEW_TITLE;
+            };
+        }
+        return null;
+    }
+
+    public enum CrateScreen { ROLL, CHOICE, PREVIEW }
 
     static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
     static final int LIGHT_LAVENDER = 0xD8B4FE; // jasny fiolet / lawenda

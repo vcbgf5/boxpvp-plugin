@@ -25,8 +25,8 @@ public class CratePreviewGuiManager {
         List<CrateReward> rewards = plugin.getCrates().getRewards(crateName);
 
         int size = Math.min(54, Math.max(9, ((rewards.size() + 8) / 9) * 9));
-        boolean srebna = size == 9 && "Srebna".equalsIgnoreCase(crateName);
-        String title = srebna ? Branding.SREBNA_PREVIEW_TITLE : Branding.accent("Podgląd:") + " §f" + crateName;
+        String customTitle = size == 9 ? Branding.customCrateTitle(crateName, Branding.CrateScreen.PREVIEW) : null;
+        String title = customTitle != null ? customTitle : Branding.accent("Podgląd:") + " §f" + crateName;
         Inventory inv = Bukkit.createInventory(new CratePreviewGuiHolder(crateName), size, title);
 
         int slot = 0;
@@ -38,7 +38,7 @@ public class CratePreviewGuiManager {
             slot++;
         }
 
-        if (!srebna) {
+        if (customTitle == null) {
             GuiDecor.fillEmpty(inv);
         }
         player.openInventory(inv);
