@@ -1,6 +1,7 @@
 package com.dziubek.boxpvp;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.bukkit.platform.BukkitAdapter;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -63,7 +64,7 @@ public class CrateModelDisplayManager {
             a.getPersistentDataContainer().set(anchorTag, PersistentDataType.BYTE, (byte) 1);
         });
 
-        EntityTracker tracker = rendererOpt.get().getOrCreate(anchor);
+        EntityTracker tracker = rendererOpt.get().getOrCreate(BukkitAdapter.adapt(anchor));
         entries.put(key(blockLocation), new Entry(anchor, tracker));
     }
 

@@ -1,6 +1,7 @@
 package com.dziubek.boxpvp;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.bukkit.platform.BukkitAdapter;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -80,7 +81,7 @@ public class PetDisplayManager {
             a.getPersistentDataContainer().set(anchorTag, PersistentDataType.BYTE, (byte) 1);
         });
 
-        EntityTracker tracker = rendererOpt.get().getOrCreate(anchor);
+        EntityTracker tracker = rendererOpt.get().getOrCreate(BukkitAdapter.adapt(anchor));
         ActivePet active = new ActivePet(species, anchor, tracker);
         active.task = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> tick(active, owner),
                 TICK_INTERVAL, TICK_INTERVAL);
