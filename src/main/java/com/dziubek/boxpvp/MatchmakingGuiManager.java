@@ -28,11 +28,11 @@ public class MatchmakingGuiManager {
         Inventory inv = Bukkit.createInventory(new MatchmakingGuiHolder(MatchmakingGuiHolder.Kind.JOIN_PROMPT),
                 27, Branding.DUELE_TITLE);
 
-        inv.setItem(11, build(new ItemStack(Material.LIME_WOOL), "§a§lZwykły matchmaking",
+        inv.setItem(11, build(new ItemStack(Material.PAPER), "§a§lZwykły matchmaking",
                 List.of("§7Dobiera przeciwnika wg killi,", "§7serii zabójstw i kasy.", "",
                         "§eKliknij, a potem napisz na czacie", "§eile monet chcesz obstawić.")));
 
-        inv.setItem(15, build(new ItemStack(Material.DIAMOND), "§b§lRanked (wg ELO)",
+        inv.setItem(15, build(new ItemStack(Material.PAPER), "§b§lRanked (wg ELO)",
                 List.of("§7Dobiera przeciwnika o zbliżonym", "§7ratingu ELO §f(Twój: " + plugin.getElo().getRating(player.getUniqueId()) + ")", "",
                         "§eKliknij, a potem napisz na czacie", "§eile monet chcesz obstawić.")));
 

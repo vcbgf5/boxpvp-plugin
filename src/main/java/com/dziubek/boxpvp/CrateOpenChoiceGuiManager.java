@@ -35,10 +35,10 @@ public class CrateOpenChoiceGuiManager {
         Inventory inv = Bukkit.createInventory(new CrateOpenChoiceGuiHolder(crateName, rewards, crateBlockLocation),
                 9, title);
 
-        inv.setItem(ANIMATED_SLOT, button(Material.CHEST, Branding.accent("▶ Otwórz z animacją"),
+        inv.setItem(ANIMATED_SLOT, button(Material.PAPER, Branding.accent("▶ Otwórz z animacją"),
                 "§7Zobaczysz kręcący się bęben", "§7i dramatyczne odliczanie."));
         inv.setItem(ICON_SLOT, crateIcon(crateName));
-        inv.setItem(INSTANT_SLOT, button(Material.FEATHER, "§b§l⏩ Otwórz bez animacji",
+        inv.setItem(INSTANT_SLOT, button(Material.PAPER, "§b§l⏩ Otwórz bez animacji",
                 "§7Od razu poznasz wynik,", "§7bez czekania na bęben."));
 
         if (customTitle == null) {
