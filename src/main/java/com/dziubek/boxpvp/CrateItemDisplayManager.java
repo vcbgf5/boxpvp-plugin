@@ -39,10 +39,9 @@ public class CrateItemDisplayManager {
     // wygrana "wyskakuje" Z SAMEJ SKRZYNI w gore, na miejsce spoczynku pywajacego przedmiotu -
     // a NIE spada z gora nad tym miejscem spoczynku, zeby wizualnie wygladalo jak wyjmowanie
     // nagrody ze srodka, a nie deszcz z nieba. Skrzynia z wlasnym modelem 3D (BetterModel, ma
-    // realnie otwierana pokrywe) - item wylatuje z bloku (blok - 1, czyli spod skrzyni) dla
-    // efektu "wystrzelenia" z otwartego wnetrza; zwykla skrzynia (sam blok, bez modelu) -
-    // wychodzi tylko odrobine nad nia, bo nie ma przez co "przelatywac".
-    private static final double EMERGE_HEIGHT_MODEL_CRATE = -1.0;
+    // realnie otwierana pokrywe) - item wylatuje od 0.5 bloku nad blokiem (mniej wiecej wysokosc
+    // otwartej pokrywy); zwykla skrzynia (sam blok, bez modelu) - wychodzi tylko odrobine nad nia.
+    private static final double EMERGE_HEIGHT_MODEL_CRATE = 0.5;
     private static final double EMERGE_HEIGHT_PLAIN_CRATE = 1.0;
     private static final long DROP_DURATION_MS = 1100;
     // ile wygrana zostaje duza w miejscu spoczynku PO wyladowaniu, zanim wroci do normalnego cyklu
