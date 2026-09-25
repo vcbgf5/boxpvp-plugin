@@ -121,7 +121,7 @@ commands:
     usage: /pet lub /pet npc create|remove <nazwa> lub /pet givekey <gracz> [ilosc]
     aliases: [pety, pets]
 
-softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms, EcoItems]
+softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms, EcoItems, BetterModel]
 
 permissions:
   boxpvp.setspawn:

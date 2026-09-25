@@ -34,7 +34,7 @@ public class PetGuiManager {
         String active = plugin.getPetManager().getActive(player.getUniqueId());
 
         int slot = 0;
-        for (String species : PetModelRegistry.SPECIES) {
+        for (String species : PetSpecies.ORDER) {
             PetSpecies.Info info = PetSpecies.of(species);
             if (info == null) {
                 slot++;

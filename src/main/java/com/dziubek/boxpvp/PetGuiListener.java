@@ -37,7 +37,7 @@ public class PetGuiListener implements Listener {
             return;
         }
 
-        List<String> species = PetModelRegistry.SPECIES;
+        List<String> species = PetSpecies.ORDER;
         if (slot >= species.size()) {
             return;
         }

@@ -79,7 +79,6 @@ public class BoxPvpPlugin extends JavaPlugin {
     private CheatWatchManager cheatWatch;
     private ModerationManager moderation;
     private CheckpointManager checkpoint;
-    private PetModelRegistry petModels;
     private PetDisplayManager petDisplays;
     private PetManager petManager;
     private PetShelterManager petShelters;
@@ -149,8 +148,6 @@ public class BoxPvpPlugin extends JavaPlugin {
         cheatWatch = new CheatWatchManager(this);
         moderation = new ModerationManager(this);
         checkpoint = new CheckpointManager(this);
-        petModels = new PetModelRegistry(this);
-        petModels.load();
         petDisplays = new PetDisplayManager();
         petManager = new PetManager(this);
         petShelters = new PetShelterManager(this);
@@ -194,6 +191,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         infoHolograms.start();
         petShelters.initialize();
         petManager.start();
+        BetterModelInstaller.installModels(this);
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
@@ -631,10 +629,6 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public InfoHologramManager getInfoHolograms() {
         return infoHolograms;
-    }
-
-    public PetModelRegistry getPetModels() {
-        return petModels;
     }
 
     public PetDisplayManager getPetDisplays() {

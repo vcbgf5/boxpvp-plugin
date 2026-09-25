@@ -64,6 +64,12 @@
             <version>5.4</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.toxicity188</groupId>
+            <artifactId>bettermodel</artifactId>
+            <version>1.15.2</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -93,12 +93,9 @@ public class PetManager {
             data.set("players." + uuid + ".active", null);
             plugin.getPetDisplays().despawn(player);
         } else {
-            PetModel model = plugin.getPetModels().get(species);
-            if (model == null) {
-                return;
+            if (plugin.getPetDisplays().spawn(plugin, player, species)) {
+                data.set("players." + uuid + ".active", species);
             }
-            data.set("players." + uuid + ".active", species);
-            plugin.getPetDisplays().spawn(plugin, player, species, model);
         }
         dirty = true;
     }
@@ -109,11 +106,7 @@ public class PetManager {
         if (species == null) {
             return;
         }
-        PetModel model = plugin.getPetModels().get(species);
-        if (model == null) {
-            return;
-        }
-        plugin.getPetDisplays().spawn(plugin, player, species, model);
+        plugin.getPetDisplays().spawn(plugin, player, species);
     }
 
     private void reapplyAbilities() {

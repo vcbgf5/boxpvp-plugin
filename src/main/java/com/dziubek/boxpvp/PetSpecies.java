@@ -12,6 +12,11 @@ import java.util.Map;
  */
 public final class PetSpecies {
 
+    /** Stała kolejność 8 gatunków - używana m.in. do przypisania slotów w PetGuiManager. */
+    public static final List<String> ORDER = List.of(
+            "evil", "fire", "good", "grass", "skeleton", "stone", "tnt", "water"
+    );
+
     public record Info(String species, String displayName, PetRarity rarity, List<PotionEffectType> abilities) {
         public String coloredName() {
             return rarity.displayName() + " §f" + displayName;
