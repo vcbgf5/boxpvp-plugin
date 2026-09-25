@@ -139,6 +139,8 @@ public final class Branding {
     /** Tylko dla podglądu przy dokładnie 9 slotach (1 rząd) - większe pule nagród wracają do
      * zwykłego wyglądu, bo ten obrazek pokrywa tylko 1-rzędowy panel. */
     public static final String SREBNA_PREVIEW_TITLE = SREBNA_SHIFT + "§f" + "";
+    /** Pełnoekranowe tło GUI matchmakingu (/duel, "Otwórz kolejkę"), ten sam mechanizm co Srebna. */
+    public static final String DUELE_TITLE = SREBNA_SHIFT + "§f" + "";
 
     static final int DARK_PURPLE = 0x4B0082;    // indigo / ciemny fiolet
     static final int LIGHT_LAVENDER = 0xD8B4FE; // jasny fiolet / lawenda
