@@ -79,6 +79,11 @@ public class BoxPvpPlugin extends JavaPlugin {
     private CheatWatchManager cheatWatch;
     private ModerationManager moderation;
     private CheckpointManager checkpoint;
+    private PetModelRegistry petModels;
+    private PetDisplayManager petDisplays;
+    private PetManager petManager;
+    private PetShelterManager petShelters;
+    private PetGuiManager petGui;
 
     @Override
     public void onEnable() {
@@ -144,6 +149,12 @@ public class BoxPvpPlugin extends JavaPlugin {
         cheatWatch = new CheatWatchManager(this);
         moderation = new ModerationManager(this);
         checkpoint = new CheckpointManager(this);
+        petModels = new PetModelRegistry(this);
+        petModels.load();
+        petDisplays = new PetDisplayManager();
+        petManager = new PetManager(this);
+        petShelters = new PetShelterManager(this);
+        petGui = new PetGuiManager(this);
 
         setupEconomy();
 
@@ -152,6 +163,9 @@ public class BoxPvpPlugin extends JavaPlugin {
         // encji) podlega fladze WorldGuard "mob-spawning"; bez zarejestrowanego listenera nikt
         // nie cofnie anulowania CreatureSpawnEvent i handlarz po restarcie się nie pojawi.
         getServer().getPluginManager().registerEvents(new TraderListener(this), this);
+        // PetShelterListener musi być zarejestrowany PRZED petShelters.initialize() - tak samo
+        // jak handlarz, schronisko to prawdziwy Villager i podlega tej samej fladze WorldGuard.
+        getServer().getPluginManager().registerEvents(new PetShelterListener(this), this);
 
         crates.refreshAllHolograms();
         crates.initializeItemDisplays();
@@ -178,6 +192,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         rotatingShop.start();
         cheatWatch.start();
         infoHolograms.start();
+        petShelters.initialize();
+        petManager.start();
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatQuitListener(this), this);
@@ -217,6 +233,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ClanChatListener(this), this);
         getServer().getPluginManager().registerEvents(new FriendJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new CheckpointListener(this), this);
+        getServer().getPluginManager().registerEvents(new PetGuiListener(this), this);
+        getServer().getPluginManager().registerEvents(new PetInteractListener(this), this);
 
         getCommand("setsurvivalspawn").setExecutor(new SetSurvivalSpawnCommand(this));
         getCommand("spawn").setExecutor(new LocalSpawnCommand(this));
@@ -257,6 +275,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("sprawdz").setExecutor(new SprawdzCommand(this));
         getCommand("giveeternalsword").setExecutor(new GiveEternalSwordCommand());
         getCommand("giveeternalsword").setTabCompleter(new OnlinePlayerTabCompleter());
+        getCommand("pet").setExecutor(new PetCommand(this));
+        getCommand("pet").setTabCompleter(new PetTabCompleter(this));
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
@@ -611,5 +631,25 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     public InfoHologramManager getInfoHolograms() {
         return infoHolograms;
+    }
+
+    public PetModelRegistry getPetModels() {
+        return petModels;
+    }
+
+    public PetDisplayManager getPetDisplays() {
+        return petDisplays;
+    }
+
+    public PetManager getPetManager() {
+        return petManager;
+    }
+
+    public PetShelterManager getPetShelters() {
+        return petShelters;
+    }
+
+    public PetGuiManager getPetGui() {
+        return petGui;
     }
 }

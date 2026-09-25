@@ -116,6 +116,10 @@ commands:
     description: Daje custom miecz Eternal Sword (netherite z animowana tekstura) - sobie lub innemu graczowi (admin)
     usage: /giveeternalsword [gracz]
     permission: boxpvp.admin
+  pet:
+    description: GUI wyboru aktywnego peta (max 1 na raz) - /pet npc create|remove <nazwa> i /pet givekey <gracz> [ilosc] to narzedzia admina
+    usage: /pet lub /pet npc create|remove <nazwa> lub /pet givekey <gracz> [ilosc]
+    aliases: [pety, pets]
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms, EcoItems]
 
