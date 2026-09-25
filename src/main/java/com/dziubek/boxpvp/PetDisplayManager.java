@@ -1,15 +1,17 @@
 package com.dziubek.boxpvp;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bukkit.platform.BukkitAdapter;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
-import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,14 +23,25 @@ import java.util.UUID;
  * (EntityTracker) do niewidzialnego ArmorStanda-znacznika, którego po prostu przesuwamy w
  * świecie (teleport co tick, wygładzony) - BetterModel sam renderuje/animuje model śledząc
  * pozycję tego znacznika, więc nie musimy sami liczyć pivotów ani klatek animacji.
+ *
+ * Podążanie jest oparte na SMYCZY (dystans do właściciela) i trzyma się ziemi - NIE reaguje na
+ * samo obracanie kamery gracza (jak wcześniej), tylko na jego faktyczny ruch/pozycję, dokładnie
+ * jak wanilijne oswojone zwierzę.
  */
 public class PetDisplayManager {
 
     private static final long TICK_INTERVAL = 2L;
-    private static final double FOLLOW_DISTANCE = 1.6;
-    private static final double SMOOTH_FACTOR = 0.22;
-    private static final double SNAP_DISTANCE = 10.0;
-    private static final double MOVING_EPSILON = 0.02;
+
+    // smycz: idzie gdy dalej niz START, przestaje gdy blizej niz STOP (histereza, zeby nie
+    // "drgal" w miejscu na granicy)
+    private static final double LEASH_FOLLOW_DISTANCE = 3.0;
+    private static final double LEASH_STOP_DISTANCE = 1.5;
+    private static final double MOVE_PER_TICK = 0.5;
+    private static final double SNAP_DISTANCE = 14.0;
+
+    // szukanie podloza pod celem (zeby pet "chodzil", a nie "latal" na wysokosci gracza)
+    private static final int GROUND_SCAN_UP = 2;
+    private static final int GROUND_SCAN_DOWN = 6;
 
     /**
      * Tag na znaczniku (ArmorStand) peta - odczytywany przez PetInteractListener, żeby zawsze
@@ -44,6 +57,7 @@ public class PetDisplayManager {
         final ArmorStand anchor;
         final EntityTracker tracker;
         String currentAnim;
+        boolean following = false;
         BukkitTask task;
 
         ActivePet(String species, ArmorStand anchor, EntityTracker tracker) {
@@ -71,14 +85,19 @@ public class PetDisplayManager {
 
         Location start = owner.getLocation().clone();
         NamespacedKey anchorTag = new NamespacedKey(plugin, ANCHOR_TAG_KEY);
+        NamespacedKey ownerTag = new NamespacedKey(plugin, "pet_owner");
         ArmorStand anchor = start.getWorld().spawn(start, ArmorStand.class, a -> {
             a.setInvisible(true);
-            a.setMarker(true);
+            // NIE marker - pet musi miec malutki hitbox, zeby gracz mogl kliknac PPM (trick)
+            a.setMarker(false);
+            a.setSmall(true);
+            a.setBasePlate(false);
             a.setGravity(false);
             a.setInvulnerable(true);
             a.setSilent(true);
             a.setPersistent(false);
             a.getPersistentDataContainer().set(anchorTag, PersistentDataType.BYTE, (byte) 1);
+            a.getPersistentDataContainer().set(ownerTag, PersistentDataType.STRING, owner.getUniqueId().toString());
         });
 
         EntityTracker tracker = rendererOpt.get().getOrCreate(BukkitAdapter.adapt(anchor));
@@ -112,47 +131,83 @@ public class PetDisplayManager {
         return active == null ? null : active.species;
     }
 
+    /**
+     * Odpala krótką animację "sztuczki" (PPM na pecie) - jednorazowo, niezależnie od pętli
+     * idle/walk w tick() (AnimationModifier.PLAY_ONCE ją nadpisuje na chwilę, a potem silnik
+     * sam wraca do tego co leciało wcześniej).
+     */
+    public void playTrick(Player owner) {
+        ActivePet active = activePets.get(owner.getUniqueId());
+        if (active == null) {
+            return;
+        }
+        active.tracker.animate("pet", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
+    }
+
     private void tick(ActivePet active, Player owner) {
         if (!owner.isOnline() || !active.anchor.isValid()) {
             return;
         }
 
-        boolean changedWorld = !owner.getWorld().equals(active.anchor.getWorld());
-        Location anchorLoc = active.anchor.getLocation();
-
         Location ownerLoc = owner.getLocation();
-        Vector3f behind = new Vector3f((float) -Math.sin(Math.toRadians(ownerLoc.getYaw())), 0,
-                (float) Math.cos(Math.toRadians(ownerLoc.getYaw())));
-        Location target = ownerLoc.clone().add(behind.x() * FOLLOW_DISTANCE, 0, behind.z() * FOLLOW_DISTANCE);
+        Location anchorLoc = active.anchor.getLocation();
+        boolean changedWorld = !owner.getWorld().equals(active.anchor.getWorld());
 
-        double distance = changedWorld ? Double.MAX_VALUE : target.distance(anchorLoc);
-        boolean moving;
+        double flatDistance = changedWorld ? Double.MAX_VALUE
+                : Math.hypot(ownerLoc.getX() - anchorLoc.getX(), ownerLoc.getZ() - anchorLoc.getZ());
 
-        if (changedWorld || distance > SNAP_DISTANCE) {
-            active.anchor.teleport(target);
-            moving = false;
-        } else if (distance > MOVING_EPSILON) {
-            double dx = (target.getX() - anchorLoc.getX()) * SMOOTH_FACTOR;
-            double dy = (target.getY() - anchorLoc.getY()) * SMOOTH_FACTOR;
-            double dz = (target.getZ() - anchorLoc.getZ()) * SMOOTH_FACTOR;
-            Location next = anchorLoc.clone().add(dx, dy, dz);
-            moving = distance > 0.08;
-            if (moving) {
-                double moveYaw = Math.toDegrees(Math.atan2(target.getX() - anchorLoc.getX(),
-                        -(target.getZ() - anchorLoc.getZ())));
-                next.setYaw(smoothAngle(anchorLoc.getYaw(), (float) moveYaw, 0.35f));
-            } else {
-                next.setYaw(anchorLoc.getYaw());
-            }
-            active.anchor.teleport(next);
-        } else {
-            moving = false;
+        if (changedWorld || flatDistance > SNAP_DISTANCE) {
+            active.anchor.teleport(grounded(ownerLoc.clone()));
+            active.following = false;
+            setAnim(active, "idle");
+            return;
         }
 
-        String wantAnim = moving ? "walk" : "idle";
-        if (!wantAnim.equals(active.currentAnim)) {
-            active.tracker.animate(wantAnim);
-            active.currentAnim = wantAnim;
+        if (flatDistance > LEASH_FOLLOW_DISTANCE) {
+            active.following = true;
+        } else if (flatDistance < LEASH_STOP_DISTANCE) {
+            active.following = false;
+        }
+
+        if (active.following) {
+            double dx = ownerLoc.getX() - anchorLoc.getX();
+            double dz = ownerLoc.getZ() - anchorLoc.getZ();
+            double len = Math.hypot(dx, dz);
+            double step = Math.max(0, Math.min(MOVE_PER_TICK, len));
+            double nx = anchorLoc.getX() + (dx / len) * step;
+            double nz = anchorLoc.getZ() + (dz / len) * step;
+
+            Location next = grounded(new Location(anchorLoc.getWorld(), nx, ownerLoc.getY(), nz));
+            float moveYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+            next.setYaw(smoothAngle(anchorLoc.getYaw(), moveYaw, 0.35f));
+            active.anchor.teleport(next);
+            setAnim(active, "walk");
+        } else {
+            setAnim(active, "idle");
+        }
+    }
+
+    /** Podmienia Y na pozycję tuż nad najbliższym stałym blokiem w pobliżu wysokości gracza - pet chodzi po ziemi, nie lata. */
+    private static Location grounded(Location loc) {
+        World world = loc.getWorld();
+        int baseY = loc.getBlockY();
+        int x = loc.getBlockX();
+        int z = loc.getBlockZ();
+        for (int dy = GROUND_SCAN_UP; dy >= -GROUND_SCAN_DOWN; dy--) {
+            int y = baseY + dy;
+            Block block = world.getBlockAt(x, y, z);
+            if (block.getType().isSolid()) {
+                loc.setY(y + 1);
+                return loc;
+            }
+        }
+        return loc;
+    }
+
+    private static void setAnim(ActivePet active, String anim) {
+        if (!anim.equals(active.currentAnim)) {
+            active.tracker.animate(anim);
+            active.currentAnim = anim;
         }
     }
 
