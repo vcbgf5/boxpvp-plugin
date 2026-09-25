@@ -2,6 +2,7 @@ package com.dziubek.boxpvp;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -28,11 +29,11 @@ public class MatchmakingGuiManager {
         Inventory inv = Bukkit.createInventory(new MatchmakingGuiHolder(MatchmakingGuiHolder.Kind.JOIN_PROMPT),
                 27, Branding.DUELE_TITLE);
 
-        inv.setItem(11, build(new ItemStack(Material.PAPER), "§a§lZwykły matchmaking",
+        inv.setItem(11, build(icon("duel_normal"), "§a§lZwykły matchmaking",
                 List.of("§7Dobiera przeciwnika wg killi,", "§7serii zabójstw i kasy.", "",
                         "§eKliknij, a potem napisz na czacie", "§eile monet chcesz obstawić.")));
 
-        inv.setItem(15, build(new ItemStack(Material.PAPER), "§b§lRanked (wg ELO)",
+        inv.setItem(15, build(icon("duel_ranked"), "§b§lRanked (wg ELO)",
                 List.of("§7Dobiera przeciwnika o zbliżonym", "§7ratingu ELO §f(Twój: " + plugin.getElo().getRating(player.getUniqueId()) + ")", "",
                         "§eKliknij, a potem napisz na czacie", "§eile monet chcesz obstawić.")));
 
@@ -63,14 +64,22 @@ public class MatchmakingGuiManager {
 
         inv.setItem(0, build(new ItemStack(Material.CLOCK), "§eMasz 5s",
                 List.of("§7Zaakceptuj, odrzuć, albo nic nie rób -", "§7pojedynek wystartuje sam po czasie")));
-        inv.setItem(2, build(new ItemStack(Material.LIME_DYE), "§a§l Akceptuj",
+        inv.setItem(2, build(icon("duel_accept"), "§a§l Akceptuj",
                 List.of("§7Kliknij, żeby zacząć od razu", "§7(gdy obaj klikną, pomija resztę czekania)")));
-        inv.setItem(6, build(new ItemStack(Material.RED_DYE), "§c§l✖ Odrzuć",
+        inv.setItem(6, build(icon("duel_reject"), "§c§l✖ Odrzuć",
                 List.of("§7Anuluje ten pojedynek", "§7Przeciwnik wraca do kolejki")));
 
         GuiDecor.fillEmpty(inv);
         viewer.openInventory(inv);
         GuiDecor.playOpenSound(viewer);
+    }
+
+    private ItemStack icon(String name) {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setItemModel(new NamespacedKey("boxpvp", name));
+        item.setItemMeta(meta);
+        return item;
     }
 
     private ItemStack build(ItemStack base, String name, List<String> lore) {
