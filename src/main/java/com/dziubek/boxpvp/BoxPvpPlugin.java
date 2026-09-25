@@ -191,6 +191,7 @@ public class BoxPvpPlugin extends JavaPlugin {
         infoHolograms.start();
         petShelters.initialize();
         petManager.start();
+        PetResourcePackMerger.start(this);
         BetterModelInstaller.installModels(this);
 
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this), this);
@@ -303,6 +304,7 @@ public class BoxPvpPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        PetResourcePackMerger.stop();
         if (crateItemDisplays != null) {
             crateItemDisplays.shutdown();
         }
