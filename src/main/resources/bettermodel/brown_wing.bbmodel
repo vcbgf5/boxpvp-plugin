@@ -1,1 +1,358 @@
-{"meta": {"format_version": "4.10", "model_format": "free", "box_uv": false}, "name": "brown_wings", "parent": "", "ambientocclusion": true, "front_gui_light": false, "visible_box": [1, 1, 0], "variable_placeholders": "", "variable_placeholder_buttons": [], "unhandled_root_fields": {}, "resolution": {"width": 64, "height": 64}, "elements": [{"name": "cube", "box_uv": false, "rescale": false, "locked": false, "light_emission": 0, "render_order": "default", "allow_mirror_modeling": true, "from": [-8, 0, 0], "to": [8, 18, 0], "autouv": 0, "color": 7, "rotation": [0, 22.5, 0], "origin": [8, 0, 0], "faces": {"north": {"uv": [0, 0, 16, 18], "texture": 0}, "east": {"uv": [0, 0, 0, 18], "texture": 0}, "south": {"uv": [16, 0, 32, 18], "texture": 0}, "west": {"uv": [0, 0, 0, 18], "texture": 0}, "up": {"uv": [16, 0, 0, 0], "texture": 0}, "down": {"uv": [16, 0, 0, 0], "texture": 0}}, "type": "cube", "uuid": "2303e6d5-b058-7609-708c-2b584b06b89f"}, {"name": "cube", "box_uv": false, "rescale": false, "locked": false, "light_emission": 0, "render_order": "default", "allow_mirror_modeling": true, "from": [8, 0, 0], "to": [24, 18, 0], "autouv": 0, "color": 7, "rotation": [0, -22.5, 0], "origin": [8, 0, 0], "faces": {"north": {"uv": [0, 18, 16, 36], "texture": 0}, "east": {"uv": [0, 0, 0, 18], "texture": 0}, "south": {"uv": [16, 18, 32, 36], "texture": 0}, "west": {"uv": [0, 0, 0, 18], "texture": 0}, "up": {"uv": [16, 0, 0, 0], "texture": 0}, "down": {"uv": [16, 0, 0, 0], "texture": 0}}, "type": "cube", "uuid": "f2868b10-c68a-3270-83c6-01e6436382d5"}], "outliner": [{"name": "wing", "origin": [0, 0, 0], "rotation": [0, 0, 0], "color": 0, "uuid": "962f470c-808a-4dec-841d-32bd816bed8c", "export": true, "isOpen": true, "locked": false, "visibility": true, "autouv": 0, "children": ["2303e6d5-b058-7609-708c-2b584b06b89f", "f2868b10-c68a-3270-83c6-01e6436382d5"]}], "textures": [{"path": "C:\\Users\\Zsombor\\Desktop\\brown_wings.png", "name": "brown_wings.png", "folder": "", "namespace": "", "id": "0", "group": "", "width": 64, "height": 64, "uv_width": 64, "uv_height": 64, "particle": true, "use_as_default": false, "layers_enabled": false, "sync_to_project": "", "render_mode": "default", "render_sides": "auto", "frame_time": 1, "frame_order_type": "loop", "frame_order": "", "frame_interpolate": false, "visible": true, "internal": true, "saved": true, "uuid": "4647bbcd-6f6a-4f35-3e4e-5fa78282a210", "relative_path": "../../brown_wings.png", "source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAA8RJREFUeF7tWc9rFDEYzSyCZa0i/ihWsBRrK9K7HlZvPejNsyJo/wKv3nrz6l9QBdGzNz30pnuo9yK2VkoFK/UHonWpIDPypv2GbDYzm+SbsNuQXLqbzfdl3svLl8xrIgzb95f3spM3Hicmw23GmuTzOcYIEB5g/dFcRg8ydX9JG2cyxicYl9xGBBCwrbeb+RzjlyeESgLGyL9jXBlRLg/qK6YvAZDzz/efBIFbW/slXm98Ecudhlj5k+bxs0ca2ZVmKq5NnhHT08cKko5fPCdMt40vgP3yVhKgA4+Ez9a/ia2/aRcB44cb4vbUqXy+g0RCKQEADzDvnrZzUFh5Ao+/IEBuIABNJeHSnVbeP6xKqCSAwM+/+CAmRvYAom3upmK1syd/ajPNRqaOWbx5If8ZJBwoAmTp08o/XNkuwKrgZRLo84PZsWI7oGgOaz0oPc7kogck7e0dkXZ2xOJXUVk35k+LrNEcFa2x0Z56MIynQqJeWnSFD+DRNn7vFnufTgBacZwE+IxaMHl0JO8GCVUFcRguTAnOb5Knet4/aX8uZA/waHL1l2sAPoMEKoZEAvrvts7mQ7EV0KAEInrQqkje3JrJ6MFygPuXHex97Pt+xU8lQVcMUQ9kJVAM5rr6fLXvXUSdo87vydyJQ9nC9fNdOanwodOk+OlIUIshvhMJ9NvCq49i6ce/wRIgy5YeTJYv+lD80OTbX9kq0K0Qv6MYyo22UaEA6TJV56ra5CqushREexjfQYQMHn1q8dPVAfThakwkyMDlC1S/XDZAXMf2yA97GMnUvY++svO/bAtwcrgCso0r3X9EBCU0BU/jufG2QFzHD7QAuT50nXFaAnxcUHzkrIOILgJ8Ojo+c3OIKAjw6eiYOEocEJxY746OiaPEAcCNLQjw4eiYOkpcEJz4RH6LQ6K6HB1TR2nQl6GiBtTt6IAAG0eJs4qc2B5bi5JxHB1XR4kDxDW25x5Qh6Mjnyj0ZmnqKLkCcY0rCHB1dDCxbHi6OkquALhxXQpwcXTwAHU5SlwwLvHat0H1La7K0cGkdTpKLiA4Mdp3AflNjoohJtE5Ouiv21HiALKN7SHA1tHJFbD/XyGanOMo2QLgjtcSgKQ2jg4VUJUMF0eJC8g2vnILuDg6dThKtiA446MjxGEvhNhoiYWwihwMUQEc9kKIjQoIYRU5GKICOOyFEBsVEMIqcjBEBXDYCyE2KiCEVeRgiArgsBdCbFRACKvIwRAVwGEvhNiogBBWkYMhKoDDXgixUQEhrCIHQ1QAh70QYv8DFPVyX+tlbBUAAAAASUVORK5CYII="}], "display": {"thirdperson_righthand": {"rotation": [41, 180, 0], "translation": [0, 1.75, -1.75], "scale": [0.3, 0.3, 0.3]}, "thirdperson_lefthand": {"rotation": [41, 180, 0], "translation": [0, 1.75, -1.75], "scale": [0.3, 0.3, 0.3]}, "firstperson_righthand": {"translation": [8.5, 0, 0], "scale": [0.88, 0.88, 0.88]}, "firstperson_lefthand": {"translation": [8.5, 0, 0], "scale": [0.88, 0.88, 0.88]}, "ground": {"scale": [0.3, 0.3, 0.3]}, "gui": {"scale": [0.55, 0.56, 1]}, "head": {"translation": [0, -60, 17.25], "scale": [1.75, 1.75, 1.75]}, "fixed": {"rotation": [0, 180, 0], "translation": [0, 0, -7.5]}}, "animations": []}
+{
+  "meta": {
+    "format_version": "4.10",
+    "model_format": "free",
+    "box_uv": false
+  },
+  "name": "brown_wings",
+  "parent": "",
+  "ambientocclusion": true,
+  "front_gui_light": false,
+  "visible_box": [
+    1,
+    1,
+    0
+  ],
+  "variable_placeholders": "",
+  "variable_placeholder_buttons": [],
+  "unhandled_root_fields": {},
+  "resolution": {
+    "width": 64,
+    "height": 64
+  },
+  "elements": [
+    {
+      "name": "cube",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "light_emission": 0,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        -16.0,
+        0,
+        0.0
+      ],
+      "to": [
+        0.0,
+        18,
+        0.0
+      ],
+      "autouv": 0,
+      "color": 7,
+      "rotation": [
+        0,
+        22.5,
+        0
+      ],
+      "origin": [
+        0.0,
+        0,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            18
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0,
+            18
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            16,
+            0,
+            32,
+            18
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0,
+            18
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "texture": 0
+        }
+      },
+      "type": "cube",
+      "uuid": "2303e6d5-b058-7609-708c-2b584b06b89f"
+    },
+    {
+      "name": "cube",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "light_emission": 0,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        0.0,
+        0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        18,
+        0.0
+      ],
+      "autouv": 0,
+      "color": 7,
+      "rotation": [
+        0,
+        -22.5,
+        0
+      ],
+      "origin": [
+        0.0,
+        0,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            18,
+            16,
+            36
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0,
+            18
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            16,
+            18,
+            32,
+            36
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0,
+            18
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "texture": 0
+        }
+      },
+      "type": "cube",
+      "uuid": "f2868b10-c68a-3270-83c6-01e6436382d5"
+    }
+  ],
+  "outliner": [
+    {
+      "name": "wing",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "color": 0,
+      "uuid": "962f470c-808a-4dec-841d-32bd816bed8c",
+      "export": true,
+      "isOpen": true,
+      "locked": false,
+      "visibility": true,
+      "autouv": 0,
+      "children": [
+        "2303e6d5-b058-7609-708c-2b584b06b89f",
+        "f2868b10-c68a-3270-83c6-01e6436382d5"
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "path": "C:\\Users\\Zsombor\\Desktop\\brown_wings.png",
+      "name": "brown_wings.png",
+      "folder": "",
+      "namespace": "",
+      "id": "0",
+      "group": "",
+      "width": 64,
+      "height": 64,
+      "uv_width": 64,
+      "uv_height": 64,
+      "particle": true,
+      "use_as_default": false,
+      "layers_enabled": false,
+      "sync_to_project": "",
+      "render_mode": "default",
+      "render_sides": "auto",
+      "frame_time": 1,
+      "frame_order_type": "loop",
+      "frame_order": "",
+      "frame_interpolate": false,
+      "visible": true,
+      "internal": true,
+      "saved": true,
+      "uuid": "4647bbcd-6f6a-4f35-3e4e-5fa78282a210",
+      "relative_path": "../../brown_wings.png",
+      "source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAA8RJREFUeF7tWc9rFDEYzSyCZa0i/ihWsBRrK9K7HlZvPejNsyJo/wKv3nrz6l9QBdGzNz30pnuo9yK2VkoFK/UHonWpIDPypv2GbDYzm+SbsNuQXLqbzfdl3svLl8xrIgzb95f3spM3Hicmw23GmuTzOcYIEB5g/dFcRg8ydX9JG2cyxicYl9xGBBCwrbeb+RzjlyeESgLGyL9jXBlRLg/qK6YvAZDzz/efBIFbW/slXm98Ecudhlj5k+bxs0ca2ZVmKq5NnhHT08cKko5fPCdMt40vgP3yVhKgA4+Ez9a/ia2/aRcB44cb4vbUqXy+g0RCKQEADzDvnrZzUFh5Ao+/IEBuIABNJeHSnVbeP6xKqCSAwM+/+CAmRvYAom3upmK1syd/ajPNRqaOWbx5If8ZJBwoAmTp08o/XNkuwKrgZRLo84PZsWI7oGgOaz0oPc7kogck7e0dkXZ2xOJXUVk35k+LrNEcFa2x0Z56MIynQqJeWnSFD+DRNn7vFnufTgBacZwE+IxaMHl0JO8GCVUFcRguTAnOb5Knet4/aX8uZA/waHL1l2sAPoMEKoZEAvrvts7mQ7EV0KAEInrQqkje3JrJ6MFygPuXHex97Pt+xU8lQVcMUQ9kJVAM5rr6fLXvXUSdo87vydyJQ9nC9fNdOanwodOk+OlIUIshvhMJ9NvCq49i6ce/wRIgy5YeTJYv+lD80OTbX9kq0K0Qv6MYyo22UaEA6TJV56ra5CqushREexjfQYQMHn1q8dPVAfThakwkyMDlC1S/XDZAXMf2yA97GMnUvY++svO/bAtwcrgCso0r3X9EBCU0BU/jufG2QFzHD7QAuT50nXFaAnxcUHzkrIOILgJ8Ojo+c3OIKAjw6eiYOEocEJxY746OiaPEAcCNLQjw4eiYOkpcEJz4RH6LQ6K6HB1TR2nQl6GiBtTt6IAAG0eJs4qc2B5bi5JxHB1XR4kDxDW25x5Qh6Mjnyj0ZmnqKLkCcY0rCHB1dDCxbHi6OkquALhxXQpwcXTwAHU5SlwwLvHat0H1La7K0cGkdTpKLiA4Mdp3AflNjoohJtE5Ouiv21HiALKN7SHA1tHJFbD/XyGanOMo2QLgjtcSgKQ2jg4VUJUMF0eJC8g2vnILuDg6dThKtiA446MjxGEvhNhoiYWwihwMUQEc9kKIjQoIYRU5GKICOOyFEBsVEMIqcjBEBXDYCyE2KiCEVeRgiArgsBdCbFRACKvIwRAVwGEvhNiogBBWkYMhKoDDXgixUQEhrCIHQ1QAh70QYv8DFPVyX+tlbBUAAAAASUVORK5CYII="
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        41,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        1.75,
+        -1.75
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        41,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        1.75,
+        -1.75
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "firstperson_righthand": {
+      "translation": [
+        8.5,
+        0,
+        0
+      ],
+      "scale": [
+        0.88,
+        0.88,
+        0.88
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        8.5,
+        0,
+        0
+      ],
+      "scale": [
+        0.88,
+        0.88,
+        0.88
+      ]
+    },
+    "ground": {
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "gui": {
+      "scale": [
+        0.55,
+        0.56,
+        1
+      ]
+    },
+    "head": {
+      "translation": [
+        0,
+        -60,
+        17.25
+      ],
+      "scale": [
+        1.75,
+        1.75,
+        1.75
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        -7.5
+      ]
+    }
+  },
+  "animations": []
+}

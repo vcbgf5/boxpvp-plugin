@@ -1,1 +1,350 @@
-{"meta": {"format_version": "4.10", "model_format": "free", "box_uv": false}, "name": "bluefire-wing", "parent": "", "ambientocclusion": true, "front_gui_light": false, "visible_box": [1, 1, 0], "variable_placeholders": "", "variable_placeholder_buttons": [], "unhandled_root_fields": {}, "resolution": {"width": 64, "height": 64}, "elements": [{"name": "cube", "box_uv": false, "rescale": false, "locked": false, "render_order": "default", "allow_mirror_modeling": true, "from": [-8, 0, 0], "to": [8, 18, 0], "autouv": 0, "color": 1, "rotation": [0, 22.5, 0], "origin": [8, 0, 0], "faces": {"north": {"uv": [0, 0, 16, 18], "texture": 0}, "east": {"uv": [0, 0, 0, 18], "texture": 0}, "south": {"uv": [16, 0, 32, 18], "texture": 0}, "west": {"uv": [0, 0, 0, 18], "texture": 0}, "up": {"uv": [16, 0, 0, 0], "texture": 0}, "down": {"uv": [16, 0, 0, 0], "texture": 0}}, "type": "cube", "uuid": "ba430f10-8ea2-57ca-26eb-ba20f82e9d2f"}, {"name": "cube", "box_uv": false, "rescale": false, "locked": false, "render_order": "default", "allow_mirror_modeling": true, "from": [8, 0, 0], "to": [24, 18, 0], "autouv": 0, "color": 1, "rotation": [0, -22.5, 0], "origin": [8, 0, 0], "faces": {"north": {"uv": [0, 18, 16, 36], "texture": 0}, "east": {"uv": [0, 0, 0, 18], "texture": 0}, "south": {"uv": [16, 18, 32, 36], "texture": 0}, "west": {"uv": [0, 0, 0, 18], "texture": 0}, "up": {"uv": [16, 0, 0, 0], "texture": 0}, "down": {"uv": [16, 0, 0, 0], "texture": 0}}, "type": "cube", "uuid": "26007205-60c3-715e-114e-db3fdf427a89"}], "outliner": [{"name": "wing", "origin": [0, 0, 0], "rotation": [0, 0, 0], "color": 0, "uuid": "50f07d3e-3397-4edd-a78d-980f7c5223e3", "export": true, "isOpen": true, "locked": false, "visibility": true, "autouv": 0, "children": ["ba430f10-8ea2-57ca-26eb-ba20f82e9d2f", "26007205-60c3-715e-114e-db3fdf427a89"]}], "textures": [{"path": "C:\\Users\\Felhasznalo\\Desktop\\Work\\modell\\wings13.png", "name": "wings13.png", "folder": "", "namespace": "", "id": "0", "width": 64, "height": 64, "uv_width": 64, "uv_height": 64, "particle": true, "use_as_default": false, "layers_enabled": false, "sync_to_project": "", "render_mode": "default", "render_sides": "auto", "frame_time": 1, "frame_order_type": "loop", "frame_order": "", "frame_interpolate": false, "visible": true, "internal": true, "saved": false, "uuid": "0ffea978-ce3b-b0c8-f353-6e852b6fc2f5", "source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAABThJREFUeF7tmX9oVWUYx587Dc2pV930trZGY1HN5VS0oBjLEMQiBi2jSX/oH2t2rzmooB+MQorRD6hg5V2u/VF/hItswYgSQdQxCkpRZ3MpjcXaWlc39aozJbc3vu96jueee+7uj3Pvngud+4/unHPP8zyf5/s+77vvPBTnc2pCqcbhkH7qm+LbPPGex/0nBv9S+Lep0EfLZ3kS+k4i783EM56B0Ql19Z8cKi+IThTFj+hSiD7+M0ShM6fpyqle6mkI2BZV0RxU85eXk+/ue+j52336ewUesoXQO6LUvFsmqSR/liggT3PHL7rE9Q+WR0E4cEMpFI5iGACeHezYS0PBjyISLwrsUMU1m3TRDIC/u352JFwUf+DHXv1sQ819sgDaj0yos4N9Ohk7CCxn7n71Nj917m6JUgG6z/dYBXbLxlz8suIyql0rrIBXvrqkVpfkUldnG23310eoAAqwyp+LPP9rn6ECdH/JvWVkBcDLwKwAANjV0kpV1XV0bGCc3n1qoawCnmkNq6LFHrp8cg/dta6eNj5MVHewy5g3b62ripoBuGAHANetM+D1Qzff1fZIFe07TPTboVZasGIzDV1Q9EW9Vx6Ad6hdFwkAK6fq1cML05+l/2HAHzEHTrz3No3v36eTz92wUa18+bWI9f9CsMWAgd2Ah+mJrikA+ISLauUBPNQ0qlZd/5oujI7QnuBOD9a8eYKbIUDivaGpLXF/3dYIABvaPtPXy30+PSNYCebiMRSxlW4O7FSL8wvo+Jwn6YfGfFkFPPZ0QHnzluniWfcMwaoCADg6STT8aQv1f9sZAaD08WoqfNZPa3LIFgAXzzEAITx2lr77Mph9AJBkLAgo8uRLDbbb4Ir3mzUca/etxeP9WQMAS2BRzxtkVQHvANwx80HI3H2+jzkAFViHIN837wRc/MWKN+WXQMG2Hr3Vrb74CR3t/p5CwwNaknwI4iHYvt2vdwecBOMBwLSv3XVTCZgpDMBXWKLWVD5KxxY9p9mM7K6QXQJLNnWo8d+7qXTyJxoLDRsAsATMhx8MP/xsdwrkLvNpECdB6zDk3yMAIM9XSP05D1DunZV0fm+NLIA5a19UKP6P/j6aN3+hBmB3+gOAn99pilr7xoHhv/8Awv2vNkYBwG1AAICrVy7RHaVlGsL1Ix/IAvCu2qLmnusiJHU5PKaT4SJYARh8c88lB+DaUl/EQDTDW+DNU4B9bWkVhY9/Lgvg1uJKNTvcZxTPBxvs6wwAax4fPvhYu279GQMR18xD0XxuwD1AuOEto78Hu2UBQJJIiIefFcB0az4eCPNMsAKwixvvfZm470EnWPrmANzFRLseK7np3hMrdiYKjfVOW/ml09FJxVESA5CKo4Nk0+UozWThHMtQQKqOjnHSc+goSRSPmAaAVB0dvCQdjpIoACeODhJ36ihJFW8ogAHgQrKOjj44OXSUxAE4cXSQvFNHKSsApOroIHmnjlJWAEjV0dEKcOgoiQPQ6ziwQ6Xi6NgBwLVkHSUpCMY2mKqjg8TT4ShlFYBkHB1O3KmjJA6AlwH+vpeMo4PvpctRkoAQ9ctQso4Okk6nozTTEGICSNTRQcLpdJTEASCBZBwdPJ9uR2kmIUxrRyXi6HCymXCUZgJEXD8unqODJDPpKGUaQlwAmU5A+v0uAOkOSMd3FSDdAen4rgKkOyAd31WAdAek47sKkO6AdHxXAdIdkI7vKkC6A9LxXQVId0A6vqsA6Q5Ix3cVIN0B6fiuAqQ7IB3fVYB0B6TjuwqQ7oB0/P+9Av4FlCukfXob7JAAAAAASUVORK5CYII=", "relative_path": "../../../../Felhasznalo/Desktop/Work/modell/wings13.png"}], "display": {"thirdperson_righthand": {"rotation": [42, 180, 0], "translation": [0, 1.75, -1.5], "scale": [0.3, 0.3, 0.3]}, "thirdperson_lefthand": {"rotation": [44, 180, 0], "translation": [0, 1.75, -1.5], "scale": [0.3, 0.3, 0.3]}, "firstperson_righthand": {"translation": [9.75, 0, 3.25]}, "firstperson_lefthand": {"translation": [9.75, 0, 3.25]}, "ground": {"scale": [0.32, 0.32, 0.32]}, "gui": {"scale": [0.51, 0.52, 0.54]}, "head": {"translation": [0, -21.5, 17.25], "scale": [1.75, 1.75, 1.75]}, "fixed": {"rotation": [0, 180, 0], "translation": [0, 0, -7.25]}}, "tint_color": [1, 0.705, 0.294], "animations": []}
+{
+  "meta": {
+    "format_version": "4.10",
+    "model_format": "free",
+    "box_uv": false
+  },
+  "name": "bluefire-wing",
+  "parent": "",
+  "ambientocclusion": true,
+  "front_gui_light": false,
+  "visible_box": [
+    1,
+    1,
+    0
+  ],
+  "variable_placeholders": "",
+  "variable_placeholder_buttons": [],
+  "unhandled_root_fields": {},
+  "resolution": {
+    "width": 64,
+    "height": 64
+  },
+  "elements": [
+    {
+      "name": "cube",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        -16.0,
+        0,
+        0.0
+      ],
+      "to": [
+        0.0,
+        18,
+        0.0
+      ],
+      "autouv": 0,
+      "color": 1,
+      "rotation": [
+        0,
+        22.5,
+        0
+      ],
+      "origin": [
+        0.0,
+        0,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            18
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0,
+            18
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            16,
+            0,
+            32,
+            18
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0,
+            18
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "texture": 0
+        }
+      },
+      "type": "cube",
+      "uuid": "ba430f10-8ea2-57ca-26eb-ba20f82e9d2f"
+    },
+    {
+      "name": "cube",
+      "box_uv": false,
+      "rescale": false,
+      "locked": false,
+      "render_order": "default",
+      "allow_mirror_modeling": true,
+      "from": [
+        0.0,
+        0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        18,
+        0.0
+      ],
+      "autouv": 0,
+      "color": 1,
+      "rotation": [
+        0,
+        -22.5,
+        0
+      ],
+      "origin": [
+        0.0,
+        0,
+        0.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            18,
+            16,
+            36
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0,
+            18
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            16,
+            18,
+            32,
+            36
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0,
+            18
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "texture": 0
+        }
+      },
+      "type": "cube",
+      "uuid": "26007205-60c3-715e-114e-db3fdf427a89"
+    }
+  ],
+  "outliner": [
+    {
+      "name": "wing",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "color": 0,
+      "uuid": "50f07d3e-3397-4edd-a78d-980f7c5223e3",
+      "export": true,
+      "isOpen": true,
+      "locked": false,
+      "visibility": true,
+      "autouv": 0,
+      "children": [
+        "ba430f10-8ea2-57ca-26eb-ba20f82e9d2f",
+        "26007205-60c3-715e-114e-db3fdf427a89"
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "path": "C:\\Users\\Felhasznalo\\Desktop\\Work\\modell\\wings13.png",
+      "name": "wings13.png",
+      "folder": "",
+      "namespace": "",
+      "id": "0",
+      "width": 64,
+      "height": 64,
+      "uv_width": 64,
+      "uv_height": 64,
+      "particle": true,
+      "use_as_default": false,
+      "layers_enabled": false,
+      "sync_to_project": "",
+      "render_mode": "default",
+      "render_sides": "auto",
+      "frame_time": 1,
+      "frame_order_type": "loop",
+      "frame_order": "",
+      "frame_interpolate": false,
+      "visible": true,
+      "internal": true,
+      "saved": false,
+      "uuid": "0ffea978-ce3b-b0c8-f353-6e852b6fc2f5",
+      "source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAABThJREFUeF7tmX9oVWUYx587Dc2pV930trZGY1HN5VS0oBjLEMQiBi2jSX/oH2t2rzmooB+MQorRD6hg5V2u/VF/hItswYgSQdQxCkpRZ3MpjcXaWlc39aozJbc3vu96jueee+7uj3Pvngud+4/unHPP8zyf5/s+77vvPBTnc2pCqcbhkH7qm+LbPPGex/0nBv9S+Lep0EfLZ3kS+k4i783EM56B0Ql19Z8cKi+IThTFj+hSiD7+M0ShM6fpyqle6mkI2BZV0RxU85eXk+/ue+j52336ewUesoXQO6LUvFsmqSR/liggT3PHL7rE9Q+WR0E4cEMpFI5iGACeHezYS0PBjyISLwrsUMU1m3TRDIC/u352JFwUf+DHXv1sQ819sgDaj0yos4N9Ohk7CCxn7n71Nj917m6JUgG6z/dYBXbLxlz8suIyql0rrIBXvrqkVpfkUldnG23310eoAAqwyp+LPP9rn6ECdH/JvWVkBcDLwKwAANjV0kpV1XV0bGCc3n1qoawCnmkNq6LFHrp8cg/dta6eNj5MVHewy5g3b62ripoBuGAHANetM+D1Qzff1fZIFe07TPTboVZasGIzDV1Q9EW9Vx6Ad6hdFwkAK6fq1cML05+l/2HAHzEHTrz3No3v36eTz92wUa18+bWI9f9CsMWAgd2Ah+mJrikA+ISLauUBPNQ0qlZd/5oujI7QnuBOD9a8eYKbIUDivaGpLXF/3dYIABvaPtPXy30+PSNYCebiMRSxlW4O7FSL8wvo+Jwn6YfGfFkFPPZ0QHnzluniWfcMwaoCADg6STT8aQv1f9sZAaD08WoqfNZPa3LIFgAXzzEAITx2lr77Mph9AJBkLAgo8uRLDbbb4Ir3mzUca/etxeP9WQMAS2BRzxtkVQHvANwx80HI3H2+jzkAFViHIN837wRc/MWKN+WXQMG2Hr3Vrb74CR3t/p5CwwNaknwI4iHYvt2vdwecBOMBwLSv3XVTCZgpDMBXWKLWVD5KxxY9p9mM7K6QXQJLNnWo8d+7qXTyJxoLDRsAsATMhx8MP/xsdwrkLvNpECdB6zDk3yMAIM9XSP05D1DunZV0fm+NLIA5a19UKP6P/j6aN3+hBmB3+gOAn99pilr7xoHhv/8Awv2vNkYBwG1AAICrVy7RHaVlGsL1Ix/IAvCu2qLmnusiJHU5PKaT4SJYARh8c88lB+DaUl/EQDTDW+DNU4B9bWkVhY9/Lgvg1uJKNTvcZxTPBxvs6wwAax4fPvhYu279GQMR18xD0XxuwD1AuOEto78Hu2UBQJJIiIefFcB0az4eCPNMsAKwixvvfZm470EnWPrmANzFRLseK7np3hMrdiYKjfVOW/ml09FJxVESA5CKo4Nk0+UozWThHMtQQKqOjnHSc+goSRSPmAaAVB0dvCQdjpIoACeODhJ36ihJFW8ogAHgQrKOjj44OXSUxAE4cXSQvFNHKSsApOroIHmnjlJWAEjV0dEKcOgoiQPQ6ziwQ6Xi6NgBwLVkHSUpCMY2mKqjg8TT4ShlFYBkHB1O3KmjJA6AlwH+vpeMo4PvpctRkoAQ9ctQso4Okk6nozTTEGICSNTRQcLpdJTEASCBZBwdPJ9uR2kmIUxrRyXi6HCymXCUZgJEXD8unqODJDPpKGUaQlwAmU5A+v0uAOkOSMd3FSDdAen4rgKkOyAd31WAdAek47sKkO6AdHxXAdIdkI7vKkC6A9LxXQVId0A6vqsA6Q5Ix3cVIN0B6fiuAqQ7IB3fVYB0B6TjuwqQ7oB0/P+9Av4FlCukfXob7JAAAAAASUVORK5CYII=",
+      "relative_path": "../../../../Felhasznalo/Desktop/Work/modell/wings13.png"
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        42,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        1.75,
+        -1.5
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        44,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        1.75,
+        -1.5
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "firstperson_righthand": {
+      "translation": [
+        9.75,
+        0,
+        3.25
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        9.75,
+        0,
+        3.25
+      ]
+    },
+    "ground": {
+      "scale": [
+        0.32,
+        0.32,
+        0.32
+      ]
+    },
+    "gui": {
+      "scale": [
+        0.51,
+        0.52,
+        0.54
+      ]
+    },
+    "head": {
+      "translation": [
+        0,
+        -21.5,
+        17.25
+      ],
+      "scale": [
+        1.75,
+        1.75,
+        1.75
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        -7.25
+      ]
+    }
+  },
+  "tint_color": [
+    1,
+    0.705,
+    0.294
+  ],
+  "animations": []
+}

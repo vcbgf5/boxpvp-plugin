@@ -23,11 +23,11 @@ import java.util.UUID;
 public class WingDisplayManager {
 
     private static final long TICK_INTERVAL = 1L;
-    // ile bloku nad stopami gracza siedzi punkt zaczepienia skrzydeł (mniej wiecej lopatki) -
-    // geometria modeli po upieczeniu przez BetterModel siedzi ok. 0.5-1.36 bloku NAD punktem
-    // zaczepienia, wiec zeby srodek skrzydel wypadl na wysokosci ok. 1.4-1.5 bloku (plecy/lopatki),
-    // sam punkt zaczepienia musi byc nisko - poczatkowe 1.2 renderowalo skrzydla przy glowie
-    private static final double BACK_HEIGHT_OFFSET = 0.5;
+    // Wszystkie 12 modeli .bbmodel zostaly przecentrowane tak, ze X/Z siedzi na 0 (symetrycznie
+    // wzgledem punktu zaczepienia) a Y=0 to naboda skrzydla ("korzen" przy plecach) - dokladnie w
+    // punkcie zaczepienia. Skrzydla rosna W GORE od tego punktu, wiec zaczep trzeba ustawic na
+    // wysokosci barkow/lopatek gracza (~1.4 bloku nad stopami)
+    private static final double BACK_HEIGHT_OFFSET = 1.4;
 
     static final String ANCHOR_TAG_KEY = "wing_anchor";
 
