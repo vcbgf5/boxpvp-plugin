@@ -112,6 +112,10 @@ commands:
   friend:
     description: Lista znajomych z powiadomieniem o dolaczeniu - /friend add|remove|list
     usage: /friend add <gracz>|remove <gracz>|list
+  giveeternalsword:
+    description: Daje custom miecz Eternal Sword (netherite z animowana tekstura) - sobie lub innemu graczowi (admin)
+    usage: /giveeternalsword [gracz]
+    permission: boxpvp.admin
 
 softdepend: [WorldGuard, Vault, DecentHolograms, LuckPerms, EcoItems]
 

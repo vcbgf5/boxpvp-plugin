@@ -255,6 +255,8 @@ public class BoxPvpPlugin extends JavaPlugin {
         getCommand("freeze").setExecutor(new FreezeCommand(this));
         getCommand("report").setExecutor(new ReportCommand(this));
         getCommand("sprawdz").setExecutor(new SprawdzCommand(this));
+        getCommand("giveeternalsword").setExecutor(new GiveEternalSwordCommand());
+        getCommand("giveeternalsword").setTabCompleter(new OnlinePlayerTabCompleter());
 
         getServer().getScheduler().runTaskTimer(this, new CombatActionBarTask(this), 20L, 20L);
         new CrateIdleEffectTask(this).runTaskTimer(this, 20L, 3L);
