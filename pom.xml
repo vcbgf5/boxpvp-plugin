@@ -31,6 +31,14 @@
             <id>enginehub-maven</id>
             <url>https://maven.enginehub.org/repo/</url>
         </repository>
+        <repository>
+            <id>blamejared</id>
+            <url>https://maven.blamejared.com/</url>
+        </repository>
+        <repository>
+            <id>nucleoid</id>
+            <url>https://maven.nucleoid.xyz/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -66,8 +74,8 @@
         </dependency>
         <dependency>
             <groupId>io.github.toxicity188</groupId>
-            <artifactId>bettermodel</artifactId>
-            <version>1.15.2</version>
+            <artifactId>bettermodel-bukkit-api</artifactId>
+            <version>3.5.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

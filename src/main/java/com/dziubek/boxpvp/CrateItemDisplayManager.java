@@ -27,7 +27,7 @@ import java.util.Map;
 public class CrateItemDisplayManager {
 
     private static final String TAG = "sm_crate_item_display";
-    private static final double DEFAULT_HEIGHT_ABOVE_BLOCK = 3.5;
+    private static final double DEFAULT_HEIGHT_ABOVE_BLOCK = 2.0;
     private static final long IDLE_PERIOD_MS = 2200;
     private static final long HIGHLIGHT_PERIOD_MS = 450;
     private static final long CYCLE_INTERVAL_TICKS = 20L;
@@ -36,8 +36,14 @@ public class CrateItemDisplayManager {
     private static final float IDLE_SCALE = 0.6f;
     private static final float HIGHLIGHT_SCALE = 1.5f;
 
-    // "spadanie" wygranej z gory na miejsce spoczynku, zwalniajac pod koniec (ease-out)
-    private static final double DROP_START_OFFSET = 2.0;
+    // wygrana "wyskakuje" Z SAMEJ SKRZYNI w gore, na miejsce spoczynku pywajacego przedmiotu -
+    // a NIE spada z gora nad tym miejscem spoczynku, zeby wizualnie wygladalo jak wyjmowanie
+    // nagrody ze srodka, a nie deszcz z nieba. Skrzynia z wlasnym modelem 3D (BetterModel, ma
+    // realnie otwierana pokrywe) - item wylatuje z bloku (blok - 1, czyli spod skrzyni) dla
+    // efektu "wystrzelenia" z otwartego wnetrza; zwykla skrzynia (sam blok, bez modelu) -
+    // wychodzi tylko odrobine nad nia, bo nie ma przez co "przelatywac".
+    private static final double EMERGE_HEIGHT_MODEL_CRATE = -1.0;
+    private static final double EMERGE_HEIGHT_PLAIN_CRATE = 1.0;
     private static final long DROP_DURATION_MS = 1100;
     // ile wygrana zostaje duza w miejscu spoczynku PO wyladowaniu, zanim wroci do normalnego cyklu
     private static final long BIG_HOLD_MS = 2000;
@@ -209,6 +215,7 @@ public class CrateItemDisplayManager {
         long now = System.currentTimeMillis();
         entry.highlightUntil = now + HIGHLIGHT_DURATION_MS;
         entry.dropStartAt = now;
+        entry.emergeFromModelCrate = plugin.getCrateModelDisplays().hasModel(blockLocation);
         if (entry.display.isValid()) {
             entry.display.setItemStack(won.clone());
         }
@@ -241,9 +248,12 @@ public class CrateItemDisplayManager {
 
     /**
      * Pionowe przesunięcie renderowania względem pozycji spoczynku: lekkie bujanie cały czas,
-     * plus - zaraz po wygranej - opadanie z góry (ease-out). Współdzielone przez spin() i
-     * getVisualLocation(), żeby kamera cutscenki (CrateRollAnimation) patrzyła dokładnie tam,
-     * gdzie przedmiot faktycznie jest renderowany w danej chwili, a nie w stałym punkcie.
+     * plus - zaraz po wygranej - wyjście ze skrzyni w górę, na miejsce spoczynku (ease-out).
+     * Startuje od EMERGE_HEIGHT_MODEL_CRATE/EMERGE_HEIGHT_PLAIN_CRATE (zależnie czy skrzynia ma
+     * własny model 3D), więc wygląda jak wyjmowanie nagrody ZE ŚRODKA skrzyni, a nie opadanie
+     * z nieba nad nią. Współdzielone przez spin() i getVisualLocation(), żeby kamera cutscenki
+     * (CrateRollAnimation) patrzyła dokładnie tam, gdzie przedmiot faktycznie jest renderowany
+     * w danej chwili, a nie w stałym punkcie.
      */
     private float computeTranslateY(Entry entry, long now) {
         float translateY = (float) (Math.sin(now / 500.0) * 0.05);
@@ -251,7 +261,10 @@ public class CrateItemDisplayManager {
             long elapsed = now - entry.dropStartAt;
             if (elapsed < DROP_DURATION_MS) {
                 double t = Math.min(1.0, elapsed / (double) DROP_DURATION_MS);
-                translateY += (float) ((1.0 - CameraUtil.easeOutCubic(t)) * DROP_START_OFFSET);
+                double emergeHeight = entry.emergeFromModelCrate
+                        ? EMERGE_HEIGHT_MODEL_CRATE : EMERGE_HEIGHT_PLAIN_CRATE;
+                double emergeOffset = emergeHeight - heightAboveBlock;
+                translateY += (float) ((1.0 - CameraUtil.easeOutCubic(t)) * emergeOffset);
             } else {
                 entry.dropStartAt = 0L;
             }
@@ -318,6 +331,7 @@ public class CrateItemDisplayManager {
         int rewardIndex = 0;
         long highlightUntil = 0L;
         long dropStartAt = 0L;
+        boolean emergeFromModelCrate = false;
 
         Entry(ItemDisplay display, String crateName, Location blockLocation) {
             this.display = display;
