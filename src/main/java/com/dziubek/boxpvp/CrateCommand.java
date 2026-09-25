@@ -43,6 +43,8 @@ public class CrateCommand implements CommandExecutor {
                 return handleCreate(sender, args);
             case "givekey":
                 return handleGiveKey(sender, args);
+            case "givekeytoall":
+                return handleGiveKeyToAll(sender, args);
             case "bind":
                 return handleBind(sender, args);
             case "unbind":
@@ -85,6 +87,7 @@ public class CrateCommand implements CommandExecutor {
         sender.sendMessage(Branding.accent("--- /crate ---"));
         sender.sendMessage("§c/crate create <nazwa> §7- konfiguruje nagrody skrzyni (GUI)");
         sender.sendMessage("§c/crate givekey <nazwa> <gracz> [ilość] §7- daje klucz graczowi");
+        sender.sendMessage("§c/crate givekeytoall <nazwa> [ilość] §7- daje klucz wszystkim graczom online");
         sender.sendMessage("§c/crate bind <nazwa> §7- przypina blok, na który patrzysz, jako fizyczną skrzynię");
         sender.sendMessage("§c/crate unbind §7- odpina fizyczną skrzynię, na którą patrzysz");
         sender.sendMessage("§c/crate sethologram <nazwa> <tekst> §7- ustawia napis hologramu (obsługuje &kody kolorów)");
@@ -403,6 +406,40 @@ public class CrateCommand implements CommandExecutor {
 
         sender.sendMessage("§aDano " + amount + "x klucz do '" + name + "' graczowi " + target.getName() + ".");
         target.sendMessage("§aOtrzymujesz " + amount + "x klucz do skrzyni '" + name + "'!");
+        return true;
+    }
+
+    private boolean handleGiveKeyToAll(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("§cUżycie: /crate givekeytoall <nazwa> [ilość]");
+            return true;
+        }
+
+        String name = args[1];
+        if (!plugin.getCrates().exists(name)) {
+            sender.sendMessage("§cSkrzynia '" + name + "' nie istnieje. Najpierw /crate create " + name);
+            return true;
+        }
+
+        int amount = 1;
+        if (args.length >= 3) {
+            try {
+                amount = Integer.parseInt(args[2]);
+            } catch (NumberFormatException e) {
+                sender.sendMessage("§cIlość musi być liczbą.");
+                return true;
+            }
+        }
+
+        int count = 0;
+        for (Player target : Bukkit.getOnlinePlayers()) {
+            ItemStack key = plugin.getCrates().createKey(name, amount);
+            target.getInventory().addItem(key);
+            target.sendMessage("§aOtrzymujesz " + amount + "x klucz do skrzyni '" + name + "'!");
+            count++;
+        }
+
+        sender.sendMessage("§aDano " + amount + "x klucz do '" + name + "' wszystkim graczom online (" + count + ").");
         return true;
     }
 }

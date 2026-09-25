@@ -30,8 +30,8 @@ commands:
     description: Odbiera codzienna nagrode (z efektem) lub konfiguruje dzien/efekt (admin) - /daily setday <1-7>, /daily seteffect <efekt>
     usage: /daily lub /daily setday <1-7> lub /daily seteffect <efekt>
   crate:
-    description: Skrzynie - otwiera sie TYLKO klikajac fizyczny blok (/crate bind) - /crate create|givekey|bind|unbind|sethologram|seteffect|setidleeffect|setprivate|setfreecooldown|setdisplayheight|purgedisplays|preview|list
-    usage: /crate create|givekey|bind|unbind|sethologram|seteffect|setidleeffect|setprivate|setfreecooldown|preview|list
+    description: Skrzynie - otwiera sie TYLKO klikajac fizyczny blok (/crate bind) - /crate create|givekey|givekeytoall|bind|unbind|sethologram|seteffect|setidleeffect|setprivate|setfreecooldown|setdisplayheight|purgedisplays|preview|list
+    usage: /crate create|givekey|givekeytoall|bind|unbind|sethologram|seteffect|setidleeffect|setprivate|setfreecooldown|preview|list
   sklep:
     description: Otwiera sklep z GUI - /sklep create|additem|removeitem|removecategory do konfiguracji (admin)
     usage: /sklep

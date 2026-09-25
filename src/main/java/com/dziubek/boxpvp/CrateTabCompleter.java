@@ -1,8 +1,10 @@
 package com.dziubek.boxpvp;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,13 +13,13 @@ import java.util.stream.Collectors;
 public class CrateTabCompleter implements TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "create", "givekey", "bind", "unbind", "sethologram",
+            "create", "givekey", "givekeytoall", "bind", "unbind", "sethologram",
             "seteffect", "setidleeffect", "setprivate", "setfreecooldown", "setdisplayheight",
             "purgedisplays", "preview", "list"
     );
     private static final List<String> BOOLEANS = List.of("true", "false");
     private static final List<String> NEEDS_CRATE_NAME = List.of(
-            "givekey", "bind", "sethologram", "seteffect", "setidleeffect",
+            "givekey", "givekeytoall", "bind", "sethologram", "seteffect", "setidleeffect",
             "setprivate", "setfreecooldown", "preview"
     );
 
@@ -49,9 +51,20 @@ public class CrateTabCompleter implements TabCompleter {
             if (sub.equals("setprivate")) {
                 return filter(BOOLEANS, args[2]);
             }
+            if (sub.equals("givekey")) {
+                return filter(onlinePlayerNames(), args[2]);
+            }
         }
 
         return new ArrayList<>();
+    }
+
+    private List<String> onlinePlayerNames() {
+        List<String> names = new ArrayList<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            names.add(player.getName());
+        }
+        return names;
     }
 
     private List<String> effectNames(boolean withNone) {
