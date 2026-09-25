@@ -45,12 +45,22 @@ public final class PetResourcePackMerger {
 
     private static volatile byte[] mergedBytes;
     private static volatile byte[] mergedHash;
+    private static volatile boolean serverStarted = false;
     private static HttpServer server;
 
     private PetResourcePackMerger() {
     }
 
     public static void start(BoxPvpPlugin plugin) {
+        start(plugin, 0);
+    }
+
+    /**
+     * Próbuje wystartować, a jeśli port jest jeszcze zajęty (typowo: stary/zombie proces
+     * poprzedniego uruchomienia serwera jeszcze go trzyma tuż po restarcie), próbuje ponownie
+     * co 10s, maks. 6 razy (~1 minuta) - zanim się podda i zostanie przy zwykłej paczce z GitHuba.
+     */
+    private static void start(BoxPvpPlugin plugin, int attempt) {
         if (server != null) {
             return;
         }
@@ -71,10 +81,20 @@ public final class PetResourcePackMerger {
             });
             server.setExecutor(null);
             server.start();
+            serverStarted = true;
             plugin.getLogger().info("Serwer scalonego resourcepacku petow wystartowal na porcie " + PORT + ".");
         } catch (IOException e) {
-            plugin.getLogger().warning("Nie udalo sie wystartowac serwera resourcepacku petow (port " + PORT
-                    + " zajety?): " + e.getMessage());
+            server = null;
+            serverStarted = false;
+            if (attempt < 6) {
+                plugin.getLogger().warning("Port " + PORT + " jeszcze zajety (proba " + (attempt + 1)
+                        + "/6, prawdopodobnie stary proces serwera jeszcze go trzyma) - ponawiam za 10s.");
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> start(plugin, attempt + 1), 200L);
+            } else {
+                plugin.getLogger().warning("Nie udalo sie wystartowac serwera resourcepacku petow (port " + PORT
+                        + " nadal zajety po 6 probach) - gracze dostana zwykla (GitHubowa) paczke bez "
+                        + "petow, dopoki port sie nie zwolni i serwer nie zostanie zrestartowany: " + e.getMessage());
+            }
         }
     }
 
@@ -83,10 +103,14 @@ public final class PetResourcePackMerger {
             server.stop(0);
             server = null;
         }
+        serverStarted = false;
     }
 
+    /** True TYLKO gdy serwer HTTP faktycznie nasłuchuje I paczka jest scalona - inaczej
+     * ResourcePackPusher musi wrócić do zwykłego linku z GitHuba, żeby gracze dostali chociaż
+     * to, co zawsze działało (a nie "Connection refused" na martwym serwerze). */
     public static boolean isRunning() {
-        return mergedBytes != null;
+        return serverStarted && mergedBytes != null;
     }
 
     public static byte[] hash() {
@@ -123,6 +147,9 @@ public final class PetResourcePackMerger {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
             mergedHash = digest.digest(merged);
             mergedBytes = merged;
+            plugin.getLogger().info("Scalono resourcepack petow (" + merged.length + " bajtow)"
+                    + (serverStarted ? " - gotowy do wyslania graczom." : " - ALE serwer HTTP nie dziala, "
+                    + "wiec zostanie wyslana zwykla paczka z GitHuba zamiast tej scalonej."));
             return true;
         } catch (Exception e) {
             plugin.getLogger().warning("Nie udalo sie scalic resourcepacku petow: " + e.getMessage());
