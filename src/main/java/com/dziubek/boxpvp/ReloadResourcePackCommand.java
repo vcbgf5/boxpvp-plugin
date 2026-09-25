@@ -36,7 +36,6 @@ public class ReloadResourcePackCommand implements CommandExecutor {
         sender.sendMessage("§7Liczę aktualny hash paczki...");
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             boolean refreshed = ResourcePackPusher.refreshHash();
-            PetResourcePackMerger.refresh((BoxPvpPlugin) plugin);
             Bukkit.getScheduler().runTask(plugin, () -> {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     ResourcePackPusher.push(player);

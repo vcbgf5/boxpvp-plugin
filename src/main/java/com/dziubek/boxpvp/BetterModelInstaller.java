@@ -65,17 +65,8 @@ public final class BetterModelInstaller {
         }
 
         if (copiedAny) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bettermodel reload");
-                // BetterModel dopiero PO reloadzie zapisuje plugins/BetterModel/build.zip na
-                // dysku - dajemy mu chwilę (5s) zanim spróbujemy go scalić z naszym packiem.
-                Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-                    if (PetResourcePackMerger.refresh(plugin)) {
-                        Bukkit.getScheduler().runTask(plugin,
-                                () -> Bukkit.getOnlinePlayers().forEach(ResourcePackPusher::push));
-                    }
-                }, 100L);
-            });
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bettermodel reload"));
         }
     }
 

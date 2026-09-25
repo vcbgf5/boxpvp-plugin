@@ -36,7 +36,7 @@ public final class ResourcePackPusher {
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
-    static final String URL =
+    private static final String URL =
             "https://raw.githubusercontent.com/vcbgf5/boxpvp-plugin/main/resourcepack/BoxPvP-ResourcePack.zip";
     private static final Component PROMPT = LEGACY.deserialize("§7Zainstaluj pack, zeby zobaczyc pelny wyglad serwera!");
 
@@ -45,17 +45,8 @@ public final class ResourcePackPusher {
     private ResourcePackPusher() {
     }
 
-    /**
-     * Jeśli PetResourcePackMerger ma gotową scaloną paczkę (nasz pack + wygenerowany przez
-     * BetterModel plugins/BetterModel/build.zip), wysyłamy TĘ - inaczej zwykły link do GitHuba
-     * (dokładnie jak wcześniej, gdy BetterModel/pety w ogóle nie są w grze).
-     */
     public static void push(Player player) {
-        if (PetResourcePackMerger.isRunning()) {
-            player.setResourcePack(PetResourcePackMerger.url(), PetResourcePackMerger.hash(), PROMPT, false);
-        } else {
-            player.setResourcePack(URL, hash, PROMPT, false);
-        }
+        player.setResourcePack(URL, hash, PROMPT, false);
     }
 
     /** Sieciowe - wołać TYLKO z wątku async. Pobiera aktualną paczkę i liczy jej SHA-1 na nowo. */
