@@ -165,9 +165,11 @@ public class BoxPvpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PetShelterListener(this), this);
 
         crates.refreshAllHolograms();
+        // modele 3D MUSZĄ powstać przed pływającymi przedmiotami - te sprawdzają hasModel()
+        // przy spawnie, żeby wybrać wysokość spoczynku (0.5 nad blokiem dla skrzyń z modelem)
+        crates.initializeCrateModelDisplays();
         crates.initializeItemDisplays();
         crateItemDisplays.start();
-        crates.initializeCrateModelDisplays();
         generators.start();
         traders.initialize();
         banks.initialize();

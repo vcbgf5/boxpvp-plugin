@@ -350,13 +350,15 @@ public class CrateManager {
         save();
         rebuildLocationCache();
         createHologram(name, id, location);
-        plugin.getCrateItemDisplays().spawnDisplay(name, location);
+        // model 3D MUSI powstać PRZED pływającym przedmiotem - ten sprawdza hasModel() przy
+        // spawnie, żeby wybrać wysokość spoczynku (0.5 nad blokiem dla skrzyń z modelem)
         if (modelName != null) {
             CrateModel model = plugin.getCrateModels().get(modelName);
             if (model != null) {
                 plugin.getCrateModelDisplays().spawn(plugin, location, model, yaw);
             }
         }
+        plugin.getCrateItemDisplays().spawnDisplay(name, location);
         return true;
     }
 

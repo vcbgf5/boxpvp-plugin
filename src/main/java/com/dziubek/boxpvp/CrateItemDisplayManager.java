@@ -39,9 +39,11 @@ public class CrateItemDisplayManager {
     // wygrana "wyskakuje" Z SAMEJ SKRZYNI w gore, na miejsce spoczynku pywajacego przedmiotu -
     // a NIE spada z gora nad tym miejscem spoczynku, zeby wizualnie wygladalo jak wyjmowanie
     // nagrody ze srodka, a nie deszcz z nieba. Skrzynia z wlasnym modelem 3D (BetterModel, ma
-    // realnie otwierana pokrywe) - item wylatuje od 0.5 bloku nad blokiem (mniej wiecej wysokosc
-    // otwartej pokrywy); zwykla skrzynia (sam blok, bez modelu) - wychodzi tylko odrobine nad nia.
-    private static final double EMERGE_HEIGHT_MODEL_CRATE = 0.5;
+    // realnie otwierana pokrywe) - item wylatuje od bloku -1 (spod skrzyni) i wspina sie do
+    // WLASNEGO miejsca spoczynku 0.5 bloku NAD blokiem (MODEL_CRATE_REST_HEIGHT, nie globalnej
+    // heightAboveBlock - ta zostaje tylko dla zwyklych skrzyn bez modelu 3D).
+    private static final double EMERGE_HEIGHT_MODEL_CRATE = -1.0;
+    private static final double MODEL_CRATE_REST_HEIGHT = 0.5;
     private static final double EMERGE_HEIGHT_PLAIN_CRATE = 1.0;
     private static final long DROP_DURATION_MS = 1100;
     // ile wygrana zostaje duza w miejscu spoczynku PO wyladowaniu, zanim wroci do normalnego cyklu
@@ -110,7 +112,9 @@ public class CrateItemDisplayManager {
         plugin.saveConfig();
 
         for (Entry entry : entries.values()) {
-            if (!entry.display.isValid()) {
+            // skrzynie z wlasnym modelem 3D maja stala wysokosc spoczynku (MODEL_CRATE_REST_HEIGHT),
+            // niezalezna od tego admin-ustawienia - dotyczy tylko zwyklych skrzyn bez modelu
+            if (entry.hasModel || !entry.display.isValid()) {
                 continue;
             }
             Location newAnchor = entry.blockLocation.clone().add(0.5, heightAboveBlock, 0.5);
@@ -166,7 +170,9 @@ public class CrateItemDisplayManager {
 
         removeStrayEntities(blockLocation);
 
-        Location spawnAt = blockLocation.clone().add(0.5, heightAboveBlock, 0.5);
+        boolean hasModel = plugin.getCrateModelDisplays().hasModel(blockLocation);
+        double restHeight = hasModel ? MODEL_CRATE_REST_HEIGHT : heightAboveBlock;
+        Location spawnAt = blockLocation.clone().add(0.5, restHeight, 0.5);
         List<CrateReward> rewards = plugin.getCrates().getRewards(crateName);
         if (rewards.isEmpty()) {
             plugin.getLogger().warning("Skrzynia '" + crateName + "' nie ma jeszcze skonfigurowanych nagród - "
@@ -183,7 +189,7 @@ public class CrateItemDisplayManager {
             e.setItemStack(rewards.isEmpty() ? placeholderItem() : rewards.get(0).item().clone());
         });
 
-        entries.put(blockKey(blockLocation), new Entry(display, crateName, blockLocation.clone()));
+        entries.put(blockKey(blockLocation), new Entry(display, crateName, blockLocation.clone(), hasModel));
         plugin.getLogger().info("Postawiono pływający przedmiot nad skrzynią '" + crateName + "' w "
                 + world.getName() + " (" + blockLocation.getBlockX() + "," + blockLocation.getBlockY()
                 + "," + blockLocation.getBlockZ() + ").");
@@ -214,7 +220,6 @@ public class CrateItemDisplayManager {
         long now = System.currentTimeMillis();
         entry.highlightUntil = now + HIGHLIGHT_DURATION_MS;
         entry.dropStartAt = now;
-        entry.emergeFromModelCrate = plugin.getCrateModelDisplays().hasModel(blockLocation);
         if (entry.display.isValid()) {
             entry.display.setItemStack(won.clone());
         }
@@ -260,9 +265,8 @@ public class CrateItemDisplayManager {
             long elapsed = now - entry.dropStartAt;
             if (elapsed < DROP_DURATION_MS) {
                 double t = Math.min(1.0, elapsed / (double) DROP_DURATION_MS);
-                double emergeHeight = entry.emergeFromModelCrate
-                        ? EMERGE_HEIGHT_MODEL_CRATE : EMERGE_HEIGHT_PLAIN_CRATE;
-                double emergeOffset = emergeHeight - heightAboveBlock;
+                double emergeHeight = entry.hasModel ? EMERGE_HEIGHT_MODEL_CRATE : EMERGE_HEIGHT_PLAIN_CRATE;
+                double emergeOffset = emergeHeight - restHeightFor(entry);
                 translateY += (float) ((1.0 - CameraUtil.easeOutCubic(t)) * emergeOffset);
             } else {
                 entry.dropStartAt = 0L;
@@ -271,14 +275,19 @@ public class CrateItemDisplayManager {
         return translateY;
     }
 
+    private double restHeightFor(Entry entry) {
+        return entry.hasModel ? MODEL_CRATE_REST_HEIGHT : heightAboveBlock;
+    }
+
     /**
      * Zwraca dokładną, aktualną pozycję renderowania przedmiotu nad daną skrzynią (z
      * uwzględnieniem bujania/opadania w danej chwili) - używane, żeby kamera w cutscence po
      * wygranej realnie podążała za przedmiotem, a nie patrzyła w jeden stały punkt.
      */
     public Location getVisualLocation(Location blockLocation) {
-        Location base = blockLocation.clone().add(0.5, heightAboveBlock, 0.5);
         Entry entry = entries.get(blockKey(blockLocation));
+        double restHeight = entry == null ? heightAboveBlock : restHeightFor(entry);
+        Location base = blockLocation.clone().add(0.5, restHeight, 0.5);
         if (entry == null || !entry.display.isValid()) {
             return base;
         }
@@ -327,15 +336,16 @@ public class CrateItemDisplayManager {
         final ItemDisplay display;
         final String crateName;
         final Location blockLocation;
+        final boolean hasModel;
         int rewardIndex = 0;
         long highlightUntil = 0L;
         long dropStartAt = 0L;
-        boolean emergeFromModelCrate = false;
 
-        Entry(ItemDisplay display, String crateName, Location blockLocation) {
+        Entry(ItemDisplay display, String crateName, Location blockLocation, boolean hasModel) {
             this.display = display;
             this.crateName = crateName;
             this.blockLocation = blockLocation;
+            this.hasModel = hasModel;
         }
     }
 }
