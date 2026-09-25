@@ -3,8 +3,10 @@ package com.dziubek.boxpvp;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 import org.joml.Vector3f;
 
@@ -26,6 +28,13 @@ public class PetDisplayManager {
     private static final double SMOOTH_FACTOR = 0.22;
     private static final double SNAP_DISTANCE = 10.0;
     private static final double MOVING_EPSILON = 0.02;
+
+    /**
+     * Tag na znaczniku (ArmorStand) peta - odczytywany przez PetInteractListener, żeby zawsze
+     * przepuścić spawn peta nawet w strefie z zablokowanym spawnowaniem mobów (np. flaga
+     * WorldGuard mob-spawning/DENY na spawnie) - to nasz WŁASNY, celowy spawn, nie naturalny mob.
+     */
+    static final String ANCHOR_TAG_KEY = "pet_anchor";
 
     private final Map<UUID, ActivePet> activePets = new HashMap<>();
 
@@ -60,6 +69,7 @@ public class PetDisplayManager {
         }
 
         Location start = owner.getLocation().clone();
+        NamespacedKey anchorTag = new NamespacedKey(plugin, ANCHOR_TAG_KEY);
         ArmorStand anchor = start.getWorld().spawn(start, ArmorStand.class, a -> {
             a.setInvisible(true);
             a.setMarker(true);
@@ -67,6 +77,7 @@ public class PetDisplayManager {
             a.setInvulnerable(true);
             a.setSilent(true);
             a.setPersistent(false);
+            a.getPersistentDataContainer().set(anchorTag, PersistentDataType.BYTE, (byte) 1);
         });
 
         EntityTracker tracker = rendererOpt.get().getOrCreate(anchor);

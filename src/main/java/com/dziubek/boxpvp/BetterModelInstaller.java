@@ -18,6 +18,12 @@ public final class BetterModelInstaller {
 
     private static final String[] SPECIES = {"evil", "fire", "good", "grass", "skeleton", "stone", "tnt", "water"};
 
+    // Modele skrzyń zrekonstruowane z geometrii już zaszytej w resourcepacku (patrz
+    // scratchpad konwersji poza repo) - nazwy plików bez myślników, więc rejestrują się w
+    // BetterModel pod dokładnie taką samą nazwą (bez kodowania "2d", patrz modelName()).
+    private static final String[] CRATE_MODELS =
+            {"common_crate", "rare_crate", "legendary_crate", "cosmetic_crate", "vote_crate"};
+
     private BetterModelInstaller() {
     }
 
@@ -27,7 +33,7 @@ public final class BetterModelInstaller {
 
     public static void installModels(BoxPvpPlugin plugin) {
         if (!isBetterModelPresent()) {
-            plugin.getLogger().warning("BetterModel nie jest zainstalowany - system petów (3D modele) nie "
+            plugin.getLogger().warning("BetterModel nie jest zainstalowany - system petów i skrzyń 3D nie "
                     + "będzie działać, dopóki nie dodasz go do /plugins/.");
             return;
         }
@@ -50,23 +56,31 @@ public final class BetterModelInstaller {
 
         boolean copiedAny = false;
         for (String species : SPECIES) {
-            String resourceName = "bettermodel/cubee_" + species + ".bbmodel";
-            File target = new File(modelsDir, "cubee_" + species + ".bbmodel");
-            try (InputStream in = plugin.getResource(resourceName)) {
-                if (in == null) {
-                    plugin.getLogger().warning("Brak zasobu modelu peta: " + resourceName);
-                    continue;
-                }
-                Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                copiedAny = true;
-            } catch (IOException e) {
-                plugin.getLogger().warning("Nie udało się skopiować " + resourceName + ": " + e.getMessage());
-            }
+            copiedAny |= copyModel(plugin, modelsDir, "cubee_" + species);
+        }
+        for (String crateModel : CRATE_MODELS) {
+            copiedAny |= copyModel(plugin, modelsDir, crateModel);
         }
 
         if (copiedAny) {
             Bukkit.getScheduler().runTask(plugin, () ->
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bettermodel reload"));
+        }
+    }
+
+    private static boolean copyModel(BoxPvpPlugin plugin, File modelsDir, String fileNameNoExt) {
+        String resourceName = "bettermodel/" + fileNameNoExt + ".bbmodel";
+        File target = new File(modelsDir, fileNameNoExt + ".bbmodel");
+        try (InputStream in = plugin.getResource(resourceName)) {
+            if (in == null) {
+                plugin.getLogger().warning("Brak zasobu modelu: " + resourceName);
+                return false;
+            }
+            Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().warning("Nie udało się skopiować " + resourceName + ": " + e.getMessage());
+            return false;
         }
     }
 

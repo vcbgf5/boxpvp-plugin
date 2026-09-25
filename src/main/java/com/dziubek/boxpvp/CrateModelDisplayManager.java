@@ -1,134 +1,93 @@
 package com.dziubek.boxpvp;
 
+import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.tracker.EntityTracker;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.util.Transformation;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
- * Renderuje statyczny 3D model skrzyni (skonwertowany z Blockbencha) jako zestaw encji ItemDisplay -
- * jedna encja na kość (bone) z geometrią, zawsze w pozycji spoczynkowej (bez animacji otwarcia).
- * Blok pod skrzynią staje się niewidzialnym Material.BARRIER, a model wizualnie go zastępuje.
- *
- * Hierarchia kości jest komponowana rekurencyjnie (world = parent.world * local) przy użyciu
- * wektorów/kwaternionów JOML zamiast pełnych macierzy - prostsze i wystarczające, bo modele nie
- * mają ścinania (shear).
+ * Renderuje 3D model skrzyni przez BetterModel (dokładnie jak pety - patrz PetDisplayManager)
+ * zamiast własnej matematyki hierarchii kości. To ostatecznie naprawia błędy typu "odklejona
+ * pokrywa" - BetterModel sam liczy transformacje kości na podstawie .bbmodel, my tylko stawiamy
+ * niewidzialny ArmorStand-znacznik RAZ, w stałym miejscu (skrzynia nigdzie nie "podąża").
+ * Blok pod skrzynią staje się niewidzialnym Material.BARRIER, model wizualnie go zastępuje.
  */
 public class CrateModelDisplayManager {
 
-    private final Map<String, Map<String, UUID>> entitiesByLocation = new HashMap<>();
-    private final Map<String, String> boundModelByLocation = new HashMap<>();
+    static final String ANCHOR_TAG_KEY = "crate_anchor";
 
-    private record BoneState(Vector3f pos, Quaternionf rot) {
+    private final Map<String, Entry> entries = new HashMap<>();
+
+    private record Entry(ArmorStand anchor, EntityTracker tracker) {
     }
 
-    public void spawn(Location blockLocation, CrateModel model, float yaw) {
-        String key = key(blockLocation);
+    public void spawn(BoxPvpPlugin plugin, Location blockLocation, CrateModel model, float yaw) {
         despawn(blockLocation);
+
+        if (!BetterModelInstaller.isBetterModelPresent()) {
+            plugin.getLogger().warning("BetterModel nie jest zainstalowany - model 3D skrzyni '"
+                    + model.name + "' nie zostanie pokazany.");
+            return;
+        }
+        var rendererOpt = BetterModel.model(model.name);
+        if (rendererOpt.isEmpty()) {
+            plugin.getLogger().warning("Model skrzyni '" + model.name + "' nie jest wczytany w "
+                    + "BetterModel (spróbuj /bettermodel reload).");
+            return;
+        }
 
         blockLocation.getBlock().setType(Material.BARRIER);
 
-        Location anchor = blockLocation.clone().add(0.5, 0, 0.5);
-        Quaternionf baseYaw = new Quaternionf().rotateY((float) Math.toRadians(-yaw));
+        Location anchorLoc = blockLocation.clone().add(0.5, 0, 0.5);
+        float entityYaw = -yaw;
+        anchorLoc.setYaw(entityYaw);
+        NamespacedKey anchorTag = new NamespacedKey(plugin, ANCHOR_TAG_KEY);
+        ArmorStand anchor = anchorLoc.getWorld().spawn(anchorLoc, ArmorStand.class, a -> {
+            a.setInvisible(true);
+            a.setMarker(true);
+            a.setGravity(false);
+            a.setInvulnerable(true);
+            a.setSilent(true);
+            a.setPersistent(false);
+            a.setRotation(entityYaw, 0);
+            a.getPersistentDataContainer().set(anchorTag, PersistentDataType.BYTE, (byte) 1);
+        });
 
-        Map<String, BoneState> states = new HashMap<>();
-        for (CrateModel.Bone bone : model.bones) {
-            resolveState(bone, model, baseYaw, states);
-        }
-
-        Map<String, UUID> entities = new HashMap<>();
-        for (CrateModel.Bone bone : model.bones) {
-            if (bone.modelKey == null) {
-                continue;
-            }
-            BoneState state = states.get(bone.name);
-            ItemDisplay display = anchor.getWorld().spawn(anchor, ItemDisplay.class);
-            display.setItemStack(customItem(bone.modelKey));
-            display.setBillboard(Display.Billboard.FIXED);
-            display.setTransformation(toTransformation(state));
-            entities.put(bone.name, display.getUniqueId());
-        }
-
-        entitiesByLocation.put(key, entities);
-        boundModelByLocation.put(key, model.name);
+        EntityTracker tracker = rendererOpt.get().getOrCreate(anchor);
+        entries.put(key(blockLocation), new Entry(anchor, tracker));
     }
 
     public void despawn(Location blockLocation) {
-        String key = key(blockLocation);
-        Map<String, UUID> entities = entitiesByLocation.remove(key);
-        boundModelByLocation.remove(key);
-        if (entities == null) {
+        Entry entry = entries.remove(key(blockLocation));
+        if (entry == null) {
             return;
         }
-        for (UUID uuid : entities.values()) {
-            org.bukkit.entity.Entity entity = blockLocation.getWorld() != null
-                    ? blockLocation.getWorld().getEntity(uuid) : null;
-            if (entity != null) {
-                entity.remove();
-            }
+        entry.tracker().close();
+        if (entry.anchor().isValid()) {
+            entry.anchor().remove();
         }
     }
 
     public boolean hasModel(Location blockLocation) {
-        return boundModelByLocation.containsKey(key(blockLocation));
+        return entries.containsKey(key(blockLocation));
     }
 
-    private BoneState resolveState(CrateModel.Bone bone, CrateModel model, Quaternionf baseYaw,
-                                    Map<String, BoneState> cache) {
-        BoneState cached = cache.get(bone.name);
-        if (cached != null) {
-            return cached;
+    /**
+     * Odpala animację otwarcia pokrywy (jeśli model ją ma) - wołane dopiero gdy realnie
+     * startuje losowanie (CrateRollAnimation), NIE przy samym kliknięciu kluczem w blok.
+     */
+    public void playOpenAnimation(Location blockLocation) {
+        Entry entry = entries.get(key(blockLocation));
+        if (entry == null || !entry.anchor().isValid()) {
+            return;
         }
-
-        Vector3f parentPos;
-        Quaternionf parentRot;
-        double[] parentPivot;
-        if (bone.parent == null) {
-            parentPos = new Vector3f(0, 0, 0);
-            parentRot = baseYaw;
-            parentPivot = new double[]{0, 0, 0};
-        } else {
-            CrateModel.Bone parentBone = model.bone(bone.parent);
-            BoneState parentState = resolveState(parentBone, model, baseYaw, cache);
-            parentPos = parentState.pos();
-            parentRot = parentState.rot();
-            parentPivot = parentBone.pivot;
-        }
-
-        Vector3f localOffset = new Vector3f(
-                (float) ((bone.pivot[0] - parentPivot[0]) / 16.0),
-                (float) ((bone.pivot[1] - parentPivot[1]) / 16.0),
-                (float) ((bone.pivot[2] - parentPivot[2]) / 16.0)
-        );
-
-        Vector3f rotatedOffset = parentRot.transform(new Vector3f(localOffset), new Vector3f());
-        Vector3f worldPos = new Vector3f(parentPos).add(rotatedOffset);
-
-        BoneState state = new BoneState(worldPos, new Quaternionf(parentRot));
-        cache.put(bone.name, state);
-        return state;
-    }
-
-    private static Transformation toTransformation(BoneState state) {
-        return new Transformation(state.pos(), state.rot(), new Vector3f(1, 1, 1), new Quaternionf());
-    }
-
-    private static ItemStack customItem(String modelKey) {
-        ItemStack item = new ItemStack(Material.PAPER);
-        ItemMeta meta = item.getItemMeta();
-        meta.setItemModel(new NamespacedKey("boxpvp", modelKey));
-        item.setItemMeta(meta);
-        return item;
+        entry.tracker().animate("open");
     }
 
     private static String key(Location location) {

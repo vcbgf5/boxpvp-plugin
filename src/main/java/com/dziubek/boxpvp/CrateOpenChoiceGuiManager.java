@@ -30,11 +30,12 @@ public class CrateOpenChoiceGuiManager {
         this.plugin = plugin;
     }
 
-    public void open(Player player, String crateName, List<CrateReward> rewards, Location crateBlockLocation) {
+    public void open(Player player, String crateName, List<CrateReward> rewards, Location crateBlockLocation,
+                      ItemStack keyItem) {
         String customTitle = Branding.customCrateTitle(crateName, Branding.CrateScreen.CHOICE);
         String title = customTitle != null ? customTitle : Branding.accent("Otwórz:") + " §f" + crateName;
-        Inventory inv = Bukkit.createInventory(new CrateOpenChoiceGuiHolder(crateName, rewards, crateBlockLocation),
-                9, title);
+        Inventory inv = Bukkit.createInventory(
+                new CrateOpenChoiceGuiHolder(crateName, rewards, crateBlockLocation, keyItem), 9, title);
 
         inv.setItem(ANIMATED_SLOT, button(new NamespacedKey("boxpvp", "open_with_animation"),
                 Branding.accent("▶ Otwórz z animacją"),

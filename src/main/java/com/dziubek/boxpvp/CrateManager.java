@@ -354,7 +354,7 @@ public class CrateManager {
         if (modelName != null) {
             CrateModel model = plugin.getCrateModels().get(modelName);
             if (model != null) {
-                plugin.getCrateModelDisplays().spawn(location, model, yaw);
+                plugin.getCrateModelDisplays().spawn(plugin, location, model, yaw);
             }
         }
         return true;
@@ -553,7 +553,7 @@ public class CrateManager {
                 }
                 float yaw = (float) data.getDouble(base + ".yaw", 0);
                 try {
-                    plugin.getCrateModelDisplays().spawn(location, model, yaw);
+                    plugin.getCrateModelDisplays().spawn(plugin, location, model, yaw);
                     spawned++;
                 } catch (Exception e) {
                     plugin.getLogger().warning("Nie udało się postawić modelu 3D skrzyni '"

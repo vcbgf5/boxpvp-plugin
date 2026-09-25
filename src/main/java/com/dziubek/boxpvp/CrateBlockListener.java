@@ -64,7 +64,7 @@ public class CrateBlockListener implements Listener {
                 plugin.getCrates().markFreeUsed(crateName, player.getUniqueId());
                 player.sendMessage("§aOtwierasz skrzynię '" + crateName + "' za darmo!");
                 plugin.getCrates().getEffect(crateName).play(plugin, event.getClickedBlock().getLocation());
-                plugin.getCrateOpenChoiceGui().open(player, crateName, rewards, event.getClickedBlock().getLocation());
+                plugin.getCrateOpenChoiceGui().open(player, crateName, rewards, event.getClickedBlock().getLocation(), null);
                 return;
             }
 
@@ -81,14 +81,8 @@ public class CrateBlockListener implements Listener {
 
         playKeyInsertEffect(event.getClickedBlock());
 
-        if (item.getAmount() > 1) {
-            item.setAmount(item.getAmount() - 1);
-        } else {
-            player.getInventory().removeItem(item);
-        }
-
         plugin.getCrates().getEffect(crateName).play(plugin, event.getClickedBlock().getLocation());
-        plugin.getCrateOpenChoiceGui().open(player, crateName, rewards, event.getClickedBlock().getLocation());
+        plugin.getCrateOpenChoiceGui().open(player, crateName, rewards, event.getClickedBlock().getLocation(), item);
     }
 
     /**

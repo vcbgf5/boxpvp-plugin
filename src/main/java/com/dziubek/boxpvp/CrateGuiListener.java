@@ -55,11 +55,29 @@ public class CrateGuiListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         CrateOpenChoiceGuiHolder holder = (CrateOpenChoiceGuiHolder) event.getInventory().getHolder();
 
+        consumeKey(holder.getKeyItem(), player);
+
         if (slot == CrateOpenChoiceGuiManager.ANIMATED_SLOT) {
             CrateRollAnimation.play(plugin, player, holder.getCrateName(), holder.getRewards(), holder.getCrateBlockLocation());
         } else {
             player.closeInventory();
             CrateRollAnimation.playInstant(plugin, player, holder.getCrateName(), holder.getRewards(), holder.getCrateBlockLocation());
+        }
+    }
+
+    /**
+     * Klucz jest zużywany DOPIERO tutaj (gracz faktycznie wybrał sposób otwarcia), nie od razu
+     * przy kliknięciu bloku - jeśli zamknie menu wyboru bez klikania, klucz mu zostaje. null
+     * oznacza darmowe otwarcie (cooldown) - nie ma czego zużywać.
+     */
+    private void consumeKey(ItemStack keyItem, Player player) {
+        if (keyItem == null) {
+            return;
+        }
+        if (keyItem.getAmount() > 1) {
+            keyItem.setAmount(keyItem.getAmount() - 1);
+        } else {
+            player.getInventory().removeItem(keyItem);
         }
     }
 

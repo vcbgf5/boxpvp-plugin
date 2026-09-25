@@ -37,7 +37,7 @@ public class CrateItemDisplayManager {
     private static final float HIGHLIGHT_SCALE = 1.5f;
 
     // "spadanie" wygranej z gory na miejsce spoczynku, zwalniajac pod koniec (ease-out)
-    private static final double DROP_START_OFFSET = 4.0;
+    private static final double DROP_START_OFFSET = 2.0;
     private static final long DROP_DURATION_MS = 1100;
     // ile wygrana zostaje duza w miejscu spoczynku PO wyladowaniu, zanim wroci do normalnego cyklu
     private static final long BIG_HOLD_MS = 2000;
