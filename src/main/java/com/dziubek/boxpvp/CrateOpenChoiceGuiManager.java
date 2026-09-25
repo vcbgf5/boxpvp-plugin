@@ -3,6 +3,7 @@ package com.dziubek.boxpvp;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -35,10 +36,12 @@ public class CrateOpenChoiceGuiManager {
         Inventory inv = Bukkit.createInventory(new CrateOpenChoiceGuiHolder(crateName, rewards, crateBlockLocation),
                 9, title);
 
-        inv.setItem(ANIMATED_SLOT, button(1001, Branding.accent("▶ Otwórz z animacją"),
+        inv.setItem(ANIMATED_SLOT, button(new NamespacedKey("boxpvp", "open_with_animation"),
+                Branding.accent("▶ Otwórz z animacją"),
                 "§7Zobaczysz kręcący się bęben", "§7i dramatyczne odliczanie."));
         inv.setItem(ICON_SLOT, crateIcon(crateName));
-        inv.setItem(INSTANT_SLOT, button(1002, "§b§l⏩ Otwórz bez animacji",
+        inv.setItem(INSTANT_SLOT, button(new NamespacedKey("boxpvp", "open_without_animation"),
+                "§b§l⏩ Otwórz bez animacji",
                 "§7Od razu poznasz wynik,", "§7bez czekania na bęben."));
 
         if (customTitle == null) {
@@ -56,13 +59,13 @@ public class CrateOpenChoiceGuiManager {
         return item;
     }
 
-    private ItemStack button(int customModelData, String name, String... lore) {
+    private ItemStack button(NamespacedKey itemModel, String name, String... lore) {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(name);
         List<String> loreList = new ArrayList<>(Arrays.asList(lore));
         meta.setLore(loreList);
-        meta.setCustomModelData(customModelData);
+        meta.setItemModel(itemModel);
         item.setItemMeta(meta);
         return item;
     }
