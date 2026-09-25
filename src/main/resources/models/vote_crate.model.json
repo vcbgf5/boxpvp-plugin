@@ -17,9 +17,9 @@
       "name": "lid",
       "parent": "root",
       "pivot": [
-        0.0035,
+        0.28871,
         8.44275,
-        6.54029
+        0.1155
       ],
       "hasGeometry": true,
       "modelKey": "vote_crate_lid"

@@ -17,9 +17,9 @@
       "name": "lid",
       "parent": "root",
       "pivot": [
-        0.00401,
+        -0.00472,
         7.62557,
-        6.50398
+        -1.20455
       ],
       "hasGeometry": true,
       "modelKey": "common_crate_lid"

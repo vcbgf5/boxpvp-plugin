@@ -49,9 +49,6 @@ public class PetDisplayManager {
         Location anchor;
         float yaw;
         boolean moving;
-        double animTime;
-        String animOverride;
-        double animOverrideRemaining;
         BukkitTask task;
 
         ActivePet(String species, PetModel model, Location anchor, float yaw) {
@@ -118,17 +115,6 @@ public class PetDisplayManager {
         return active == null ? null : active.species;
     }
 
-    /** Krótka animacja "pet" (interakcja) - odtwarza się na moment, potem wraca do idle/walk. */
-    public void playInteractAnimation(Player owner) {
-        ActivePet active = activePets.get(owner.getUniqueId());
-        if (active == null || !active.model.animations.containsKey("pet")) {
-            return;
-        }
-        active.animOverride = "pet";
-        active.animOverrideRemaining = active.model.animations.get("pet").length;
-        active.animTime = 0;
-    }
-
     private void tick(ActivePet active, Player owner) {
         if (!owner.isOnline()) {
             return;
@@ -159,29 +145,13 @@ public class PetDisplayManager {
             active.moving = false;
         }
 
-        String animName;
-        if (active.animOverride != null) {
-            animName = active.animOverride;
-            active.animOverrideRemaining -= TICK_INTERVAL / 20.0;
-            if (active.animOverrideRemaining <= 0) {
-                active.animOverride = null;
-                active.animTime = 0;
-            }
-        } else {
-            animName = active.moving ? "walk" : "idle";
-        }
-
-        PetModel.Animation animation = active.model.animations.get(animName);
-        double length = animation != null && animation.length > 0 ? animation.length : 1.0;
-        active.animTime += TICK_INTERVAL / 20.0;
-        if (active.animTime >= length) {
-            active.animTime = active.animTime % length;
-        }
-
+        // Statyczna poza spoczynkowa - animacja idle/walk/pet z modelu glitchowala sie na
+        // wielokościowym rigu peta, więc na razie tylko podążanie za graczem (ruch encji), bez
+        // odtwarzania klatek kluczowych.
         Quaternionf baseYaw = new Quaternionf().rotateY((float) Math.toRadians(-active.yaw));
         Map<String, BoneState> states = new HashMap<>();
         for (PetModel.Bone bone : active.model.bones) {
-            resolveState(bone, active.model, animation, active.animTime, baseYaw, states);
+            resolveState(bone, active.model, null, 0, baseYaw, states);
         }
 
         for (PetModel.Bone bone : active.model.bones) {

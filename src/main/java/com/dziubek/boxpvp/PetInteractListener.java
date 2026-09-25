@@ -10,7 +10,7 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.UUID;
 
-/** PPM na własnym aktywnym pecie -> krótka animacja "pet" (przytulenie/reakcja). */
+/** PPM na własnym pecie nie robi nic groźnego (np. próby ataku encji) - po prostu anulowane. */
 public class PetInteractListener implements Listener {
 
     private final BoxPvpPlugin plugin;
@@ -30,7 +30,6 @@ public class PetInteractListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        plugin.getPetDisplays().playInteractAnimation(player);
     }
 
     @EventHandler

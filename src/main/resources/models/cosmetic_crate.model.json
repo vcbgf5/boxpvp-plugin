@@ -39,9 +39,9 @@
       "name": "lid",
       "parent": "root",
       "pivot": [
-        0.01028,
+        0.0026,
         10.63205,
-        7.5
+        -0.0192
       ],
       "hasGeometry": true,
       "modelKey": "cosmetic_crate_lid"
