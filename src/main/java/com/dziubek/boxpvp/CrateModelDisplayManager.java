@@ -24,9 +24,8 @@ public class CrateModelDisplayManager {
     static final String ANCHOR_TAG_KEY = "crate_anchor";
 
     // ile pokrywa zostaje otwarta zanim ruszy animacja "close" i skrzynia wraca do pozycji
-    // zamknietej - oryginalna animacja "open" z paczki modeli trwa sama ~4-4.5s (legendary
-    // najdluzej), wiec to musi z zapasem to pokryc + zostawic kilka sekund "na pokazanie sie"
-    private static final long CLOSE_DELAY_TICKS = 160L;
+    // zamknietej (5s od startu animacji "open")
+    private static final long CLOSE_DELAY_TICKS = 100L;
 
     private final Map<String, Entry> entries = new HashMap<>();
 

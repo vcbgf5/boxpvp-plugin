@@ -68,6 +68,10 @@ public class CrateRollAnimation {
         step(plugin, player, inv, crateName, rewards, reel, random, 0, crateBlockLocation);
     }
 
+    // ile po starcie animacji otwarcia skrzyni (nie po samym kliknieciu kluczem) czeka sie
+    // zanim wyskoczy nagroda - zeby wygladalo jak realne wyjmowanie ze srodka, a nie natychmiastowy pop
+    private static final long INSTANT_REWARD_DELAY_TICKS = 20L;
+
     /**
      * Wariant bez bębenka - od razu losuje i wydaje nagrodę (wybór "Otwórz bez animacji").
      */
@@ -80,8 +84,13 @@ public class CrateRollAnimation {
             plugin.getCrateModelDisplays().playOpenAnimation(plugin, crateBlockLocation);
         }
         CrateReward wonReward = pickWeighted(rewards, new Random());
-        applyReward(plugin, player, crateName, wonReward, crateBlockLocation);
-        playCutscene(plugin, player, crateBlockLocation);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            if (!player.isOnline()) {
+                return;
+            }
+            applyReward(plugin, player, crateName, wonReward, crateBlockLocation);
+            playCutscene(plugin, player, crateBlockLocation);
+        }, INSTANT_REWARD_DELAY_TICKS);
     }
 
     private static void step(BoxPvpPlugin plugin, Player player, Inventory inv, String crateName,
