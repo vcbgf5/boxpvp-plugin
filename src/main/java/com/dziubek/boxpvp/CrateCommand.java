@@ -101,7 +101,7 @@ public class CrateCommand implements CommandExecutor {
         sender.sendMessage("§c/crate setfreecooldown <nazwa> <godziny> §7- darmowe otwarcie bez klucza co X godzin (0 = wyłącz)");
         sender.sendMessage("§c/crate setidleeffect <nazwa> <efekt|none> §7- cichy efekt widoczny gdy nikt nie otwiera skrzyni");
         sender.sendMessage("§c/crate setdisplayheight <wysokość> §7- ile bloków nad skrzynią unosi się pływający przedmiot (na żywo, wszystkie skrzynie)");
-        sender.sendMessage("§c/crate purgedisplays §7- usuwa i stawia od nowa WSZYSTKIE pływające przedmioty, bez restartu serwera");
+        sender.sendMessage("§c/crate purgedisplays §7- usuwa i stawia od nowa WSZYSTKIE pływające przedmioty i modele 3D, bez restartu serwera");
         sender.sendMessage("§c/crate preview <nazwa> §7- podgląd zawartości skrzyni z procentami (dla każdego)");
         sender.sendMessage("§c/crate list §7- lista skrzyń");
     }
@@ -287,8 +287,9 @@ public class CrateCommand implements CommandExecutor {
 
     private boolean handlePurgeDisplays(CommandSender sender) {
         plugin.getCrates().initializeItemDisplays();
-        sender.sendMessage("§aOdświeżono pływające przedmioty nad wszystkimi skrzyniami - stare/osierocone usunięte, "
-                + "świeże postawione. Bez restartu serwera.");
+        plugin.getCrates().initializeCrateModelDisplays();
+        sender.sendMessage("§aOdświeżono pływające przedmioty i modele 3D nad wszystkimi skrzyniami - stare/osierocone "
+                + "usunięte, świeże postawione. Bez restartu serwera.");
         return true;
     }
 
