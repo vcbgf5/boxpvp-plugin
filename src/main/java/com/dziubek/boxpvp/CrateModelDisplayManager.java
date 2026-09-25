@@ -61,7 +61,7 @@ public class CrateModelDisplayManager {
             }
             BoneState state = restStates.get(bone.name);
             ItemDisplay display = anchor.getWorld().spawn(anchor, ItemDisplay.class);
-            display.setItem(customItem(bone.modelKey));
+            display.setItemStack(customItem(bone.modelKey));
             display.setBillboard(Display.Billboard.FIXED);
             display.setTransformation(toTransformation(state));
             entities.put(bone.name, display.getUniqueId());
