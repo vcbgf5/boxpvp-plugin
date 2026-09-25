@@ -22,6 +22,10 @@ public class CrateModelDisplayManager {
 
     static final String ANCHOR_TAG_KEY = "crate_anchor";
 
+    // ile pokrywa zostaje otwarta (po animacji "open", ktora sama trwa 0.8s) zanim ruszy
+    // animacja "close" i skrzynia wraca do pozycji zamknietej
+    private static final long CLOSE_DELAY_TICKS = 90L;
+
     private final Map<String, Entry> entries = new HashMap<>();
 
     private record Entry(ArmorStand anchor, EntityTracker tracker) {
@@ -81,13 +85,22 @@ public class CrateModelDisplayManager {
     /**
      * Odpala animację otwarcia pokrywy (jeśli model ją ma) - wołane dopiero gdy realnie
      * startuje losowanie (CrateRollAnimation), NIE przy samym kliknięciu kluczem w blok.
+     * Pokrywa zostaje otwarta (animacja "open" ma loop=hold - "utyka" na ostatniej klatce),
+     * a po CLOSE_DELAY_TICKS sama się zamyka animacją "close".
      */
-    public void playOpenAnimation(Location blockLocation) {
+    public void playOpenAnimation(BoxPvpPlugin plugin, Location blockLocation) {
         Entry entry = entries.get(key(blockLocation));
         if (entry == null || !entry.anchor().isValid()) {
             return;
         }
         entry.tracker().animate("open");
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            Entry current = entries.get(key(blockLocation));
+            if (current == entry && current.anchor().isValid()) {
+                current.tracker().animate("close");
+            }
+        }, CLOSE_DELAY_TICKS);
     }
 
     private static String key(Location location) {
