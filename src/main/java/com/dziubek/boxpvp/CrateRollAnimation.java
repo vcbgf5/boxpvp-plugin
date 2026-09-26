@@ -47,7 +47,7 @@ public class CrateRollAnimation {
     public static void play(BoxPvpPlugin plugin, Player player, String crateName, List<CrateReward> rewards,
                              Location crateBlockLocation) {
         if (crateBlockLocation != null) {
-            plugin.getCrateModelDisplays().playOpenAnimation(plugin, crateBlockLocation);
+            plugin.getCrateModelDisplays().playOpenAnimation(crateBlockLocation);
         }
         String customTitle = Branding.customCrateTitle(crateName, Branding.CrateScreen.ROLL);
         String title = customTitle != null ? customTitle : Branding.accent("Otwieranie:") + " §f" + crateName;
@@ -81,7 +81,7 @@ public class CrateRollAnimation {
             return;
         }
         if (crateBlockLocation != null) {
-            plugin.getCrateModelDisplays().playOpenAnimation(plugin, crateBlockLocation);
+            plugin.getCrateModelDisplays().playOpenAnimation(crateBlockLocation);
         }
         CrateReward wonReward = pickWeighted(rewards, new Random());
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
